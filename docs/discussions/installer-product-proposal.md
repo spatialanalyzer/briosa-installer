@@ -1,9 +1,10 @@
-# Discussion draft
+# Discussion publication record
 
-- Status: Ready to publish; **not posted to GitHub Discussions**.
+- Status: Published for discussion; the proposal does not establish implemented capabilities.
 - Destination: [spatialanalyzer/community](https://github.com/orgs/spatialanalyzer/discussions), General category.
 - Title: **[Architecture] Briosa Installer: configurable sources, server versions, and SDK maintenance**
-- The text below the divider is the proposed discussion body.
+- Published: [Community Discussion #8](https://github.com/orgs/spatialanalyzer/discussions/8).
+- The text below the divider records the initial published body; follow the Discussion for subsequent feedback and decisions.
 
 ---
 

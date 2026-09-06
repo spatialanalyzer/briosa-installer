@@ -40,7 +40,7 @@ The installer tracks its packages, source configuration, and maintenance results
 | [Source configuration](docs/proposals/source-configuration.md) | Default public source, engineer-configured mirrors, shared GUI/file/script settings, and optional administrator policy. |
 | [Installer and SDK management](docs/proposals/installer-and-sdk-management.md) | Enterprise distribution, package management, SDK compatibility, registration repair, and recovery. |
 | [Administrator and engineer workflows](docs/proposals/installer-user-workflows.md) | How engineers configure sources, install server versions, review SDK setup, and maintain packages. |
-| [Community discussion draft](docs/discussions/installer-product-proposal.md) | A review-ready proposal and focused questions for a dedicated community discussion. Not yet posted. |
+| [Community discussion](https://github.com/orgs/spatialanalyzer/discussions/8) | Published product proposal and implementation questions; the [initial post](docs/discussions/installer-product-proposal.md) is retained here. |
 
 The management and workflow proposals originated during
 [Briosa #158](https://github.com/spatialanalyzer/briosa/issues/158) planning and
