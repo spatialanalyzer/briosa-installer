@@ -9,13 +9,15 @@ below are proposals, not current product capabilities.
 
 ## Proposed experience
 
-Install the management application once through your organization's software
-portal. It should help engineers:
+Install the standard management application once. It defaults to the Briosa
+public release source; engineers can point the same application at an enterprise
+mirror through its GUI or an editable configuration file. A customized installer
+or IT-prepared configuration is not required. It should help engineers:
 
 - Find installed SpatialAnalyzer releases and their approved Briosa packages.
 - Install several exact-target server distributions side by side.
-- Pin each project's server and compatible client selection in a profile.
-- Review updates and change a project's selection for its next session.
+- Inspect installed server versions and their exact SA targets.
+- Review updates and install new versions alongside existing packages.
 - Diagnose SDK setup and request or perform approved maintenance when needed.
 - Work entirely through internal repositories such as JFrog Artifactory, or use
   complete offline bundles.
@@ -25,13 +27,19 @@ release. Installing several products does not enable concurrent automation of
 arbitrary SA windows. Installing a package and proving an execution session ready
 are separate actions.
 
+The installer and server do not maintain an inventory of consuming applications,
+project profiles, or client dependencies. Engineering teams own their application
+configuration and change-impact assessment through their own processes and tools.
+The installer tracks its packages, source configuration, and maintenance results.
+
 ## Design documents
 
 | Document | Purpose |
 | --- | --- |
 | [Application experience](docs/proposals/application-experience.md) | Screens, interaction design, everyday workflows, and first-release scope. |
+| [Source configuration](docs/proposals/source-configuration.md) | Default public source, engineer-configured mirrors, shared GUI/file/script settings, and optional administrator policy. |
 | [Installer and SDK management](docs/proposals/installer-and-sdk-management.md) | Enterprise distribution, package management, SDK compatibility, registration repair, and recovery. |
-| [Administrator and engineer workflows](docs/proposals/installer-user-workflows.md) | How IT prepares an approved source and engineers install, switch targets, update, and recover. |
+| [Administrator and engineer workflows](docs/proposals/installer-user-workflows.md) | How engineers configure sources, install server versions, review SDK setup, and maintain packages. |
 | [Community discussion draft](docs/discussions/installer-product-proposal.md) | A review-ready proposal and focused questions for a dedicated community discussion. Not yet posted. |
 
 The management and workflow proposals originated during
@@ -41,10 +49,17 @@ changes: current server identity and compatibility checks remain authoritative.
 
 ## Enterprise distribution
 
-Internal sources and offline deployment are first-release requirements. In
-managed mode, source selection, trusted publishers, approved versions, and repair
-permissions come from IT policy. Public network access must not be necessary for
-bootstrap, package installation, metadata, prerequisites, or updates.
+Internal sources and offline deployment are first-release requirements. The
+standard application must let an engineer select an enterprise source before
+any public metadata, package, or update request. The GUI, direct file editing,
+and scripts use one versioned configuration format. Installer updates use the
+server-package source by default, with a visible optional override for a separate
+installer-update catalog. Each source supplies both metadata and payloads.
+
+An organization can optionally supply defaults, enforce policy, or deploy the
+same installer through its software portal. Those controls are separate from
+basic mirror configuration. The complete standard installer must also be usable
+without public access, including its prerequisites.
 
 The proposed installer consumes immutable server artifacts and catalogs from an
 approved file/HTTPS feed, including an Artifactory generic repository. Client
@@ -56,7 +71,7 @@ without falling back to a public source.
 
 | Repository | Owns |
 | --- | --- |
-| `briosa-installer` | Installer GUI/CLI, deployment policy integration, package acquisition, local package/profile management, and approved SDK maintenance orchestration. |
+| `briosa-installer` | Installer GUI/CLI, deployment policy integration, package acquisition, installed package inventory, and approved SDK maintenance orchestration. |
 | [briosa](https://github.com/spatialanalyzer/briosa) | Exact-target server/worker products, public protocol, artifact and shared client/runtime contracts, runtime identity, readiness, and SDK compatibility enforcement. |
 | [briosa-dotnet](https://github.com/spatialanalyzer/briosa-dotnet), [briosa-py](https://github.com/spatialanalyzer/briosa-py), [briosa-js](https://github.com/spatialanalyzer/briosa-js) | Idiomatic target-specific client libraries and their package-manager integration. |
 | [briosa-docs](https://github.com/spatialanalyzer/briosa-docs) | Published end-user documentation for released behavior. |
