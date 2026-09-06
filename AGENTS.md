@@ -21,6 +21,12 @@ rule, repair procedure, or illustrative target as implemented or released.
   Coordinate changes there; do not create a conflicting installer-only contract.
 - Each running server remains fixed to one exact SA application release. The
   installer manages separate products; it is not a universal MP implementation.
+- Current product scope excludes project profiles, consuming-application
+  registration, client-dependency inventory, and application-impact tracking.
+  Engineering teams manage their own dependencies and runtime selections.
+  Installer package inventory and server operational state remain necessary;
+  neither is a registry of consuming applications. Any later integration needs
+  a separately accepted scope and design.
 - Preserve the current runtime compatibility gates until an accepted change is
   implemented and validated. A newer-SDK policy in a proposal is not permission
   to bypass an exact runtime identity check or misstate an attested version.
@@ -32,13 +38,22 @@ rule, repair procedure, or illustrative target as implemented or released.
 
 - Share one package-management engine between GUI and CLI. Keep resolution,
   policy, planning, verification, installation, and diagnostics testable with fakes.
+- Ship one standard installer with a public release source as the default.
+  Engineers can configure an enterprise mirror through the GUI, scripts, or the
+  same versioned settings file. Do not require customized installers or centrally
+  distributed configuration for basic mirror support. Administrator policy is
+  optional and separate from ordinary source settings.
+- Installer self-updates share the default package source unless an explicit
+  update-source override is configured. Both paths use the same configuration,
+  policy, authentication, and verification engine. An inaccessible explicit
+  update source must not fall back to the default or public hosting.
 - Managed/offline deployment must cover the installer, prerequisites, metadata,
   packages, and updates. No hidden public fallback, credential leakage, or
   policy bypass through user settings or client auto-download paths.
 - Separate inert installation from runtime startup and readiness. SDK work goes
   through one owned Briosa worker; the installer must not open a second SDK client.
 - Preserve active engineering work and immutable installed artifacts. Review
-  profile changes and maintenance effects before applying them; do not kill
+  package changes and maintenance effects before applying them; do not kill
   unowned SA processes or automatically replay an uncertain MP operation.
 - Registry discovery is not proof of the actual activated SDK. Use only a
   documented, validated vendor procedure for shared registration maintenance.

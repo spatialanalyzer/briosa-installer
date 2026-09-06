@@ -1,162 +1,126 @@
-# Using the Briosa Installer in an Enterprise
+# Using the Briosa Installer
 
-- Status: Proposed user workflows; the installer features below are not released
+- Status: Proposed workflows; the installer is not released
 - Date: 2026-09-06
-- Design: [Briosa Installer and SDK Management Proposal](installer-and-sdk-management.md)
-- Planning: [Briosa #158](https://github.com/spatialanalyzer/briosa/issues/158)
-- Interface: [proposed application experience](application-experience.md)
+- Design: [Installer and SDK management](installer-and-sdk-management.md)
+- Interface: [Application experience](application-experience.md)
+- Settings: [Source configuration](source-configuration.md)
+- Prior planning: [Briosa #158](https://github.com/spatialanalyzer/briosa/issues/158)
 
-Install Briosa once as a management application, then choose the exact-target
-server packages your workstation needs. Your organization controls where the
-software comes from and which versions are approved. Each engineering project
-records the SA target and Briosa package it uses.
+Use one standard management application to obtain and maintain exact-target
+Briosa server packages. Engineering teams separately manage the applications
+that consume those servers, including dependencies, configuration, and deployment
+impact. The installer does not discover those applications or create project
+profiles.
 
-SpatialAnalyzer remains separately installed and licensed software. Installing
-Briosa does not open an SA job or establish an SDK connection. Multiple installed
-versions do not imply that several SA instances can be automated simultaneously.
+SpatialAnalyzer remains separately installed and licensed. Multiple installed
+versions do not imply that arbitrary SA instances can be automated concurrently.
+Screen/action names here are proposed labels, not released commands.
 
-The screen/action names in this document describe the proposed experience. They
-are not existing commands, API identifiers, or released UI labels.
+## Choose your source
 
-**For the Enterprise Administrator: Prepare the Source**
+Install the standard Briosa Installer from public hosting where permitted or an
+unchanged internal copy. Its own installation must work offline, including its
+prerequisites. A customized enterprise build is unnecessary.
 
-1. Make the Briosa Installer available through your organization's software portal
-   or deployment tool. Include its offline prerequisites; engineers should not
-   need to bootstrap from a public website.
-2. Configure an internal artifact source, such as an Artifactory generic feed,
-   for approved server packages and their catalog, checksums, provenance,
-   verification material, compatibility policy, and documentation. Select a
-   controlled proxy or an explicit promotion process according to your policy.
-3. Make language clients and all their dependencies available through the
-   organization's NuGet, PyPI, and npm repositories. A generic server-package
-   feed does not replace those package-manager repositories.
-4. Deploy the approved source/trust configuration, authentication method,
-   installation scope, permitted versions, and SDK maintenance policy. In
-   managed mode, engineers cannot enable a public-source fallback.
-5. Approve the SDK version or compatibility family for the workstation profiles.
-   Keep required SA/SDK media under your existing vendor software process.
-6. Pilot the complete installation and startup workflow on representative
-   workstations, including nonstandard installation paths and multiple SA
-   releases. Promote the tested configuration to the wider team.
+On first launch, public Briosa releases are selected by default. Before any
+catalog or update request, you can open Sources and choose a custom repository.
+Enter the enterprise Briosa catalog URL, test access when available, and save.
+Use the supported authentication method if required. A settings file supplied
+before first launch can make this step noninteractive.
 
-You can use silent deployment to preinstall exact packages and profiles. The
-installer reports stable machine-readable outcomes for deployment tooling; it
-does not open SA from an administrator or system deployment session. Engineers
-run their actual Briosa sessions in the approved desktop user context.
+The GUI, direct file editing, import, and post-install/CLI scripts all use the
+same versioned settings. In Sources, installer updates default to "Use the same
+source" as server packages. If your organization uses another remote for the
+installer, supply that separate update catalog. It supplies both update metadata
+and the installer download. A failed explicit update source does not fall back
+to the server source or public hosting. Optional administrator restrictions are
+shown when they actually apply.
 
-**For the Engineer: First Installation**
+For an offline workstation, select a complete approved catalog/bundle or internal
+share containing immutable payloads and verification material. Follow the same
+review/install flow after verification.
 
-Open the organization-provided installer. Confirm the organization source and
-sign in through the approved method if required. A locked source is intentional;
-contact IT if your required package is missing.
+## Install the required server packages
 
-Review the detected SA applications and select the targets your work requires.
-The installer shows which have approved Briosa distributions. A release with MP
-exports but no supported Briosa product is labeled accordingly and cannot be
-selected as a supported runtime.
+Open Installations and select the exact SA target and Briosa version you need.
+An SA release with MP exports but no released/approved Briosa product is shown
+as unavailable. Review source, identity, scope, disk use, and prerequisites, then
+install. Existing versions remain available alongside the new package.
 
-Review the installation plan. It identifies new packages, disk usage, compatible
-client versions, and any SDK prerequisite or maintenance action. Installing
-another target normally leaves existing packages and project selections intact.
-The installer downloads only from your approved source, verifies the complete
-package, and records the installed result.
+The result identifies the installed package. It does not imply an SDK connection
+or execution-ready session. Review SDK setup if prerequisites need attention.
 
-Create or select the project's target profile. The profile pins the exact SA
-target and Briosa artifact; the corresponding target-specific language client
-must match. Install that client using your team's normal package-manager commands
-and internal feeds. Use the approved lockfile; the Briosa Installer does not
-silently change global package sources or project dependencies.
+You can close the installer after setup. Configure consuming applications through
+their existing client-package dependencies and runtime settings. No application
+registration, client inventory, or installer project selection is required.
+Client-library instructions live in the language repositories and public docs;
+their package managers retain ownership of NuGet, PyPI, and npm configuration.
 
-Choose the explicit validation/start action when you are ready to use SA.
-Resolve conflicting SA/SDK sessions first. One Briosa-owned worker verifies the
-actual environment and proves readiness. An "Installed" result alone does not
-mean MP commands are ready.
+## Review SDK setup
 
-**Using Several Installed SA Releases**
+The app distinguishes installed SDK files, the version Windows is configured to
+activate, and any actual runtime identity observation. It compares product
+requirements with the effective SDK candidate. An older SDK that satisfies the
+relevant requirements is not automatically broken.
 
-For example, projects might target SA `2024.1.0508.5` and `2026.1.0529.7`. Those
-are illustrative selections; the earlier target does not currently have a
-released Briosa distribution. Once both are supported, each project uses its
-own matching server package and client dependency.
+For a problem, review the proposed SDK version and compatibility effects on
+installed server products. Coordinate maintenance under your organization's
+process. The installer cannot identify all custom applications affected by a
+shared SDK change. Their owning teams assess and coordinate that impact.
 
-One newer, organization-approved SDK should normally serve the older applications
-under the proposed backward-compatibility policy. Changing project targets then
-selects another Briosa distribution without repairing SDK registration each time.
-The currently implemented server still requires an exact SDK version match until
-that policy is delivered.
+Use an automated repair action only where the vendor procedure has been validated.
+Otherwise, export a sanitized IT/vendor handoff. Do not improvise registry edits
+or change an attestation to report an identity that was not observed.
 
-To switch an active workload, finish or reconcile pending commands, stop the
-current owned SDK session, resolve any existing SA endpoint owner, and start the
-selected target's server/application workflow. Briosa will not silently close an
-unowned SA instance. A previously opened secondary SA window does not become
-SDK-addressable merely because the first one closes; a new eligible instance
-may be required.
+An optional explicit environment-validation action uses one owned Briosa worker
+in the appropriate licensed desktop session. It verifies the real SA/SDK
+identities and runtime readiness. Resolve existing SA/SDK ownership conflicts
+first; unrelated SA jobs are not silently closed. A previously opened secondary
+SA window may need to be reopened to acquire the SDK endpoint.
 
-**When the Installer Reports an SDK Registration Problem**
+The proposed normal setup uses one approved backward-compatible SDK for several
+SA targets. Current exact SDK identity checks still apply until the broader
+runtime compatibility policy is implemented. Selecting a different server does
+not automatically change shared registration.
 
-The diagnostic should explain the situation in terms of versions and actions:
-for example, "Windows currently selects an older SDK that does not meet this
-profile's requirements. A newer approved SDK is installed. Administrator repair
-is required." It must distinguish the registered candidate from an SDK actually
-observed running.
+## Update, restore, or remove packages
 
-Save your work and follow your organization's maintenance procedure. If you are
-authorized, choose the separate SDK repair action and review the selected version
-and affected profiles. Otherwise, provide IT with the sanitized diagnostic report.
-The installer uses a supported vendor repair/registration procedure. It does not
-ask you to edit registry values or change permissions manually.
-
-Repair can affect other applications that use the SA SDK. It will not proceed
-through unresolved ownership conflicts by terminating their processes. After
-repair, follow any restart/reboot instructions and establish a fresh validated
-Briosa session. Do not change an attestation to say versions match when they do
-not.
-
-**Updating Briosa or SpatialAnalyzer**
-
-| Update | What You Do | What the Installer Should Do |
+| Change | Installer action | Application team's responsibility |
 | --- | --- | --- |
-| Briosa Installer update | Accept the organization-approved management-app update or receive it through IT deployment. | Update management software without changing selected runtimes or SDK registration. |
-| Briosa server fix for an existing SA target | Review the compatible package and select a new-session migration. | Install beside the old package and preserve the previous profile for rollback. |
-| New SA release | Install through the approved SA process, then refresh installer diagnostics. | Detect any SDK registration changes and show whether a matching Briosa product is approved. |
-| New compatible SDK | Follow the organization's approval and maintenance process. | Recommend registration only when the approved policy and required profiles permit it. |
-| SDK regression | Stop new affected work and contact the designated support/IT channel. | Explain the known incompatibility and approved fallback; never silently downgrade or retry MP work. |
+| Management-app update | Check the configured update catalog, verify its installer payload, and apply the reviewed update/restart while preserving settings and server packages. | Follow applicable software-management policy. |
+| Server maintenance version | Install another immutable version alongside the existing one. | Test and deliberately adopt the desired runtime through application configuration/dependencies. |
+| Another SA target | Show whether a matching server product is available and install it separately. | Choose matching client dependencies and coordinate SA deployment. |
+| Damaged/previous package | Restore that exact artifact from the configured source when permitted. | Manage application rollback and its data/recovery implications. |
+| Server removal | Review the exact package and detectable running/in-use state; remove only that version. | Decide whether applications still need it and coordinate impact before removal. |
+| SDK maintenance/regression | Explain product compatibility and approved maintenance or fallback. | Coordinate workloads and affected custom applications externally. |
 
-An upstream release does not automatically become an approved corporate update.
-If no supported Briosa product exists for a new SA release, keep the old project
-selection. Have IT resolve any SDK registration change caused by the SA install
-before resuming work.
+The installer does not scan for applications, inspect their lockfiles, or maintain
+a list of projects that would be affected by a change. Configuration-management
+systems and other engineering-team processes can orchestrate adoption separately.
+The CLI provides package operations and useful outcomes without a client registry.
 
-If the newest SDK cannot support all required projects, the installer reports
-the conflict. IT can schedule a controlled SDK switch between workloads or
-provide separately validated environments. Project selection must not cause
-automatic shared-registry switching.
+If an installation fails, keep existing complete packages usable under policy.
+Restoring a package does not undo SA data changes or establish whether an
+interrupted MP executed. Removing Briosa leaves SA, licensing, and shared SDK
+registration intact. A server still running or files otherwise in use prevent
+immediate removal; stop it through its normal owner and retry deliberately.
 
-**Offline Workstations and Recovery**
+If a future SDK cannot satisfy the server targets needed for a maintenance plan,
+review the reported product conflict. Coordinate a controlled SDK switch between
+workloads or separately validated environments. Do not alternate shared
+registration automatically as applications start.
 
-IT supplies a complete approved offline bundle or internal share containing the
-same immutable artifacts and metadata used by the connected installer. Import
-it, verify it, and follow the same selection workflow. Internal repository
-unavailability must never trigger a public download. Existing verified packages
-remain usable offline within organizational policy.
+## Optional enterprise deployment and support
 
-If an update fails before selection changes, continue with the old installed
-package. If a selected package must be rolled back, choose the recorded previous
-selection when no session is using the affected resources. Software rollback does
-not reverse changes to an SA job or determine whether an interrupted MP executed.
+IT can maintain mirrors, publish approved metadata, supply the standard settings
+file, establish protected policy, and deploy exact packages noninteractively.
+These are optional distribution methods. Installing under an administrator or
+system account does not launch SA; runtime work happens later in the approved
+desktop user context.
 
-When uninstalling, review the affected profiles and packages. Removing Briosa
-does not uninstall SA, remove its license, unregister the shared SDK, or close an
-open job. A package still used by a project or active session is identified before
-removal; retain or deliberately migrate that dependency.
-
-**Getting Help**
-
-Use diagnostics to identify source/authentication failure, missing package,
-unsupported target, incompatible SDK, administrator-required maintenance, or
-runtime ownership/recovery problems. Export only curated versions, artifact and
-policy identities, operation outcomes, and diagnostic codes. Support reports omit
-job data, paths, credentials, host/process identifiers, license material, and raw
-vendor errors. IT owns repository/policy and machine maintenance problems;
-Briosa/Hexagon support investigates product or SDK compatibility through the
-appropriate project and vendor channels.
+Use Activity and diagnostics for package/source failures or SDK setup problems.
+Support exports contain curated product/policy identities, diagnostic codes, and
+operation outcomes. Omit job data, paths, credentials, host/process identifiers,
+license material, and raw vendor errors. Follow the relevant organization,
+Briosa, and Hexagon support channels.

@@ -1,191 +1,165 @@
 # Briosa Installer application experience
 
-- Status: Draft product and interaction proposal; no application is implemented
+- Status: Draft product and interaction proposal; no installer is implemented
 - Date: 2026-09-06
 - Technical design: [Installer and SDK management](installer-and-sdk-management.md)
 - Task walkthroughs: [Administrator and engineer workflows](installer-user-workflows.md)
+- Settings: [Source configuration](source-configuration.md)
 
-## Product shape
+## Product shape and ownership
 
-Build a small Windows management application that engineers can close after
-setup. It should feel like a practical installed-software manager: a clear list
-of SA releases, readable status, a few specific actions, and a review of changes.
-Avoid making engineers learn feeds, COM, or package graphs just to get started.
-Put those details behind an explanation or an administrator view.
+Build a small Windows utility for obtaining, inspecting, and maintaining Briosa
+server distributions. Engineers can close it after setup. It keeps an inventory
+of installed packages and source/maintenance settings; it does not discover
+custom applications, inspect their dependencies, create project profiles, or
+record which clients use a server.
 
-Use one installer engine from both a Windows GUI and a noninteractive CLI. IT
-deployment must not automate clicks. The management application's own installer
-must support a complete internally distributed/offline payload. The choice of
-Windows UI framework and bootstrap packaging is still open; this proposal does
-not select WPF, WinUI, MSI, or another technology.
+Engineering teams own application configuration, rollout, and impact assessment
+through their existing processes and configuration-management tools. Neither
+the installer nor the server requires consuming applications to register.
+Necessary runtime request/connection state remains owned by the server; future
+authentication is a separate design concern.
 
-The management app should not have to remain open for a client to resolve and
-use an installed package. Runtime sessions still follow the shared Briosa
-lifecycle contract. A tray monitor can be considered separately after the core
-deployment workflow works.
+Use one installation engine from both the Windows GUI and a noninteractive CLI.
+The same standard installer defaults to public Briosa releases and supports
+engineer-configured enterprise mirrors and offline sources. Central deployment
+and enforced administrator policy are optional. UI framework and bootstrap
+packaging remain implementation decisions.
 
 ## Window and navigation
 
-Use a conventional Windows window with a narrow navigation column, a main work
-area, and a contextual details panel where there is room. On a narrow window,
-stack the details beneath the selection. Use system typography, light/dark and
-high-contrast support, keyboard navigation, screen-reader labels, and visible
-focus indicators. Status must be expressed in text, not color alone.
+Use a conventional Windows window with system typography, a narrow navigation
+column, and a clear main work area. Stack or reflow navigation at narrow widths.
+Support keyboard operation, visible focus, screen readers, light/dark appearance,
+and high contrast. Explain status in text as well as color.
 
-Show the source and policy near the top of every screen: for example,
-"Managed by your organization · Approved channel." Display the last successful
-metadata refresh and offer an explicit refresh. A failed refresh must explain
-whether an already installed selection can still be used under the cached policy.
-Never equate "not the newest version" with a broken installation.
+The four views are:
 
-| Navigation | What the engineer sees | Main actions |
+| View | Main content | Actions |
 | --- | --- | --- |
-| Installations | Detected SA releases, available approved Briosa products, installed server versions, and package status. | Review installation, inspect package, review update, repair package, remove. |
-| Project profiles | A named project with its exact SA target, pinned server artifact, compatible client identity, SDK policy, and last validation result. | Create a profile, review a new selection, export project configuration, restore a previous selection. |
-| SDK setup | Effective registered SDK candidate, installed alternatives, policy requirements, and affected profiles. Actual observed runtime identity is shown separately when available. | Inspect details, preview approved maintenance, export an IT handoff. |
-| Sources | Approved artifact source, offline source, credential state, policy ownership, and metadata freshness. | Test source access, refresh, import an approved bundle, request administrator help. |
-| Activity | Installation and maintenance results with timestamps and next steps. | Inspect an operation, export a sanitized report. |
+| Sources | Server-package catalog and installer-update catalog, shared by default; editable settings; authentication and refresh state. | Configure public, enterprise, or offline sources; test access; save/import/export settings. |
+| Installations | Exact SA releases, available server packages, installed versions, and package status. | Review installation/update, inspect details, repair files, remove a specific version. |
+| SDK setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
+| Activity | Package/source/maintenance operations and their outcomes. | Inspect results and sanitized support information. |
 
-Show administrator-only actions with a short explanation such as
-"Managed by IT" or "Administrator required." Avoid a window full of unexplained
-disabled controls. Elevate only the narrow maintenance/install action that needs
-it, not the whole application by default.
+Show the active source in the window chrome. Display "Managed by your
+organization" only when actual policy applies; ordinary source controls are
+editable by the engineer. Elevate only the narrow operation needing privileges.
 
-## Installations screen
+## 1. Choose a download source
 
-Lead with the user's question: "Which SA release does this project use?" Give
-each exact release a row. Keep the friendly release label and exact identifier
-visible together; two builds of the same SA release must be distinguishable.
+On an unconfigured launch, show public Briosa releases as the default selection.
+Allow a custom repository or offline source before any network operation. A
+complete standard installer must support offline setup, including prerequisites,
+so a post-install script can supply settings before the app first runs.
 
-Show application availability separately from Briosa package status. A package
-can be staged before SA is installed, but cannot become runtime-ready then.
-An installed SA release without a released/approved Briosa product remains
-visible with an explanation. A captured MP command inventory alone must never
-create an installable product.
+For a custom source, the normal interaction is catalog URL, optional connection
+test, and Save. Saving valid settings can work while the source is unavailable.
+The GUI and JSON file represent the same settings; direct editing, import, and
+CLI/scripts use the same schema and resolution rules. Show the effective file
+location. Keep credential secrets in a supported secure store/provider.
 
-The details panel explains the selected server version, artifact/source identity,
-architecture, client pairing, SDK requirement, and approval/validation basis.
-Engineers can expand the digest and technical evidence without needing them for
-ordinary selection.
+Show "Server packages" and "Installer updates" explicitly. Installer updates use
+the same source by default; a visible option allows a separate update catalog.
+Both update metadata and the installer payload use that effective source. An
+explicit override has no fallback to the server source if it fails. See the
+[self-update contract](source-configuration.md#installer-self-update).
 
-"Review installation" opens a concrete plan: exact artifacts, approved source,
-scope, disk use, prerequisites, expected result, and any separate maintenance
-needed. After applying it, show "Package installed; session not validated" and
-offer profile setup. A green package indicator must not suggest an SDK connection
-has already been proved ready.
+Source changes cover their associated metadata and downloads. Failure does not
+trigger public fallback. Preserve installed
+artifacts and invalidate unapplied plans/caches that depended on the former
+source. No source action changes an application's runtime selection.
 
-Support retrying a failed download or an incomplete staged installation without
-changing the old working selection. Display whether no changes were applied,
-installation completed, or recovery is required. An ambiguous MP outcome is a
-runtime concern and cannot be repaired by retrying an installation action.
+## 2. Install server versions
 
-## Project profiles and target switching
+Ask which SA releases the workstation needs to support. Give each exact SA
+release a row, with its full identifier visible. Inside that row, distinguish
+available packages from individually installed Briosa versions. Several server
+versions for the same target may coexist, as may products for different targets.
+There is no machine-wide "current project" or client registration step.
 
-A profile represents a reproducible project selection, not a mutable machine-wide
-"current SA version." Switching the highlighted profile in the installer edits
-only the proposed selection. Applying it records a reviewed configuration for
-future sessions; existing sessions keep their original product.
+Show installed SA and installed Briosa state separately. An SA release with only
+MP exports and no released Briosa product remains visible with an explanation;
+evidence alone must not create an installable package. Packages can be staged
+before SA is available, with the missing runtime prerequisite clearly reported.
 
-Let engineers name a profile, choose an exact target, and review compatible
-server/client identities. The profile format and local-store resolution rules
-must be agreed with the shared client behavioral contract in `briosa`. An export
-must use portable identities; workstation installation paths and credentials do
-not belong in a committed team configuration.
+Review installation before applying it: exact target/version/artifact, source,
+scope, disk use, verification, and required maintenance. Stage and verify a
+complete immutable directory. A failed download or extraction leaves older
+installed packages intact. Completion says "Package installed" and distinguishes
+it from a validated runtime session.
 
-Provide project-specific client instructions for .NET, Python, and JavaScript
-using the organization's package sources. Do not install language tools or
-rewrite project dependencies or global feed settings without a separate reviewed
-action. Each project's client still has to match its exact target.
+Package details expose artifact identity, architecture, protocol identity, and
+SDK requirements. General compatibility metadata does not identify a consuming
+client. Do not scan application directories, inspect lockfiles, generate project
+configuration, or ask which application will use the installed server.
 
-Offer explicit environment validation through an owned server/worker. Show the
-target, actual connected SA identity, actual activated SDK identity, applicable
-compatibility rule, and readiness result as distinct information. Historical
-validation includes its time and is not a live promise of readiness. Running
-this validation requires an appropriate licensed user session and clear consent
-to the startup/connection actions involved.
+## 3. Review SDK setup when necessary
 
-If an existing SA instance owns the SDK endpoint, explain the conflict and how
-the operator can resolve it. Never silently close an unrelated job. Switching
-from an older SA project to a newer one normally changes the selected server and
-client, with no shared SDK registry rewrite. That normal path depends on the
-proposed runtime SDK compatibility policy being delivered.
+Show the registered SDK candidate separately from an actual activated SDK
+observation. Explain compatibility against installed server products or products
+explicitly selected for the maintenance plan. These are package requirements;
+the installer does not know which targets a custom application depends on.
 
-## Updates and recovery
+Normally prefer one newest approved SDK compatible with the relevant server
+targets. The proposed broader backward-compatibility policy still requires a
+reviewed runtime change: today's exact SDK identity gates remain authoritative.
+Choosing another installed server must not automatically rewrite shared COM
+registration.
 
-Present updates by purpose, not as one "Update everything" button:
+A maintenance preview identifies current/proposed SDK versions, product
+compatibility effects, privileges, restart needs, and the supported vendor
+procedure. Other SDK consumers can also be affected; their owning teams coordinate
+that impact externally. The installer does not enumerate those applications or
+infer that absence of a running process makes a change safe for all consumers.
 
-- **Management app:** an approved installer update with its own version.
-- **Server maintenance:** another package for the same exact SA target, installed
-  alongside the old package; a project migrates separately for its next session.
-- **Another SA target:** an additional product, not an in-place upgrade to an
-  unrelated project's target.
-- **Compatibility policy:** a reviewed rules update with effects on profiles.
-- **SDK maintenance:** a separate shared-system change, requiring its own plan.
+Automated repair is available only for a documented, validated vendor procedure.
+Until then, diagnosis and a precise IT/vendor handoff are useful deliverables.
+An explicit optional validation action can start/connect through one owned
+Briosa worker in a licensed desktop session. It must explain that action, respect
+existing SA endpoint ownership, and preserve runtime identity/readiness gates.
+Installation itself does not activate the SDK or execute MPs.
 
-Show the previous selection and the consequences of restoring it. Removal lists
-affected profiles and active sessions and requires those references to be
-resolved. Removing Briosa must leave the SA application, licensing, and shared
-SDK registration intact.
+## 4. Maintain packages independently of applications
 
-## SDK setup and administrator handoff
+The engineer can close the installer after packages and prerequisites are ready.
+An application uses its own dependencies and configuration to locate the expected
+server. Application adoption and rollback are managed by its owning team, outside
+this app.
 
-Explain a problem as "Windows currently selects SDK X; these projects require
-an approved compatible SDK" before exposing registry details. An older SDK that
-satisfies every required profile need not be repaired. Prefer the newest
-organization-approved SDK that satisfies all required profiles, using explicit
-compatibility metadata and known-bad exclusions.
+Distinguish these maintenance operations:
 
-The repair preview shows current and proposed SDK identity, the supported vendor
-procedure, required privileges, restart requirements, and affected profiles.
-Shared SDK consumers outside Briosa may also be affected. The engineer can export
-a sanitized handoff or proceed under an applicable administrative maintenance
-authorization. A screen preview is not evidence that a vendor repair procedure
-has already been established.
+- Check the effective installer-update source and update the management application
+  itself, preserving both source settings and installed server packages.
+- Install a server maintenance version alongside older versions of that target.
+- Add a server product for another exact SA target.
+- Inspect a compatibility-policy update and any SDK maintenance it suggests.
+- Restore a specific damaged package or remove an explicitly selected version.
 
-If no validated automation exists, ship diagnosis and precise IT/vendor guidance.
-Automated repair can follow when the vendor entry point and failure recovery have
-been proved. No hidden registry toggles during project startup are planned.
+Installing an update does not select it for custom applications or automatically
+remove an older version. Removal reviews package identity, file location/scope,
+and detectable running/in-use state. Check again when applying the operation and
+fail clearly if files cannot safely be removed. Do not claim a list of affected
+projects or guarantee that an idle application no longer needs the package.
+Preserve other installed versions, SA, licensing, and shared SDK registration.
 
-For a future SDK regression, show which combinations are blocked and the approved
-fallback. If one SDK cannot satisfy all required profiles, offer a clear
-administrator decision: planned maintenance between workloads or separately
-validated environments. Do not promise a per-project SDK selection mechanism
-unless Hexagon and runtime validation establish one.
+Package recovery can restore availability of a prior exact artifact within
+policy. It does not restore an application's settings, undo SA data changes, or
+resolve whether an interrupted MP completed.
 
-## Enterprise and offline use
+## First-release scope
 
-IT supplies the installer through the usual software portal or deployment tool,
-with locked sources and approval policy. The engineer's source view should show
-that configuration without requiring Artifactory administration. Native language
-package repositories remain separate from the generic artifact/catalog feed.
+Include editable public/internal/offline sources, shared GUI/file/script settings,
+verified installation and package inventory, side-by-side updates, explicit
+removal, SDK diagnosis, sanitized results, and noninteractive deployment. Optional
+administrator policy uses the same standard app. Automated SDK repair follows
+validated vendor procedures.
 
-An offline import first inspects the bundle, publisher/approval material, policy
-snapshot, and payload completeness, then offers the same installation plan as an
-online source. Sources may refresh metadata without silently migrating profiles
-or rewriting registration. Document the supported noninteractive authentication
-methods and policy behavior before calling an environment supported.
+Project profiles, client registries, application-dependency tracking, project-aware
+rollout/rollback, and custom-application impact analysis are outside this release.
+Any later integration needs a separate accepted design. A tray runtime monitor
+and alternate COM activation mechanisms remain separate roadmap work.
 
-The CLI must offer the same planning, installation, profile, diagnosis, and
-removal operations with stable exit statuses and machine-readable output. Define
-the syntax in an implementation review; no command examples here should be
-mistaken for a released interface. IT needs idempotent deployment, scope and
-detection rules, unattended authentication, reboot reporting, and useful errors
-without an interactive desktop or SA activation during installation.
-
-## Proposed first release and later work
-
-The first useful release should include managed and offline bootstrap, source
-policy, verified package installation/removal, profiles, reviewed updates,
-noninteractive deployment, SDK diagnosis, and sanitized diagnostics. The GUI and
-CLI should use the same engine and produce the same plans and outcomes.
-
-Deliver automated SDK repair only for validated vendor procedures. A runtime
-monitor, extra source adapters, advanced fleet reporting, and any alternative
-COM activation mechanism can be reviewed separately. Neither a tray process nor
-a speculative SDK selection mechanism should delay basic reliable deployment.
-
-Before implementation, resolve catalog/profile ownership with `briosa`, select
-the Windows packaging/UI approach, define supported authentication and offline
-trust, and validate the SDK compatibility/repair plan with Hexagon. Convert
-accepted decisions into focused implementation issues rather than treating every
-sentence of this draft as approved policy.
+The interactive concept uses sample sources and package states. Its simulated
+actions do not download, install, launch SA, or modify registration. A sample
+maintenance version demonstrates coexistence and is not a released-version claim.
