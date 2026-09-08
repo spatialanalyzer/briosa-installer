@@ -12,4 +12,7 @@
     <ProjectReference Include="../../src/Briosa.Installer.Cli/Briosa.Installer.Cli.csproj" />
     <Using Include="Xunit" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../examples/catalog.json" Link="Fixtures/catalog.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -7,8 +7,8 @@ precedence where they explicitly override this guide.
 ## Purpose and current state
 
 This repository owns the independent Windows installer/manager for exact-SA-target
-Briosa distributions. It contains a .NET 10/WPF source-settings development
-preview, shared core engine, CLI, and draft product design documents. The
+Briosa distributions. It contains a .NET 10/WPF source-settings and read-only
+catalog development preview, shared core engine, CLI, and draft product design documents. The
 maintainer selected .NET 10/WPF for the first application on 2026-09-06. Do not
 describe proposed package acquisition, update application, SDK maintenance,
 compatibility rules, or illustrative targets as implemented or released.
@@ -52,6 +52,14 @@ compatibility rules, or illustrative targets as implemented or released.
 - Managed/offline deployment must cover the installer, prerequisites, metadata,
   packages, and updates. No hidden public fallback, credential leakage, or
   policy bypass through user settings or client auto-download paths.
+- Catalog structure and publisher trust are separate claims. The current preview
+  reports publisher verification as not performed and cannot install anything.
+  Keep the shared catalog contract and producer in `briosa`; do not turn declared
+  checksums into a trust decision or add an unreviewed install action.
+- Catalog reads are explicit and bounded. Preserve separate updater routing,
+  clear stale results when settings change, reject redirects, and never request
+  payloads during browsing. Credentials and administrator policy remain separate
+  implementation work; do not silently use Windows credentials or cookies.
 - Separate inert installation from runtime startup and readiness. SDK work goes
   through one owned Briosa worker; the installer must not open a second SDK client.
 - Preserve active engineering work and immutable installed artifacts. Review

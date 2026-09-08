@@ -7,4 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Briosa.Installer.App/Briosa.Installer.App.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../examples/catalog.json" Link="Fixtures/catalog.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

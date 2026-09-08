@@ -3,14 +3,16 @@
 One Windows management application for installing and maintaining Briosa
 distributions for the exact SpatialAnalyzer releases your projects use.
 
-**Status: source-settings development preview.** The .NET 10/WPF application and
-CLI can validate, save, and reload server-package and installer-update sources
-through one shared engine. They do not yet contact catalogs, download or install
-packages, apply updates, or interact with SpatialAnalyzer. There is no released
-installer. The broader features below remain proposals.
+**Status: catalog-browsing development preview.** The .NET 10/WPF application and
+CLI share source settings, read catalogs from HTTPS or local/share paths, and
+preview server packages and installer releases through their configured sources.
+Catalog entries are unverified metadata; the app does not acquire payloads,
+install packages, apply updates, or interact with SpatialAnalyzer. There is no
+released installer. The broader features below remain proposals.
 
-See [build and run instructions](docs/development.md) and the
-[foundation implementation boundary](docs/architecture/0001-wpf-and-source-settings.md).
+See [build and run instructions](docs/development.md), the
+[offline example walkthrough](examples/README.md), and the
+[catalog implementation boundary](docs/architecture/0002-release-catalog-browsing.md).
 
 ## Proposed experience
 

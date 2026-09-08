@@ -4,7 +4,19 @@ namespace Briosa.Installer.Cli;
 
 public static class Program
 {
-    public static int Main(string[] args) => CliApplication.Run(args, Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser());
+    public static int Main(string[] args)
+    {
+        using var cancellation = new CancellationTokenSource();
+        ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+        Console.CancelKeyPress += cancel;
+        try
+        {
+            return args.FirstOrDefault() == "catalog"
+                ? CatalogCommands.RunAsync(args[1..], Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser(), cancellationToken: cancellation.Token).GetAwaiter().GetResult()
+                : CliApplication.Run(args, Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser());
+        }
+        finally { Console.CancelKeyPress -= cancel; }
+    }
 }
 
 public static class CliApplication
@@ -78,18 +90,21 @@ public static class CliApplication
     private static int Usage(TextWriter error) { Help(error); return 2; }
 
     private static void Help(TextWriter writer) => writer.WriteLine("""
-        Briosa Installer CLI — source-settings development preview
+        Briosa Installer CLI — catalog browsing development preview
 
         settings show|validate [--config <file>]
         settings set [--config <file>] [--server-catalog <location>]
                      [--installer-catalog <location> | --same-source]
         settings init --config <new-file> --server-catalog <location>
                       [--installer-catalog <location> | --same-source]
+        catalog list --component server|installer [--config <file>]
+        catalog preview --component server|installer --id <package-id> [--config <file>]
 
         Locations are HTTPS catalog URLs or absolute Windows file/share paths.
         init creates a new file and refuses to overwrite an existing file.
         set preserves an existing updater override unless --same-source is supplied.
-        This preview does not contact catalogs, download packages, or change SA.
+        Only catalog commands contact a catalog. No command downloads packages or changes SA.
         Exit codes: 0 success, 2 invalid input or file error, 3 setup required, 4 save conflict.
+        Catalog commands also return 5 for catalog failures and 130 for cancellation.
         """);
 }

@@ -17,7 +17,7 @@
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Margin="8,20,0,0">
           <TextBlock Text="Development preview" FontWeight="SemiBold" />
-          <TextBlock Text="Source settings foundation" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12" />
+          <TextBlock Text="Catalog browsing preview" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12" />
         </StackPanel>
         <ListBox x:Name="Navigation" SelectionChanged="NavigationChanged" SelectedIndex="0"
                  Background="Transparent" BorderThickness="0" VerticalAlignment="Top"
@@ -77,17 +77,46 @@
                        AutomationProperties.LiveSetting="Polite" Margin="0,0,0,16" />
             <TextBlock Text="Settings file" FontWeight="SemiBold" Margin="0,0,0,6" />
             <TextBox x:Name="SettingsPath" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="Settings file location" />
-            <TextBlock Text="This preview saves configuration only. Catalog access, package installation, and updates are not available yet."
+            <TextBlock Text="Open Installations to refresh a saved catalog and preview packages. Package installation and update application are not available yet."
                        TextWrapping="Wrap" FontSize="12" Margin="0,12,0,0" />
           </StackPanel>
           <StackPanel x:Name="InstallationsPage" Visibility="Collapsed">
             <Border Style="{StaticResource Card}">
               <StackPanel>
-                <TextBlock Text="Package management comes next" Style="{StaticResource SectionHeading}" />
-                <TextBlock Text="This preview does not inspect or install server packages. The next increment will introduce catalog discovery and reviewed installation plans for exact SpatialAnalyzer targets."
-                           TextWrapping="Wrap" />
+                <TextBlock Text="Available packages" Style="{StaticResource SectionHeading}" />
+                <TextBlock Text="Browse the selected catalog and preview a package. These are catalog entries, not an inventory of installed software."
+                           TextWrapping="Wrap" Margin="0,0,0,18" />
+                <Label Content="_Component" Target="{Binding ElementName=CatalogComponentSelector}" />
+                <ComboBox x:Name="CatalogComponentSelector" SelectedIndex="0" SelectionChanged="CatalogComponentChanged"
+                          Padding="8" MinHeight="36" AutomationProperties.Name="Catalog component">
+                  <ComboBoxItem Content="Server packages" />
+                  <ComboBoxItem Content="Installer application" />
+                </ComboBox>
+                <WrapPanel Margin="0,16,0,14">
+                  <Button x:Name="RefreshCatalogButton" Content="_Refresh catalog" Click="RefreshCatalogClicked" IsEnabled="False" Margin="0,0,10,0" />
+                  <Button x:Name="CancelCatalogButton" Content="_Cancel refresh" Click="CancelCatalogClicked" IsEnabled="False" />
+                </WrapPanel>
+                <TextBlock x:Name="CatalogStatusText" Text="Save your source settings, then refresh the catalog." TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" Margin="0,0,0,16" />
+                <DataGrid x:Name="CatalogPackages" AutoGenerateColumns="False" IsReadOnly="True" Height="230"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="34" ColumnHeaderHeight="36"
+                          CanUserAddRows="False" SelectionMode="Single" SelectionUnit="FullRow" SelectionChanged="CatalogSelectionChanged"
+                          AutomationProperties.Name="Available catalog packages">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="160" MinWidth="145" />
+                    <DataGridTextColumn Header="SpatialAnalyzer target" Binding="{Binding TargetDisplay}" Width="180" MinWidth="170" />
+                    <DataGridTextColumn Header="Platform" Binding="{Binding RuntimeIdentifier}" Width="110" MinWidth="100" />
+                    <DataGridTextColumn Header="Declared size" Binding="{Binding SizeDisplay}" Width="*" MinWidth="105" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Button x:Name="PreviewPackageButton" Content="_Preview selected package" Click="PreviewPackageClicked"
+                        IsEnabled="False" HorizontalAlignment="Left" Margin="0,16,0,0" />
               </StackPanel>
             </Border>
+            <TextBox x:Name="PackagePreviewText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                     MinHeight="100" AutomationProperties.Name="Package preview" />
+            <TextBlock Text="Publisher verification has not been performed. This preview cannot download, install, or run a package."
+                       TextWrapping="Wrap" Margin="0,12,0,0" />
           </StackPanel>
           <StackPanel x:Name="SdkPage" Visibility="Collapsed">
             <Border Style="{StaticResource Card}">

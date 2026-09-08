@@ -14,9 +14,11 @@ public partial class MainWindow : Window
     private bool dirty;
     private bool busy;
 
-    public MainWindow(ConfigurationPaths paths)
+    public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null)
     {
         this.paths = paths;
+        this.catalogClient = catalogClient ?? new ReleaseCatalogClient();
+        ownsCatalogClient = catalogClient is null;
         InitializeComponent();
         SettingsPath.Text = paths.ExplicitFile ?? paths.UserFile;
     }
@@ -25,6 +27,7 @@ public partial class MainWindow : Window
 
     private async Task ReloadAsync()
     {
+        InvalidateCatalog();
         SetBusy(true);
         try
         {
@@ -70,6 +73,7 @@ public partial class MainWindow : Window
             }
             snapshot = ((Outcome<SettingsSnapshot>.Success)saved).Value;
             dirty = false;
+            InvalidateCatalog();
             StatusText.Text = "Settings saved. Catalog access has not been tested.";
             AddActivity("Source settings saved.");
         }
@@ -85,7 +89,11 @@ public partial class MainWindow : Window
     {
         if (EffectiveSource is null || SameSource is null || InstallerCatalog is null) return;
         UpdateEffectiveSource();
-        if (!populating) dirty = true;
+        if (!populating)
+        {
+            dirty = true;
+            InvalidateCatalog();
+        }
     }
 
     private void UpdateEffectiveSource()
@@ -142,6 +150,7 @@ public partial class MainWindow : Window
         ServerCatalog.IsEnabled = !value;
         SameSource.IsEnabled = !value;
         UpdateEffectiveSource();
+        UpdateCatalogControls();
     }
 
     private void AddActivity(string message)
@@ -154,5 +163,9 @@ public partial class MainWindow : Window
         "Discard your unsaved source settings?", "Briosa Installer", MessageBoxButton.YesNo,
         MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes;
 
-    private void WindowClosing(object? sender, CancelEventArgs e) => e.Cancel = busy || !ConfirmDiscard();
+    private void WindowClosing(object? sender, CancelEventArgs e)
+    {
+        e.Cancel = busy || !ConfirmDiscard();
+        if (!e.Cancel) catalogRead?.Cancel();
+    }
 }

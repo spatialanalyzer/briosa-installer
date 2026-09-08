@@ -11,7 +11,9 @@
 `Briosa.Installer.Cli` owns noninteractive argument parsing and output.
 Both call `Briosa.Installer.Core`, which owns configuration parsing, effective
 source selection, file selection, content revision checks, and persistence.
-The core has no WPF, COM, networking, server, or client-library dependency.
+At this foundation checkpoint the core had no WPF, COM, networking, server, or
+client-library dependency. [Catalog browsing](0002-release-catalog-browsing.md)
+subsequently adds HTTP/file reading to the core while preserving UI independence.
 
 This lets GUI and scripted setup use the same behavior and keeps future package
 operations independent of the desktop framework. The WPF UI uses system colors,
@@ -46,7 +48,9 @@ its boundary with arbitrary external writers.
 ## Required subsequent work
 
 - Define mirrorable catalogs, artifact identities, trust, and installed-package
-  discovery in `briosa` before this app relies on shared contracts.
+  discovery in `briosa` before this app relies on shared contracts. The subsequent
+  catalog increment implements a candidate read-only contract; trust and installed
+  discovery remain future work.
 - Implement approved enterprise authentication and optional policy separately
   from source editing; continue to keep secrets out of source settings.
 - Supply the real public source, source setup before requests, and complete

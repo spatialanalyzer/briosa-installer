@@ -33,5 +33,5 @@ jobs:
         run: dotnet build Briosa.Installer.slnx -c Release --no-restore
       - name: Test core and CLI
         run: dotnet test tests/Briosa.Installer.Tests -c Release --no-build --no-restore
-      - name: Exercise WPF source settings
+      - name: Exercise WPF configuration and catalog browsing
         run: dotnet run --project tests/Briosa.Installer.App.Smoke -c Release --no-build --no-restore
