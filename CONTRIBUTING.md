@@ -13,10 +13,10 @@ Thanks for helping make Briosa straightforward to deploy and maintain.
 5. Use `Closes #<issue-number>` only when the change satisfies the issue; use
    `Refs #<issue-number>` for partial work. Qualify cross-repository references.
 
-There is no executable implementation or test suite yet. For documentation
-changes, verify links, run `git diff --check`, and confirm that proposals cannot
-be mistaken for released features. Implementation changes must introduce useful
-build and validation instructions with the code they exercise.
+See [development instructions](docs/development.md) for build and test commands.
+For documentation changes, verify links, run `git diff --check`, and confirm
+that proposals cannot be mistaken for released features. Keep build and
+validation instructions current with the code they exercise.
 
 ## Design and validation expectations
 

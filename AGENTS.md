@@ -7,9 +7,11 @@ precedence where they explicitly override this guide.
 ## Purpose and current state
 
 This repository owns the independent Windows installer/manager for exact-SA-target
-Briosa distributions. It currently contains repository basics and draft design
-documents only. Do not describe a proposed feature, CLI command, compatibility
-rule, repair procedure, or illustrative target as implemented or released.
+Briosa distributions. It contains a .NET 10/WPF source-settings development
+preview, shared core engine, CLI, and draft product design documents. The
+maintainer selected .NET 10/WPF for the first application on 2026-09-06. Do not
+describe proposed package acquisition, update application, SDK maintenance,
+compatibility rules, or illustrative targets as implemented or released.
 
 ## Boundaries
 
@@ -71,7 +73,8 @@ Start from a focused issue and use a short-lived `<issue-number>-<description>`
 branch. Keep PRs coherent; use qualified cross-repository references. GitHub
 issues and the organization Project are the planning source of truth.
 
-For this documentation-only foundation, check links and `git diff --check`.
-Introduce build commands and meaningful tests with the implementation. Do not
-invent a supported release matrix, framework choice, signing arrangement, or
-enterprise authentication capability to fill an unresolved design question.
+Follow [development instructions](docs/development.md): restore locked
+dependencies, build the solution, run core/CLI tests and the WPF smoke harness,
+and check links and `git diff --check`. Do not invent a supported release
+matrix, signing arrangement, enterprise authentication capability, or public
+catalog URL to fill an unresolved design question.

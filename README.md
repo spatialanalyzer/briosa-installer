@@ -3,9 +3,14 @@
 One Windows management application for installing and maintaining Briosa
 distributions for the exact SpatialAnalyzer releases your projects use.
 
-**Status: design and repository setup.** This repository does not yet contain an
-installer implementation, downloadable application, or released CLI. The features
-below are proposals, not current product capabilities.
+**Status: source-settings development preview.** The .NET 10/WPF application and
+CLI can validate, save, and reload server-package and installer-update sources
+through one shared engine. They do not yet contact catalogs, download or install
+packages, apply updates, or interact with SpatialAnalyzer. There is no released
+installer. The broader features below remain proposals.
+
+See [build and run instructions](docs/development.md) and the
+[foundation implementation boundary](docs/architecture/0001-wpf-and-source-settings.md).
 
 ## Proposed experience
 
@@ -92,9 +97,10 @@ tracked in GitHub issues and the
 Start design discussion in
 [organization Discussions](https://github.com/orgs/spatialanalyzer/discussions).
 
-There is no build or test command yet. Implementation should establish a shared
-installer engine with a noninteractive CLI and Windows GUI; the UI framework,
-packaging technology, and signing arrangement remain open decisions.
+The first implementation uses .NET 10 and WPF, with a shared engine and CLI.
+Windows packaging, signing, enterprise authentication, and the public catalog
+remain implementation decisions. The development build requires .NET 10;
+complete offline deployment remains a release requirement.
 
 ## License and product relationship
 
