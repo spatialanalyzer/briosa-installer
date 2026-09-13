@@ -179,6 +179,26 @@ distinguishes file observations from runtime SDK/SA identity. Export the sanitiz
 IT/vendor handoff for repair. Automated registry repair awaits a documented supported
 vendor procedure. Exact server runtime identity gates still apply.
 
+Discovery reads both Windows registry views and uses the merged classes view for
+the inspecting user to label **Configured SDK registration**. Matching machine
+entries are consolidated; differing underlying registrations remain separate
+evidence. Each registry view remains explicit in the details. This does not identify
+an already-running COM server or the configuration of another account or service.
+
+When an SA uninstall entry omits its installation directory, an existing
+`DisplayIcon` file provides another location to check for a sibling
+`SpatialAnalyzerSDK.exe`. Discovery reads file-version resources, normalizes
+comma-separated vendor versions, and lists SDK files separately from installed
+SA products. It does not infer SDK versions from directory names.
+
+For COM registration, a valid `ServerExecutable` takes precedence over the command
+line. An unquoted path containing spaces can still identify a candidate file for
+inspection, but remains explicitly flagged as ambiguous for Windows launch.
+Missing files, unresolved commands, service registrations, and incomplete reads
+remain visible. These rules follow Microsoft's
+[LocalServer32 documentation](https://learn.microsoft.com/en-us/windows/win32/com/localserver32)
+and [merged classes view](https://learn.microsoft.com/en-us/windows/win32/sysinfo/merged-view-of-hkey-classes-root).
+
 Engineering teams own application adoption and change coordination through their
 own configuration management. The installer has no client registry, project
 inventory, or dependency-impact scan.

@@ -199,3 +199,20 @@ Reviewed the dark appearance render under `artifacts/cursor-brand-review` and th
 packaged app on Settings, including interaction with the header and blank card
 content. The content displays the normal pointer. All 119 core/CLI tests, WPF smoke
 workflows, package checks, documentation links, and original asset hashes passed.
+
+## SDK discovery follow-up
+
+Review build 20 fixes missing SDK files when SA uninstall entries omit
+InstallLocation, identifies existing candidate files behind unquoted registration
+paths while preserving launch ambiguity, normalizes comma-separated file versions,
+and consolidates matching machine/merged registry evidence. Configured registration
+is listed first and selected; a wrapping status column explains each observation.
+
+Reviewed the SDK light/dark and compact renders under
+`artifacts/sdk-discovery-review`. Native read-only inspection on the maintainer's
+workstation found three SDK files and one configured registration, matching the
+separately read installation and registry evidence. No COM activation, SA connection,
+or registration change was performed. The 147 core/CLI tests (including 28 new
+discovery cases), WPF workflows, package checks, documentation links, and original
+brand hashes passed. Runtime SDK identity and broader deployment checks remain
+outside this inspection.

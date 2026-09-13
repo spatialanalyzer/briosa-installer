@@ -129,6 +129,12 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 - Registry discovery is not proof of the actual activated SDK. Use only a
   documented, validated vendor procedure for shared registration maintenance.
   No guessed switches, arbitrary elevated commands, or per-session registry flips.
+  Installed SA metadata may omit InstallLocation; recover candidates through an
+  existing DisplayIcon file and probe the sibling SDK. Preserve file evidence
+  separately from product metadata, normalize vendor comma-separated versions,
+  and retain unquoted-path ambiguity. Label the merged classes registration for
+  each view as configured; do not count its matching machine entry twice or promote
+  another underlying registration when the merged read is unavailable.
 - Ordinary builds/tests must not require SA or proprietary binaries. Obtain
   explicit current-task permission before controlling SA, activating its SDK,
   changing registry state, or running licensed integration tests.

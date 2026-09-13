@@ -21,6 +21,7 @@ public sealed record SdkEvidence(SdkObservation Observation)
 {
     public string Kind => Observation.Kind;
     public string Version => Observation.Version;
+    public string Status => Observation.Status;
     public string AccessibleName => $"{Kind}, version {Version}, {Observation.Status}";
 }
 public sealed record ActivityView(ActivityEntry Entry)

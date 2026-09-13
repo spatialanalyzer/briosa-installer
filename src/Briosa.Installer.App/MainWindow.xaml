@@ -365,10 +365,18 @@
             </StackPanel>
           </Border>
           <TextBlock x:Name="SdkNextStepText" Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,12" />
-          <DataGrid x:Name="SdkObservations" Grid.Row="2" SelectionChanged="SdkSelectionChanged" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installation and SDK registration evidence">
+          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="42" SelectionChanged="SdkSelectionChanged" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installation and SDK registration evidence">
+            <DataGrid.Resources>
+              <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="4,6,8,6" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+              </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Observation" Binding="{Binding Kind}" Width="*" />
-              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="160" />
+              <DataGridTextColumn Header="Observation" Binding="{Binding Kind}" Width="200" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="145" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
             </DataGrid.Columns>
           </DataGrid>
           <WrapPanel Grid.Row="3" Margin="0,12,0,0">

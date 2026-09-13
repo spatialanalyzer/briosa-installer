@@ -333,7 +333,26 @@ internal static partial class Program
         oldWindow.Close();
 
         Page(window, "SdkNavigation"); Click(window, "InspectSdkButton"); Ready(window);
-        Require(Find<DataGrid>(window, "SdkObservations").Items.Count == 1 && Find<TextBlock>(window, "SdkSummaryText").Text.Contains("not been validated", StringComparison.Ordinal), "SDK summary overstated readiness.");
+        var sdkRows = Find<DataGrid>(window, "SdkObservations").Items.OfType<SdkEvidence>().ToArray();
+        Require(sdkRows.Length == 7 && sdkRows[0].Kind == SdkReport.ConfiguredRegistration &&
+            Find<TextBlock>(window, "SdkSummaryText").Text.Contains("Configured SDK: 2099.1.0101.1. 3 installed SDK files", StringComparison.Ordinal) &&
+            Find<TextBlock>(window, "SdkSummaryText").Text.Contains("not been validated", StringComparison.Ordinal),
+            "SDK summary lost the configured older SDK, installed files, or runtime distinction.");
+        if (args.Length > 0)
+        {
+#pragma warning disable WPF0001
+            var sdkTheme = Application.Current.ThemeMode;
+            foreach (var mode in new[] { "light", "dark" })
+            {
+                BrandTheme.ApplyPreference(Application.Current, mode);
+                PumpDispatcher();
+                Render((FrameworkElement)window.Content, args[0] + $".sdk-{mode}.png", 1140, 800);
+                Render((FrameworkElement)window.Content, args[0] + $".sdk-{mode}-compact.png", 820, 580);
+            }
+            Application.Current.ThemeMode = sdkTheme;
+#pragma warning restore WPF0001
+            BrandTheme.ApplySystem(Application.Current);
+        }
         Page(window, "ActivityNavigation");
         Require(Find<ListBox>(window, "ActivityList").Items.OfType<ActivityView>().Any(a => a.Entry.Operation == "Sdk.Inspect"), "New SDK inspection is missing from current Activity.");
         var persisted = new ActivityStore(feed.Root).Read();
@@ -484,7 +503,14 @@ internal static partial class Program
     }
     private sealed class FakeSdkDiscovery : ISdkDiscovery
     {
-        public SdkReport Inspect() => new(DateTimeOffset.UtcNow, [new("Registered SDK candidate", "Fixture / 64-bit", "2099.1.0101.1", "Fixture only", "Activation not observed")], "Fixture handoff; no registry access or SDK activation.");
+        public SdkReport Inspect() => new(DateTimeOffset.UtcNow,
+            new[] { "2099.1.0101.1", "2099.2.0202.2", "2099.2.0202.3" }.SelectMany(v => new[]
+            {
+                new SdkObservation("Installed SA product", "Fixture / 32-bit", v, "Fixture only", "Installer registration; runtime not observed"),
+                new SdkObservation("Installed SDK file", "Fixture / 32-bit", v, "Fixture only", "File version evidence only"),
+            }).Append(new(SdkReport.ConfiguredRegistration, "Fixture / 32-bit", "2099.1.0101.1", "Fixture only",
+                "Unquoted path; file identified, activation not observed", SdkEvidenceState.UnquotedPath)).ToArray(),
+            "Fixture handoff; no registry access or SDK activation.");
     }
 
     private static void Require(bool condition, string message)

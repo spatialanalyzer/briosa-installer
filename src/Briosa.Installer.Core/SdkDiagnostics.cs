@@ -1,13 +1,17 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 
 namespace Briosa.Installer.Core;
 
-public sealed record SdkObservation(string Kind, string Context, string Version, string Location, string Status);
+public enum SdkEvidenceState { Observed, UnquotedPath, MissingFile, Unresolved, ServiceRegistration, OtherRegistration }
+public sealed record SdkObservation(string Kind, string Context, string Version, string Location, string Status,
+    SdkEvidenceState State = SdkEvidenceState.Observed);
 public sealed record SdkReport(DateTimeOffset ObservedAt, IReadOnlyList<SdkObservation> Observations, string Guidance)
 {
+    public const string ConfiguredRegistration = "Configured SDK registration";
     public object Sanitized() => new { observedAt = ObservedAt, observations = Observations.Select(o => new { o.Kind, o.Context,
-        version = System.Text.RegularExpressions.Regex.IsMatch(o.Version, @"\A[0-9]+(\.[0-9]+){1,3}\z") ? o.Version : "Unknown", o.Status }), guidance = Guidance };
+        version = SdkDiscoveryAnalysis.NormalizeVersion(o.Version), o.Status, o.State }), guidance = Guidance };
 }
 public interface ISdkDiscovery { SdkReport Inspect(); }
 public sealed class WindowsSdkDiscovery : ISdkDiscovery
@@ -17,7 +21,9 @@ public sealed class WindowsSdkDiscovery : ISdkDiscovery
     public SdkReport Inspect()
     {
         if (!OperatingSystem.IsWindows()) throw new ManagementException(ManagementError.UnsupportedPlatform);
-        var items = new List<SdkObservation>();
+        var registrations = new List<SdkComRegistration>();
+        var products = new List<SdkProductRegistration>();
+        var issues = new List<SdkObservation>();
         foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
         {
             foreach (var hive in new[] { RegistryHive.CurrentUser, RegistryHive.LocalMachine, RegistryHive.ClassesRoot })
@@ -26,53 +32,55 @@ public sealed class WindowsSdkDiscovery : ISdkDiscovery
                 try
                 {
                     using var root = RegistryKey.OpenBaseKey(hive, view);
-                    var prefix = hive == RegistryHive.ClassesRoot ? "" : @"Software\Classes\";
-                    using var registration = root.OpenSubKey(prefix + @"CLSID\" + ClassId + @"\LocalServer32");
-                    if (registration?.GetValue(null) is string command)
-                    {
-                        var path = ExecutablePath(command);
-                        items.Add(new("Registered SDK candidate", context, FileVersion(path), path ?? "Unresolved command", path is not null && File.Exists(path) ? "Candidate file exists; activation not observed" : "Missing or ambiguous executable"));
-                    }
+                    // Product discovery must survive failures reading the COM registration.
+                    try { ReadRegistration(root, hive, view, registrations); }
+                    catch (Exception e) when (ReadFailure(e)) { Incomplete(context + " / COM registration"); }
                     if (hive == RegistryHive.ClassesRoot) continue;
                     using var uninstall = root.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
                     if (uninstall is null) continue;
                     foreach (var name in uninstall.GetSubKeyNames())
                     {
-                        using var entry = uninstall.OpenSubKey(name);
-                        if (entry?.GetValue("DisplayName") is not string display || !display.Contains("SpatialAnalyzer", StringComparison.OrdinalIgnoreCase)) continue;
-                        var location = entry.GetValue("InstallLocation") as string ?? "Not recorded";
-                        var version = entry.GetValue("DisplayVersion") as string ?? "Unknown";
-                        items.Add(new("Installed SA product", context, version, location, "Installer registration; runtime not observed"));
-                        if (Directory.Exists(location))
+                        try
                         {
-                            var sdk = Path.Combine(location, "SpatialAnalyzerSDK.exe");
-                            if (File.Exists(sdk)) items.Add(new("Installed SDK file", context, FileVersion(sdk), sdk, "File version evidence only"));
+                            using var entry = uninstall.OpenSubKey(name);
+                            if (entry?.GetValue("DisplayName") is not string display ||
+                                !(display.Contains("SpatialAnalyzer", StringComparison.OrdinalIgnoreCase) ||
+                                  display.Contains("Spatial Analyzer", StringComparison.OrdinalIgnoreCase))) continue;
+                            products.Add(new(context, entry.GetValue("DisplayVersion") as string,
+                                entry.GetValue("InstallLocation") as string, entry.GetValue("DisplayIcon") as string));
                         }
+                        catch (Exception e) when (ReadFailure(e)) { Incomplete(context + " / installed product"); }
                     }
                 }
-                catch (Exception e) when (e is UnauthorizedAccessException or System.Security.SecurityException or IOException)
-                { items.Add(new("Discovery incomplete", context, "Unknown", "Not disclosed", "Access denied or unreadable registration")); }
+                catch (Exception e) when (ReadFailure(e)) { Incomplete(context); }
             }
         }
-        return new(DateTimeOffset.UtcNow, items,
-            "Registration and installed files do not prove which SDK or SA instance is active. Current Briosa runtime identity gates remain authoritative. " +
-            "For stale, missing, or user-shadowed registration, coordinate an SA maintenance window and ask IT/Hexagon to use its supported installer repair procedure. " +
-            "No vendor registration procedure is enabled in this app. It does not activate COM, connect to SA, execute MPs, or change registration.");
+        return SdkDiscoveryAnalysis.Analyze(registrations, products, issues, File.Exists, FileVersion);
+
+        void Incomplete(string context) => issues.Add(new("Discovery incomplete", context, "Unknown", "Not disclosed",
+            "Access denied or unreadable registration", SdkEvidenceState.Unresolved));
     }
-    private static string? ExecutablePath(string command)
+
+    [SupportedOSPlatform("windows")]
+    private static void ReadRegistration(RegistryKey root, RegistryHive hive, RegistryView view, List<SdkComRegistration> registrations)
     {
-        command = command.Trim();
-        if (command.StartsWith('"'))
+        var prefix = hive == RegistryHive.ClassesRoot ? "" : @"Software\Classes\";
+        using var clsid = root.OpenSubKey(prefix + @"CLSID\" + ClassId);
+        if (clsid is null) return;
+        using var local = clsid.OpenSubKey("LocalServer32");
+        var service = clsid.GetValue("LocalService") as string;
+        if (clsid.GetValue("AppID") is string appId && Guid.TryParse(appId, out var id))
         {
-            var end = command.IndexOf('"', 1);
-            return end > 1 ? Environment.ExpandEnvironmentVariables(command[1..end]) : null;
+            using var app = root.OpenSubKey(prefix + @"AppID\" + id.ToString("B"));
+            service ??= app?.GetValue("LocalService") as string;
         }
-        // An unquoted command with spaces has ambiguous Windows executable resolution.
-        return !command.Any(char.IsWhiteSpace) && command.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? Environment.ExpandEnvironmentVariables(command) : null;
+        registrations.Add(new(hive, view, local?.GetValue(null) as string, local?.GetValue("ServerExecutable") as string, service));
     }
-    private static string FileVersion(string? path)
+
+    private static bool ReadFailure(Exception e) => e is UnauthorizedAccessException or System.Security.SecurityException or IOException;
+    private static string FileVersion(string path)
     {
-        try { return path is not null && File.Exists(path) ? FileVersionInfo.GetVersionInfo(path).FileVersion ?? "Unknown" : "Unknown"; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return "Unknown"; }
+        try { return FileVersionInfo.GetVersionInfo(path).FileVersion ?? "Unknown"; }
+        catch (Exception e) when (ReadFailure(e) || e is ArgumentException) { return "Unknown"; }
     }
 }

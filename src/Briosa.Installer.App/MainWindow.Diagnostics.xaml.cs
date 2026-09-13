@@ -59,19 +59,24 @@ public partial class MainWindow
         {
             sdkReport = await Task.Run(sdkDiscovery.Inspect);
             var products = sdkReport.Observations.Where(o => o.Kind == "Installed SA product").Select(o => o.Version).Distinct().ToArray();
-            var registered = sdkReport.Observations.Where(o => o.Kind == "Registered SDK candidate").ToArray();
+            var registered = sdkReport.Observations.Where(o => o.Kind == SdkReport.ConfiguredRegistration).ToArray();
+            var files = sdkReport.Observations.Where(o => o.Kind == "Installed SDK file").ToArray();
             var incomplete = sdkReport.Observations.Any(o => o.Kind == "Discovery incomplete");
             var unknown = registered.Any(o => o.Version == "Unknown");
             SdkSummaryTitle.Text = products.Length == 0 ? "No installed SA releases identified" :
                 $"{products.Length} SpatialAnalyzer release{(products.Length == 1 ? "" : "s")} found";
-            SdkSummaryText.Text = registered.Length == 0 ? "No SDK registration was found in the inspected locations." :
-                unknown ? "The registered SDK version could not be determined." :
-                "Registered SDK file version evidence: " + string.Join(", ", registered.Select(o => o.Version).Distinct()) + ".";
+            SdkSummaryText.Text = registered.Length == 0 ? "No SDK configuration was found in the inspected merged registry views." :
+                unknown ? "Some configured SDK files could not be identified. Review their status below." :
+                "Configured SDK: " + string.Join(", ", registered.Select(o => o.Version).Distinct()) + ".";
+            SdkSummaryText.Text += $" {files.Length} installed SDK file{(files.Length == 1 ? "" : "s")} found.";
             SdkSummaryText.Text += " Runtime identity and readiness have not been validated." + (incomplete ? " Some locations could not be inspected." : "");
-            SdkNextStepText.Text = registered.Length == 0 || unknown || incomplete ?
+            SdkNextStepText.Text = registered.Any(o => o.State == SdkEvidenceState.UnquotedPath) ?
+                "The configured path contains spaces without quotes. The file can be inspected, but Windows launch resolution can be ambiguous. See the selected evidence for its path and registry view." :
+                registered.Length == 0 || unknown || incomplete ?
                 "Review the evidence below. If registration needs maintenance, export a handoff report and coordinate the vendor-supported repair procedure with IT / Hexagon." :
                 "Review registration details if you are investigating a mismatch. Briosa validates the actual SDK and SA identities when it connects.";
-            SdkObservations.ItemsSource = sdkReport.Observations.OrderBy(o => o.Kind == "Installed SA product" ? 0 : 1).Select(o => new SdkEvidence(o)).ToArray();
+            SdkObservations.ItemsSource = sdkReport.Observations.OrderBy(o => o.Kind == SdkReport.ConfiguredRegistration ? 0 : o.Kind == "Installed SA product" ? 1 : 2).Select(o => new SdkEvidence(o)).ToArray();
+            SdkObservations.SelectedIndex = registered.Length > 0 ? 0 : -1;
             SdkObservations.Visibility = Show(sdkReport.Observations.Count > 0);
             SdkDetailsButton.Visibility = Show(sdkReport.Observations.Count > 0);
             RecordActivity("Sdk.Inspect", "Succeeded");
