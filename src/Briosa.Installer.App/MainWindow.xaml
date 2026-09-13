@@ -359,7 +359,7 @@
               <TextBlock x:Name="SdkSummaryText" Text="Find installed SpatialAnalyzer releases and inspect SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
               <WrapPanel Margin="0,14,0,0">
-                <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />
+                <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" Margin="0,0,8,0" />
                 <Button x:Name="ExportSdkButton" Content="Export handoff report…" Click="ExportDiagnosticsClicked" IsEnabled="False" />
               </WrapPanel>
             </StackPanel>
