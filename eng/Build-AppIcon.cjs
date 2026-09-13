@@ -9,18 +9,16 @@ const sizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256];
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 async function main() {
-  const sources = {};
+  const name = 'marks/briosa-symbol-inverse.svg';
+  const bytes = fs.readFileSync(path.join(root, 'Brand', name));
   const frames = [];
   for (const size of sizes) {
-    const name = size <= 32 ? 'favicon.svg' : 'app-icon.svg';
-    const bytes = fs.readFileSync(path.join(root, 'Brand/icons', name));
-    sources[`icons/${name}`] = sha256(bytes);
-    // The bounding box is centered upstream, but the filled planes' centroid is
-    // ~54 units below the tile's center. Move the intact symbol, not the tile.
-    // Preserve the approved small-size optical geometry, fills and orientation.
-    const svg = bytes.toString('utf8').replace('<path ', '<g transform="translate(0 -54)"><path ')
-      .replace('</svg>', '</g></svg>');
-    frames.push(await sharp(Buffer.from(svg), { density: 192 }).resize(size, size).png().toBuffer());
+    // Keep the transparent symbol intact. Contain its slightly rectangular
+    // canvas in a square without cropping, stretching, or offsetting the planes.
+    // The source's 32-unit left/right clear space remains symmetric at every size.
+    frames.push(await sharp(bytes, { density: 192 }).resize(size, size, {
+      fit: 'contain', position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 },
+    }).png().toBuffer());
   }
   // PNG-compressed, 32-bit ICO frames; native sizes avoid Windows upscaling 16 px.
   const header = Buffer.alloc(6 + sizes.length * 16);
@@ -39,8 +37,8 @@ async function main() {
   const provenance = {
     source: 'spatialanalyzer/briosa-brand@v1',
     commit: '0a86718f66164e4a773bea37f738888a57c6bce0',
-    inputs: sources,
-    modification: 'Translate the complete three-plane symbol by (0, -54) in the 1024-unit canvas for optical vertical centering. Preserve the background tile, shapes, colors and small-size optical variant.',
+    inputs: { [name]: sha256(bytes) },
+    modification: 'Rasterize the unmodified transparent inverse symbol (white, silver-gray and cyan-blue) into centered square ICO frames using contain fit. Preserve aspect ratio, original geometry, colors and equal left/right padding. No background tile or optical translation.',
     generator: 'eng/Build-AppIcon.cjs', renderer: { sharp: sharp.versions.sharp, vips: sharp.versions.vips },
     sizes, sha256: sha256(icon),
   };

@@ -52,7 +52,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 - Settings → Appearance owns the saved System/Light/Dark preference. Preview
   immediately, persist through the common settings Save/Discard flow, and retain
   Windows contrast-theme priority. Theme-only saves must not reset package catalogs.
-  App/launcher/window icons share the optically centered ICO under `Assets/AppIcon`;
+  App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
+  with white, silver-gray, and cyan-blue planes and equal left/right padding;
+  do not restore the blue background tile or the rejected vertical offset.
   preserve its documented derivation and leave original brand assets byte-exact.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.

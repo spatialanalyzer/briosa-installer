@@ -51,6 +51,10 @@
     {
       "path": "icons/favicon.svg",
       "sha256": "67db8d1d23a5617818fe944135e0b6177bf07b9223d1e66f892a82c104745c5a"
+    },
+    {
+      "path": "marks/briosa-symbol-inverse.svg",
+      "sha256": "d0354692f40583d995b216d19b392bdc91adfd969f8c8537a08ece86d1cf0c66"
     }
   ]
 }

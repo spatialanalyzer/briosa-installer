@@ -13,11 +13,11 @@ The published pack was verified against its SHA-256 checksum before copying asse
   application titles, accessible names, and prose continue to use Briosa.
 - Installer is a separate readable product descriptor. No new suite lockup or
   altered wordmark is created. The slogan is omitted from the compact header.
-- The app, bootstrap launcher, and WPF windows share the optically centered
-  application ICO in `Assets/AppIcon`. The original tile was centered, but the
-  three-plane symbol's filled area sat about 5.3% below its center. The derivative
-  translates the intact symbol upward by 54 units in the 1024-unit canvas,
-  preserving the background, plane geometry, colors, and small-size optical variant.
+- The app, bootstrap launcher, and WPF windows share the transparent three-color
+  symbol ICO in `Assets/AppIcon`. It uses the approved inverse symbol: white,
+  silver-gray, and cyan-blue planes, with no blue background tile. Square icon
+  frames preserve the original geometry and aspect ratio with equal left/right
+  padding. The earlier vertical adjustment was removed following maintainer review.
   Native 16, 20, 24, 32, 40, 48, 64, 96, 128, and 256 px frames cover common
   taskbar and title-bar scaling sizes. Original brand assets remain unmodified.
 - The unmodified Inter variable font is embedded for supporting interface text.
@@ -92,7 +92,7 @@ The optional [icon generator](../eng/Build-AppIcon.cjs) uses Node.js and Sharp
 0.35.4. Run `node eng/Build-AppIcon.cjs` with Sharp installed in the authoring
 environment, or pass an absolute module path as its only argument. Normal .NET
 builds use the committed ICO and need neither Node.js nor an image library.
-Inputs are the byte-exact v1 `icons/app-icon.svg` and `icons/favicon.svg` under
+The input is the byte-exact v1 `marks/briosa-symbol-inverse.svg` under
 `Assets/Brand`. `Assets/AppIcon/derivation.json` records input/output hashes,
-the placement adjustment, renderer versions, and frame sizes. The distribution
+the transparent square export, renderer versions, and frame sizes. The distribution
 includes that record with the brand license and original provenance.

@@ -8,9 +8,9 @@ commit `0a86718f66164e4a773bea37f738888a57c6bce0`, under Apache-2.0.
 The custom lowercase wordmark is supplied artwork; prose continues to use Briosa.
 Trademark permissions remain separate from copyright licensing.
 
-The application ICO is a derivative: the complete three-plane symbol is translated
-upward within the original tile for optical centering. Shapes and colors are
-preserved. `Assets/AppIcon/derivation.json` records the modification, generator,
+The application ICO is a raster export of the unmodified transparent inverse
+symbol, contained in square frames with centered padding. Shapes, colors, and
+transparency are preserved. `Assets/AppIcon/derivation.json` records the export, generator,
 and hashes; the distribution includes it as `licenses/briosa-app-icon-derivation.json`.
 
 In source, original paths, SHA-256 digests, and the approved pack digest are in

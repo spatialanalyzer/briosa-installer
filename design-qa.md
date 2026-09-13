@@ -68,13 +68,20 @@ The WPF workflow check covers reopening, discard, external-file conflict/reload,
 System selection, explicit-mode refresh, and a theme save during a pending catalog
 read. Theme-only saves preserve catalog results. The 118 core/CLI tests pass.
 
-The original icon's blue tile is centered, but its symbol's filled-area centroid
-at 256 px is approximately (127.8, 141.1), below the canvas center (127.5, 127.5).
-The application derivative moves the intact symbol upward; its centroid is now
-approximately (127.8, 127.6). Reviewed original and adjusted exports at 256, 32,
-and 24 px. It retains the approved geometry, colors, and small-size optical variant.
-Ten native ICO sizes are shared by the executable, launcher, and WPF windows.
-The original brand files remain byte-exact, with the derivative separately recorded.
+The first icon revision incorrectly treated the reported problem as vertical
+centering. The maintainer clarified that the concern was horizontal centering and
+requested the transparent three-color symbol instead of the blue background tile.
+The vertical translation is removed. The current icon is a direct export of the
+approved inverse symbol: white, silver-gray, and cyan-blue planes, preserving the
+original geometry and aspect ratio inside transparent square frames.
+
+All ten decoded ICO frames have exactly equal left and right transparent margins:
+1 px at 16/20, 2 px at 24/32, 3 px at 40, 4 px at 48, 5 px at 64, 8 px at 96,
+10 px at 128, and 21 px at 256. Corner alpha is zero at every size. Reviewed
+`artifacts/icon-review/transparent-256.png`, `transparent-32.png`, and
+`transparent-24.png`. The icon has no tile, clipping, or nonuniform scaling.
+The executable, launcher, and WPF windows use this same ICO. Original brand files
+remain byte-exact and the export is recorded in `Assets/AppIcon/derivation.json`.
 
 The native app title-bar icon was inspected. The computer-use window inventory
 does not expose the Windows taskbar, so direct taskbar placement and stale pinned
