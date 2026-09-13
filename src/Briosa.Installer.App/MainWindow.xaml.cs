@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private SettingsSnapshot? snapshot;
     private InstallerSettings? editorBaseline;
     private bool initialized, populating, dirty, busy, reviewing, externalChange, checkingExternal, returnToServers;
+    private bool startupComplete;
     private readonly LiveStatus[] liveStatuses;
     public bool IsWorking => busy || reviewing;
 
@@ -49,7 +50,13 @@ public partial class MainWindow : Window
     {
         await ReloadAsync();
         await RefreshInventoryAsync();
-        if (InventoryEmpty.Visibility == Visibility.Visible) EmptyActionButton.Focus(); else ServerSearch.Focus();
+        startupComplete = true;
+        var initialFocus = System.Windows.Input.Keyboard.FocusedElement;
+        await EnsureServerCatalogAsync();
+        if (!catalogClosed && Navigation.SelectedItem == InstallationsNavigation && System.Windows.Input.Keyboard.FocusedElement == initialFocus)
+        {
+            if (InventoryEmpty.Visibility == Visibility.Visible) EmptyActionButton.Focus(); else ServerSearch.Focus();
+        }
     }
 
     private async Task ReloadAsync()
@@ -119,11 +126,17 @@ public partial class MainWindow : Window
             RecordActivity("Settings.Save", "Succeeded");
             if (returnToServers) { returnToServers = false; Navigation.SelectedItem = InstallationsNavigation; }
         }
-        finally { SetBusy(false); RebuildInventory(); }
+        finally { SetBusy(false); RebuildInventory(); await EnsureServerCatalogAsync(); }
     }
 
     private async void ReloadClicked(object sender, RoutedEventArgs e)
-    { if (!busy && ConfirmDiscard()) await ReloadAsync(); }
+    {
+        if (!busy && ConfirmDiscard())
+        {
+            await ReloadAsync();
+            await EnsureServerCatalogAsync();
+        }
+    }
 
     private void SourceChanged(object sender, RoutedEventArgs e)
     {
@@ -163,7 +176,12 @@ public partial class MainWindow : Window
         return source.StartsWith(@"\\", StringComparison.Ordinal) ? "Network catalog" : "Local catalog";
     }
 
-    private void NavigationChanged(object sender, SelectionChangedEventArgs e) { if (initialized) ShowSelectedPage(); }
+    private async void NavigationChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!initialized) return;
+        ShowSelectedPage();
+        await EnsureServerCatalogAsync();
+    }
     private void ShowSelectedPage()
     {
         var pages = new[]

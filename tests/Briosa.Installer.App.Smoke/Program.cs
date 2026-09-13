@@ -25,6 +25,7 @@ internal static class Program
             app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Briosa.Installer;component/Styles.xaml", UriKind.Absolute) });
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             ExerciseSources(directory);
+            ExerciseAutomaticCatalogLoading();
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();
             app.Shutdown();
@@ -39,7 +40,55 @@ internal static class Program
     private static void Click(MainWindow window, string name) => Find<Button>(window, name).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     private static void Ready(MainWindow window) => PumpUntil(() => !window.IsWorking);
     private static void Page(MainWindow window, string name) => Find<ListBox>(window, "Navigation").SelectedItem = Find<ListBoxItem>(window, name);
-    private static void Load(MainWindow window) { window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent)); Ready(window); }
+    private static void Load(MainWindow window)
+    {
+        window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent)); Ready(window);
+        PumpUntil(() => Find<Button>(window, "CancelCatalogButton").Visibility != Visibility.Visible);
+    }
+    private static void ExerciseAutomaticCatalogLoading()
+    {
+        using var feed = new SignedFeed();
+        var first = feed.AddServer("0.1.0"); feed.Publish();
+        var store = new PackageStore(feed.StorePath);
+        store.InstallAsync(feed.Settings, CatalogComponent.Server, first.Id, feed.Hash).GetAwaiter().GetResult();
+        var config = Path.Combine(feed.Root, "settings.json");
+        var settings = new InstallerSettings("https://mirror.example.com/servers/catalog.json", "https://mirror.example.com/updater/catalog.json");
+        File.WriteAllText(config, SettingsCodec.Serialize(settings));
+        using var handler = new CatalogHandler { HoldNext = true };
+        using var catalogs = new ReleaseCatalogClient(handler);
+        var window = new MainWindow(new(config), catalogs, store, sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (_, _) => true);
+        window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+        PumpUntil(() => handler.Pending is not null);
+        var rows = Find<ListBox>(window, "CatalogPackages");
+        Require(rows.Items.OfType<ServerRow>().Single().Installed?.Id == first.Id && !window.IsWorking, "Automatic source loading hid local inventory or blocked navigation.");
+        Require(Find<Button>(window, "RefreshCatalogButton").Content.ToString() == "_Refresh", "Manual catalog action is not Refresh.");
+        Page(window, "SettingsNavigation"); Page(window, "InstallationsNavigation");
+        Require(handler.Requests.Count == 1 && handler.Requests[0] == settings.ServerCatalog, "Startup fetched another source or navigation duplicated its request.");
+        handler.Pending!.SetResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+        PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
+        Require(rows.Items.OfType<ServerRow>().Single().Installed?.Id == first.Id, "A startup source failure lost installed versions.");
+        Page(window, "SettingsNavigation"); Page(window, "InstallationsNavigation");
+        Require(handler.Requests.Count == 1, "Page navigation retried a failed source automatically.");
+
+        var second = feed.AddServer("0.2.0"); feed.Publish();
+        store.InstallAsync(feed.Settings, CatalogComponent.Server, second.Id, feed.Hash).GetAwaiter().GetResult();
+        Click(window, "RefreshCatalogButton"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
+        Require(handler.Requests.Count == 2 && rows.Items.OfType<ServerRow>().Count(r => r.Installed is not null) == 2 &&
+            rows.Items.OfType<ServerRow>().Any(r => r.Available), "Refresh did not reload both local installations and available servers.");
+        Page(window, "SettingsNavigation"); Page(window, "InstallationsNavigation");
+        Require(handler.Requests.Count == 2, "Returning to a populated page refetched its catalog.");
+
+        // Saving a source while a previous read is still completing must eventually load the new source.
+        handler.HoldNext = true; Click(window, "RefreshCatalogButton"); PumpUntil(() => handler.Pending is not null);
+        Page(window, "SettingsNavigation");
+        Find<TextBox>(window, "ServerCatalog").Text = "https://replacement.example.com/servers/catalog.json";
+        Click(window, "SaveButton"); Ready(window);
+        Page(window, "InstallationsNavigation");
+        handler.Pending!.SetResult(handler.Response());
+        PumpUntil(() => handler.Requests.Count == 4 && Find<Button>(window, "RefreshCatalogButton").IsEnabled);
+        Require(handler.Requests.Last() == "https://replacement.example.com/servers/catalog.json" && rows.Items.OfType<ServerRow>().Any(r => r.Available), "A saved source remained unloaded behind the cancelled startup read.");
+        window.Close();
+    }
     private static void ExerciseSources(string directory)
     {
         var path = Path.Combine(directory, "settings.json");
@@ -115,8 +164,8 @@ internal static class Program
         var store = new PackageStore(feed.StorePath);
         var window = new MainWindow(new(config), packageStore: store, sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (title, _) => title != "Restart installer");
         Load(window);
-        Click(window, "RefreshCatalogButton"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
         var rows = Find<ListBox>(window, "CatalogPackages");
+        Require(rows.Items.Count == 2, "Configured startup did not populate available servers automatically.");
         Require(rows.Items.OfType<ServerRow>().First().Version == "0.2.0", "Newest server is not first within its target.");
         foreach (var id in new[] { first.Id, second.Id })
         {
@@ -137,7 +186,7 @@ internal static class Program
         var catalogBytes = File.ReadAllBytes(feed.CatalogPath);
         File.WriteAllText(feed.CatalogPath, "broken catalog fixture");
         Click(window, "RefreshCatalogButton"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
-        Require(Find<Button>(window, "EmptyActionButton").Content.ToString() == "Check source again", "A failed check was presented as an empty source.");
+        Require(Find<Button>(window, "EmptyActionButton").Content.ToString() == "Try again", "A failed check was presented as an empty source.");
         File.WriteAllBytes(feed.CatalogPath, catalogBytes);
         Click(window, "EmptyActionButton"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
         Require(Find<TextBox>(window, "ServerSearch").Text == "no matching release" && Find<TextBlock>(window, "EmptyTitle").Text == "No matching servers", "Retry cleared filters instead of checking the source.");

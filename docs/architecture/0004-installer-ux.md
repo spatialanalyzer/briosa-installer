@@ -22,7 +22,7 @@ package verification remain governed by the existing architecture.
 | Area | Implemented behavior |
 | --- | --- |
 | Navigation | Briosa capitalization; Installations, SDK Setup, Activity, Settings. Installations opens first. |
-| First use | An actionable empty state opens source settings. Configured launches load local inventory; checking a remote catalog remains explicit. |
+| First use | An actionable empty state opens source settings. Configured launches automatically load local inventory and the saved server catalog. Refresh reloads both. Page switching retains results; failed reads require retry. |
 | Servers | One searchable list groups available and installed versions by exact SA target. SA and status filters narrow the list. Latest means latest in the checked source, not a runtime compatibility recommendation. |
 | Actions | Selecting a server reveals Install or Verify/Repair/Remove. Details contain full hashes, provenance, and locations. Reviews name the action, version, target, source, destination, size, and verification boundary. |
 | Sources | Package sources is the first Settings section. Browse and Test work with the editor. Testing reads metadata without saving or acquiring payloads; Save remains possible offline. |

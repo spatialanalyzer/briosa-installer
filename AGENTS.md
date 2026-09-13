@@ -71,7 +71,10 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   can be browsed; installation requires a pinned approved publisher key, valid
   unexpired signature, unchanged reviewed catalog digest, and verified payload
   and manifest. Keep the shared catalog/signature/store contract in `briosa`.
-- Catalog reads are explicit and bounded. Preserve separate updater routing,
+- Installations automatically loads the saved server source on opening and after
+  source changes are saved. Refresh reloads catalog and local inventory; page
+  switching alone does not repeat completed or failed requests. Unconfigured
+  launches make no catalog request. Keep all reads bounded, preserve updater routing,
   clear stale results when settings change, reject redirects, and never request
   payloads during browsing. Credential secrets belong to the exact selected
   catalog in Windows Credential Manager. Windows credentials require the explicit

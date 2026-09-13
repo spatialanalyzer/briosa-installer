@@ -14,9 +14,11 @@ expires in seven days; regenerate the demo after expiry.
 
 ## Review the application
 
-1. **Installations:** local inventory appears automatically. On first use, choose
-   **Configure package source**. With a saved source, choose **Check source** to
-   find downloads. Empty, loading, failed, and filtered views explain the next action.
+1. **Installations:** local inventory and available servers load automatically
+   from the saved source. **Refresh** reloads both. On an unconfigured first use,
+   choose **Configure package source**. Empty, loading, failed, and filtered views
+   explain the next action. A failed source keeps installed versions visible;
+   use **Try again** or **Refresh** when the source is available.
 2. **Settings → Package sources:** enter an HTTPS catalog URL or browse to a local
    or network catalog. **Access and publisher…** configures authentication and the
    publisher's PEM public key; compare its fingerprint through a trusted channel.

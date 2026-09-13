@@ -94,7 +94,10 @@ edits invalidate both. Update labels use semantic version precedence (including
 prereleases, ignoring build metadata); older releases remain explicit rollback choices.
 One package-scope control in Settings → Advanced governs both inventories. Links
 from server installations and installer updates open that same control. Local
-inventory loads automatically; source browsing remains an explicit action.
+inventory and the saved server catalog load automatically when Installations opens.
+Returning to the page retains completed results; Refresh reloads both inventories.
+Saved source changes are loaded when the page is next shown, and a tested unchanged
+catalog can be reused immediately. Failed reads wait for an explicit retry.
 
 The UI uses the built-in WPF Fluent resources with the system theme, named Fluent
 base styles, and dynamic palette brushes. The inventory groups installed and
@@ -108,7 +111,7 @@ replacement. Coordinate external writers: this is not an OS-wide compare-and-swa
 primitive against arbitrary programs. An explicit missing/invalid configuration
 fails closed. The [administration guide](administration.md) describes precedence.
 
-Refresh explicitly reads the selected source. Install/repair read it again and
+Initial loading and Refresh read the saved server source. Install/repair read it again and
 require the reviewed digest. Catalog reads are bounded to 30 seconds including
 response bodies; acquisition has a 30-minute deadline and size limits. Cancel
 stops before commit where possible. A blocked OS file/share open can outlive

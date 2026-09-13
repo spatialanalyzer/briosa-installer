@@ -43,7 +43,7 @@
           </Grid.RowDefinitions>
           <DockPanel Margin="0,0,0,12">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-              <Button x:Name="RefreshCatalogButton" Content="_Check source" Click="RefreshCatalogClicked" Margin="8,0,0,0" />
+              <Button x:Name="RefreshCatalogButton" Content="_Refresh" Click="RefreshCatalogClicked" ToolTip="Reload available servers and installed versions" Margin="8,0,0,0" />
               <Button x:Name="CancelCatalogButton" Content="Cancel" Click="CancelCatalogClicked" Visibility="Collapsed" Margin="8,0,0,0" />
             </StackPanel>
             <StackPanel VerticalAlignment="Center">

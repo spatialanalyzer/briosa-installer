@@ -43,8 +43,8 @@ controls; production key custody is not provisioned by this review build.
 
 The engineer compares imported key fingerprints through an approved channel.
 Release packaging can supply the real public catalog and key in `public-source.json`.
-That file only seeds first-use source editing; saving settings and requesting a
-refresh remain explicit. Missing or invalid user configuration never silently
+That file only seeds first-use source editing; saving settings remains explicit.
+Installations automatically reads the saved server source. Missing or invalid user configuration never silently
 selects the public source for a request.
 
 ## Package transactions

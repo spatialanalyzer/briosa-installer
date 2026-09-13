@@ -36,11 +36,20 @@ public partial class MainWindow
     }
     private async void RefreshCatalogClicked(object sender, RoutedEventArgs e)
     {
-        if (busy || dirty || externalChange || catalogRead is not null || snapshot?.Settings is null) return;
+        if (busy || reviewing || dirty || externalChange || catalogRead is not null || snapshot?.Settings is null) return;
+        await RefreshInventoryAsync();
+        await RefreshServerCatalogAsync();
+    }
+    private Task EnsureServerCatalogAsync() => startupComplete && Navigation.SelectedItem == InstallationsNavigation &&
+        catalogSnapshot is null && catalogFailure is null ? RefreshServerCatalogAsync() : Task.CompletedTask;
+
+    private async Task RefreshServerCatalogAsync()
+    {
+        if (busy || reviewing || dirty || externalChange || catalogClosed || catalogRead is not null || snapshot?.Settings is null) return;
         var captured = snapshot;
         InvalidateServerCatalog(); var generation = catalogGeneration;
         using var cancellation = new CancellationTokenSource(); catalogRead = cancellation;
-        CatalogStatusText.Text = "Checking the saved package source…"; RebuildInventory(); UpdateInterface();
+        CatalogStatusText.Text = "Loading available servers…"; RebuildInventory(); UpdateInterface();
         try
         {
             if (!await SavedSettingsMatchAsync(captured))
@@ -67,7 +76,12 @@ public partial class MainWindow
         finally
         {
             if (ReferenceEquals(catalogRead, cancellation)) catalogRead = null;
-            if (!catalogClosed) { RebuildInventory(); UpdateInterface(); }
+            if (!catalogClosed)
+            {
+                RebuildInventory(); UpdateInterface();
+                // A newly saved source may have been waiting for this cancelled read to finish.
+                if (generation != catalogGeneration) await EnsureServerCatalogAsync();
+            }
         }
     }
     private static string CatalogSummary(CatalogSnapshot value) => $"Checked {DateTime.Now:t} · {value.Packages.Count} server releases · " +
@@ -134,7 +148,7 @@ public partial class MainWindow
         {
             EmptyTitle.Text = "Package information could not be read";
             EmptyDescription.Text = inventoryFailure ?? catalogFailure;
-            EmptyActionButton.Content = inventoryFailure is not null ? "Refresh local inventory" : "Check source again";
+            EmptyActionButton.Content = inventoryFailure is not null ? "Refresh local inventory" : "Try again";
             emptyAction = inventoryFailure is not null ? EmptyAction.RefreshInventory : EmptyAction.CheckSource;
         }
         else if (serverRows.Count > 0)
@@ -145,8 +159,8 @@ public partial class MainWindow
         else
         {
             EmptyTitle.Text = catalogSnapshot is null ? "No servers installed here" : "No server releases in this source";
-            EmptyDescription.Text = catalogSnapshot is null ? "Check your saved source to find releases for SpatialAnalyzer." : "Choose another package source, or check again after your mirror is updated.";
-            EmptyActionButton.Content = catalogSnapshot is null ? "Check package source" : "Change package source";
+            EmptyDescription.Text = catalogSnapshot is null ? "Refresh to load releases from your saved package source." : "Choose another package source, or refresh after your mirror is updated.";
+            EmptyActionButton.Content = catalogSnapshot is null ? "Refresh" : "Change package source";
             emptyAction = catalogSnapshot is null ? EmptyAction.CheckSource : EmptyAction.ConfigureSource;
         }
         UpdateInterface();
