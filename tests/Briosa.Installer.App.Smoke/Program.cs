@@ -29,6 +29,7 @@ internal static partial class Program
             ExerciseAutomaticCatalogLoading();
             ExerciseAppearance(directory, args);
             ExerciseSdkInstallationOverview();
+            ExerciseAutomaticSdkLoading();
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();
             app.Shutdown();
@@ -333,7 +334,7 @@ internal static partial class Program
             Find<TextBlock>(oldWindow, "UpdateStatusText").Text.Contains("No newer", StringComparison.Ordinal), "No-newer-update state promoted rollback.");
         oldWindow.Close();
 
-        Page(window, "SdkNavigation"); Click(window, "InspectSdkButton"); Ready(window);
+        Page(window, "SdkNavigation"); PumpUntil(() => Find<Button>(window, "RefreshSdkButton").IsEnabled);
         var sdkRows = Find<DataGrid>(window, "SdkObservations").Items.OfType<SaInstallationRow>().ToArray();
         Require(sdkRows.Length == 3 && sdkRows.Count(r => r.IsRegistered) == 1 && sdkRows[0].IsRegistered &&
             Find<TextBlock>(window, "SdkSummaryTitle").Text == "Configured SDK: 2099.1.0101.1" &&

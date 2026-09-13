@@ -349,18 +349,22 @@
         <Grid x:Name="SdkPage" Visibility="Collapsed">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
-          <Border Style="{StaticResource Card}">
+          <DockPanel Margin="0,0,0,12">
+            <Button x:Name="RefreshSdkButton" Content="_Refresh" Click="RefreshSdkClicked" DockPanel.Dock="Right" Margin="8,0,0,0" ToolTip="Reload installed SpatialAnalyzer releases and SDK registration" />
+            <TextBlock x:Name="SdkRefreshStatusText" Text="Loading SDK information…" Style="{StaticResource Muted}" FontSize="12" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+          </DockPanel>
+          <Border Grid.Row="1" Style="{StaticResource Card}">
             <StackPanel>
-              <TextBlock x:Name="SdkSummaryTitle" Text="Inspect this workstation" Style="{StaticResource SectionHeading}" />
-              <TextBlock x:Name="SdkSummaryText" Text="Find installed SpatialAnalyzer releases and inspect SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+              <TextBlock x:Name="SdkSummaryTitle" Text="Loading SDK setup…" Style="{StaticResource SectionHeading}" />
+              <TextBlock x:Name="SdkSummaryText" Text="Reading installed SpatialAnalyzer releases and SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
               <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
-              <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" HorizontalAlignment="Left" Margin="0,14,0,0" />
             </StackPanel>
           </Border>
-          <DataGrid x:Name="SdkObservations" Grid.Row="1" RowHeight="NaN" MinRowHeight="48" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
+          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
             <DataGrid.Resources>
               <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
                 <Setter Property="TextWrapping" Value="Wrap" />

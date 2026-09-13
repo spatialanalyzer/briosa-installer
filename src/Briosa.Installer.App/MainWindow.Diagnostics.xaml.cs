@@ -9,6 +9,7 @@ namespace Briosa.Installer.App;
 public partial class MainWindow
 {
     private SdkReport? sdkReport;
+    private bool sdkReading;
     private IReadOnlyList<ActivityView> activityRows = [];
     private void RecordActivity(string operationCode, string outcome, CatalogPackage? package = null, long? duration = null)
     {
@@ -50,14 +51,20 @@ public partial class MainWindow
             $"Duration: {(entry.DurationMs is null ? "Not recorded" : entry.DurationMs + " ms")}\nOperation code: {entry.Operation}\nResult code: {entry.Outcome}")
         { Owner = this }.ShowDialog();
     }
-    private async void InspectSdkClicked(object sender, RoutedEventArgs e)
+    private Task EnsureSdkSetupAsync() => startupComplete && Navigation.SelectedItem == SdkNavigation
+        ? RefreshSdkSetupAsync() : Task.CompletedTask;
+    private async void RefreshSdkClicked(object sender, RoutedEventArgs e) => await RefreshSdkSetupAsync();
+    private async Task RefreshSdkSetupAsync()
     {
-        if (busy) return;
-        SetBusy(true); SdkSummaryText.Text = "Inspecting installed products and SDK registration…";
-        SdkNextStepText.Text = ""; SdkNextStepText.Visibility = Visibility.Collapsed;
+        if (!startupComplete || sdkReading || catalogClosed) return;
+        sdkReading = true;
+        SdkRefreshStatusText.Text = sdkReport is null ? "Loading SDK information…" : "Refreshing SDK information…";
+        UpdateInterface();
         try
         {
-            sdkReport = await Task.Run(sdkDiscovery.Inspect);
+            var report = await Task.Run(sdkDiscovery.Inspect);
+            if (catalogClosed) return;
+            sdkReport = report;
             var overview = SdkSetupPresentation.FromReport(sdkReport);
             SdkSummaryTitle.Text = overview.Title;
             SdkSummaryText.Text = overview.Summary;
@@ -66,20 +73,24 @@ public partial class MainWindow
             SdkObservations.ItemsSource = overview.Installations;
             SdkObservations.SelectedItem = overview.Installations.FirstOrDefault(i => i.IsRegistered);
             SdkObservations.Visibility = Show(overview.Installations.Count > 0);
+            SdkRefreshStatusText.Text = $"Updated {report.ObservedAt.ToLocalTime():t}";
             RecordActivity("Sdk.Inspect", "Succeeded");
         }
         catch (Exception exception) when (exception is ManagementException or IOException or UnauthorizedAccessException)
         {
+            if (catalogClosed) return;
             sdkReport = null; SdkObservations.ItemsSource = null; SdkObservations.Visibility = Visibility.Collapsed;
-            SdkSummaryTitle.Text = "Inspection could not complete";
-            SdkSummaryText.Text = "Check access to Windows installation information, then inspect again.";
+            SdkNextStepText.Text = ""; SdkNextStepText.Visibility = Visibility.Collapsed;
+            SdkRefreshStatusText.Text = "Refresh failed";
+            SdkSummaryTitle.Text = "SDK information could not be loaded";
+            SdkSummaryText.Text = "Check access to Windows installation information, then select Refresh to try again.";
             RecordActivity("Sdk.Inspect", "Failed");
         }
-        finally { SetBusy(false); }
+        finally { sdkReading = false; if (!catalogClosed) UpdateInterface(); }
     }
     private void SdkDetailsClicked(object sender, RoutedEventArgs e)
     {
-        if (busy || sender is not FrameworkElement { DataContext: SaInstallationRow row } || sdkReport is null) return;
+        if (busy || sdkReading || sender is not FrameworkElement { DataContext: SaInstallationRow row } || sdkReport is null) return;
         var registration = row.IsRegistered ? "This installation's SDK path is registered." :
             "This installation's SDK path is not referenced by the inspected registration.";
         var evidence = sdkReport.Observations.Where(o => o.Kind is SdkReport.ConfiguredRegistration or "Other SDK registration" or "Discovery incomplete")

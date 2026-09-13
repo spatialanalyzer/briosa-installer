@@ -174,7 +174,10 @@ alone leaves managed packages and settings available.
 
 ## SDK maintenance and support
 
-SDK Setup reads installation/COM-registration evidence without activating COM and
+SDK Setup automatically reads installation/COM-registration evidence when opened,
+with **Refresh** at the upper right to reread it while staying on the page. It
+works independently of package sources and refreshes again on each visit.
+The scan reads local setup without activating COM and
 distinguishes file observations from runtime SDK/SA identity. Activity provides
 sanitized support-report export if needed. Automated registry repair awaits a
 documented supported vendor procedure. Exact server runtime identity gates still apply.

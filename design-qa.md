@@ -258,3 +258,24 @@ The Release build, 147 core/CLI tests, WPF workflow checks, complete publishing,
 packaged CLI/launcher checks, 57 local documentation links, and 13 original brand
 hashes passed. Inspection remains read-only. The native high-contrast, Narrator,
 and mixed-DPI release limitations above still apply.
+
+## Automatic SDK loading follow-up
+
+Review build 23 loads local SDK evidence on each visit to SDK Setup. Refresh now
+sits above the summary at the upper right, with the last update time on the left.
+The scan runs independently of package sources and app mutations; it does not
+disable navigation or unrelated Settings. In-progress reads are shared across
+repeat visits, and late results are ignored after the window closes.
+
+Reviewed the dark and compact light renders under `artifacts/sdk-auto-refresh-review`.
+The toolbar, summary, three installation rows, and row information icons fit in
+both layouts. Native review confirmed that first navigation populates all three
+workstation installations without clicking a scan button, and Refresh rereads the
+same setup successfully.
+
+The expanded WPF harness covers early navigation during startup, no configured
+source, held scans, overlapping refresh attempts, page-return reloads, empty
+results replacing stale rows, failure/retry, and closing during a scan. The Release
+build, all 147 core/CLI tests, WPF checks, package publishing and packaged workflows,
+57 local documentation links, and 13 original brand hashes passed. The inspection
+remains read-only; native accessibility and mixed-DPI limitations above still apply.

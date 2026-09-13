@@ -90,6 +90,11 @@ authentication modes, publisher keys, and the appearance theme. Authentication/p
 part of that page. The application maintains schema-version metadata.
 Future settings must include GUI controls using the same validation and persistence.
 
+SDK Setup loads local installation and registry evidence on every page visit,
+independently of package sources. Refresh repeats the scan on demand. A scan does
+not block navigation or unrelated settings; repeated visits share an in-progress
+read. Results arriving after the window closes are ignored.
+
 Installations contains only gRPC server downloads and installed servers, even when
 the source catalog also contains installers. Settings owns installer update checks,
 version comparison, reviewed acquisition/selection/restart, and downloaded-installer

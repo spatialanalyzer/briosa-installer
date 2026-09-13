@@ -31,7 +31,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         settingsTimer.Tick += async (_, _) => { settingsTimer.Stop(); await PersistSettingsAsync(); };
         liveStatuses = new[] { StatusText, CatalogStatusText, OperationStatusText, UpdateStatusText,
-            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, ActivityStatusText }
+            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, SdkRefreshStatusText, ActivityStatusText }
             .Select(text => new LiveStatus(text)).ToArray();
         configuringScope = true;
         if (this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.MachineRoot, StringComparison.OrdinalIgnoreCase)) StoreScope.SelectedIndex = 1;
@@ -53,6 +53,7 @@ public partial class MainWindow : Window
         await RefreshInventoryAsync();
         startupComplete = true;
         var initialFocus = System.Windows.Input.Keyboard.FocusedElement;
+        await EnsureSdkSetupAsync();
         await EnsureServerCatalogAsync();
         if (!catalogClosed && Navigation.SelectedItem == InstallationsNavigation && System.Windows.Input.Keyboard.FocusedElement == initialFocus)
         {
@@ -165,6 +166,7 @@ public partial class MainWindow : Window
         if (!initialized) return;
         ShowSelectedPage();
         if (settingsTimer.IsEnabled) await PersistSettingsAsync();
+        await EnsureSdkSetupAsync();
         await EnsureServerCatalogAsync();
     }
     private void ShowSelectedPage()
@@ -240,7 +242,8 @@ public partial class MainWindow : Window
         OperationProgress.Visibility = Show(operation is not null && !installerOperation);
         UpdateProgress.Visibility = Show(operation is not null && installerOperation);
         RecoverStoreButton.IsEnabled = RecoverInstallerStoreButton.IsEnabled = editable;
-        InspectSdkButton.IsEnabled = SdkObservations.IsEnabled = editable;
+        RefreshSdkButton.IsEnabled = editable && startupComplete && !sdkReading;
+        SdkObservations.IsEnabled = editable && !sdkReading;
     }
 
     private async void WindowClosing(object? sender, CancelEventArgs e)

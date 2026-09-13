@@ -142,6 +142,10 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   opened through an accessible information icon in each row. Keep export on
   Activity; do not restore SDK Setup's export or bottom details buttons.
   Retain incomplete, missing, and conflicting evidence.
+  Load local SDK evidence automatically on each visit to SDK Setup, with a
+  Refresh button above the summary at the right. Keep scans off the UI thread,
+  prevent overlapping reads, and leave navigation and unrelated work responsive.
+  Do not apply results or record activity after the window closes.
 - Ordinary builds/tests must not require SA or proprietary binaries. Obtain
   explicit current-task permission before controlling SA, activating its SDK,
   changing registry state, or running licensed integration tests.
