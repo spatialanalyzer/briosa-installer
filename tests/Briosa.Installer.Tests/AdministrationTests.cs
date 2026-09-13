@@ -6,6 +6,21 @@ namespace Briosa.Installer.Tests;
 
 public sealed class AdministrationTests
 {
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("""{"schemaVersion":"2","artifactName":"briosa-1.0.0-sa-2099.1.0101.1-win-x64","briosaVersion":"1.0.0","runtimeIdentifier":"win-x64"}""")]
+    [InlineData("""{"schemaVersion":2,"schemaVersion":1}""")]
+    public async Task MalformedSignedManifestsFailWithoutCommittingOrCrashing(string json)
+    {
+        using var feed = new SignedFeed();
+        var package = feed.AddServer("1.0.0", manifestOverride: System.Text.Encoding.UTF8.GetBytes(json));
+        feed.Publish();
+        var store = new PackageStore(feed.StorePath);
+        await Assert.ThrowsAsync<ManagementException>(() => store.InstallAsync(feed.Settings, CatalogComponent.Server, package.Id, feed.Hash));
+        Assert.Empty(store.List());
+        Assert.Empty(Directory.GetDirectories(Path.Combine(feed.StorePath, "transactions")));
+    }
+
     [Fact]
     public async Task BootstrapRefreshUsesVerifiedLauncherAndPreservesSelectedVersionOnFileLock()
     {

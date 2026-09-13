@@ -69,14 +69,14 @@ public static class PackageArchive
         var manifestPath = Path.Combine(destination, "manifest.json");
         if (!hashes.ContainsKey("manifest.json") || new FileInfo(manifestPath).Length > 1024 * 1024)
             throw new ManagementException(ManagementError.InvalidManifest);
-        using var manifest = JsonDocument.Parse(await File.ReadAllBytesAsync(manifestPath, token).ConfigureAwait(false));
-        var root = manifest.RootElement;
+        var root = InstallerJson.Read<JsonElement>(manifestPath);
+        if (root.ValueKind != JsonValueKind.Object) throw new ManagementException(ManagementError.InvalidManifest);
         string? Text(string name) => root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
         if (Text("artifactName") != expectedRoot || Text("briosaVersion") != package.Version || Text("runtimeIdentifier") != package.RuntimeIdentifier)
             throw new ManagementException(ManagementError.InvalidManifest);
         if (package.Component == CatalogComponent.Server)
         {
-            if (!root.TryGetProperty("schemaVersion", out var schema) || !schema.TryGetInt32(out var version) || version != 2 ||
+            if (!root.TryGetProperty("schemaVersion", out var schema) || schema.ValueKind != JsonValueKind.Number || !schema.TryGetInt32(out var version) || version != 2 ||
                 Text("spatialAnalyzerTarget") != package.SpatialAnalyzerTarget || Text("protocolPackage") != "briosa" ||
                 !root.TryGetProperty("spatialAnalyzerBundled", out var bundled) || bundled.ValueKind != JsonValueKind.False ||
                 !hashes.ContainsKey("Briosa.Server.exe") || !hashes.ContainsKey("Briosa.Worker.exe") || provenancePath is null ||
@@ -84,7 +84,7 @@ public static class PackageArchive
                 throw new ManagementException(ManagementError.InvalidManifest);
         }
         else if (Text("component") != "installer" || !hashes.ContainsKey("Briosa.Installer.exe") || !hashes.ContainsKey("Briosa.Installer.Cli.exe") || !hashes.ContainsKey("Briosa.Launcher.exe") ||
-            !root.TryGetProperty("schemaVersion", out var installerSchema) || !installerSchema.TryGetInt32(out var installerVersion) || installerVersion != 1 ||
+            !root.TryGetProperty("schemaVersion", out var installerSchema) || installerSchema.ValueKind != JsonValueKind.Number || !installerSchema.TryGetInt32(out var installerVersion) || installerVersion != 1 ||
             (provenancePath is not null && !File.ReadAllBytes(provenancePath).AsSpan().SequenceEqual(File.ReadAllBytes(manifestPath))))
             throw new ManagementException(ManagementError.InvalidManifest);
         return hashes;
