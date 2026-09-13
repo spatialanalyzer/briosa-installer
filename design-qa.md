@@ -1,83 +1,54 @@
-# Layered Planes implementation review
+# Layered Planes vector refinement
 
-Date: September 13, 2026.
+Source direction: `docs/design/layered-planes-reference.png` (1983 × 793), plus
+the maintainer's request to replace the background PNGs after observing uneven
+colors, pixelated lines, and distracting visual artifacts in review build 10.
 
-Source visual truth: `docs/design/layered-planes-reference.png`, the selected
-Layered Planes concept. Scope is the background and corresponding neutral
-surfaces of the existing Windows WPF application.
+## Correction
 
-## Evidence and normalization
+The earlier raster comparison did not catch those material-quality defects.
+The background now uses native WPF geometry, controlled solid fills, and a short
+fading cyan stroke. The background PNGs, their resource inclusion, and their
+generation notes are removed. No bitmap cache is used. The reference PNG remains
+documentation only; it is not an application resource.
 
-The source is a 1983 × 793 two-mode presentation board with margins and mode labels. Compare
-the application content inside each frame, excluding the presentation canvas.
-The implementation is the real WPF control tree rendered at 1140 × 800 logical
-pixels, 96 DPI, one output pixel per logical pixel. This is a native application;
-CSS viewport size and browser console checks do not apply. The generated source
-has approximate UI geometry, so the comparison uses its natural application
-aspect ratio and preserves the established production control sizing rather than
-stretching the interface to match illustration artifacts.
+## Validation evidence
 
-Full-view evidence, viewed together with the source in one comparison input:
+The WPF smoke harness renders the actual control tree in the same Installations
+state as the concept: one fictional SA target with installed 0.2.0 and available
+0.1.0 rows, selected installed version, and contextual maintenance controls.
 
-- `artifacts/ux-renders/planes-servers.png.light.png`
-- `artifacts/ux-renders/planes-servers.png.dark.png`
-- `artifacts/ux-renders/planes-compact.png.light.png`
-- `artifacts/ux-renders/planes-compact.png.dark.png`
+- `artifacts/ux-renders/vector-servers.png.light.png` and `.dark.png`:
+  1140 × 800 logical pixels at 96 DPI.
+- `artifacts/ux-renders/vector-compact.png.light.png` and `.dark.png`:
+  820 × 580 logical pixels at 96 DPI.
+- `artifacts/ux-renders/vector-servers.png.light-150.png`:
+  1140 × 800 logical pixels rendered to 1710 × 1200 pixels at 144 DPI.
+- `artifacts/ux-renders/vector-servers.png.dark-200.png`:
+  1140 × 800 logical pixels rendered to 2280 × 1600 pixels at 192 DPI.
 
-Additional settings evidence: `artifacts/ux-renders/planes-settings.png` and
-`artifacts/ux-renders/planes-servers.png.dark-settings.png`.
+These are WPF rendering scales, not a claim to testing Windows display settings
+or moving the native window between monitors. The source is a presentation board
+with margins and mode labels; comparisons use its app content, not the outer
+canvas. Production layout and type sizes remain authoritative.
 
-State: Installations, one grouped exact-SA target, selected installed server
-0.2.0 and an available 0.1.0 row, with contextual maintenance controls. The
-fictional 2099.1.0101.1 target is the same inert test fixture as the source.
-Times are generated at test execution and are not fixed design copy.
+## Findings after correction
 
-The 820 × 580 compact renders check the supported minimum viewport. Header,
-wordmark, selected row, and bottom action controls are legible in the full-size
-renders, so a separate magnified crop is not needed for this scoped change.
+The reviewed light/dark and compact renders retain the selected broad-plane
+composition with even surfaces. The 150% light and 200% dark renders were opened
+at their original pixel dimensions: the long diagonal strokes are rendered
+directly at those resolutions, without the previous baked-in jagged lines,
+grain, or mottling. The surfaces deliberately use flat fills rather than imitating
+the generated image's lighting texture. No actionable visual defect was found
+in these renders.
 
-## Findings
+Typography, spacing, navigation, and content retain their established production
+values. The decoration remains behind opaque controls and cannot intercept input.
+The WPF harness verifies geometry-only light/dark backgrounds and replacement
+with the plain system brush in simulated high contrast. The 107 core/CLI tests,
+WPF workflows, and local documentation links passed.
 
-No actionable P0, P1, or P2 differences in the selected background treatment.
-
-- Fonts and typography: bundled Inter remains in use; the harness resolves its
-  glyph typeface from embedded resources. Existing type scale, wrapping, and
-  native control text are retained.
-- Spacing and layout: the 208-unit navigation rail, 160-unit logo, page margins,
-  grouped inventory, and bottom actions retain their established dimensions.
-  Compact mode keeps the inventory and actions visible.
-- Colors and tokens: graphite replaces the blue dark canvas, sidebar, and
-  surfaces. Light mode uses white/silver. Blue and cyan remain accents. Controls
-  and rows have opaque neutral backgrounds, and planes recede behind them.
-- Image quality: separate generated light/dark background assets reproduce the
-  broad intersecting lower planes, quiet upper region, and restrained cyan edge.
-  Images preserve their aspect ratios and have no text or logo artifacts. The
-  supplied logo is still independent artwork at its approved minimum width.
-- Copy and content: existing navigation, labels, source state, and package
-  context are retained. No concept titles or design instructions enter the UI.
-- Interaction and accessibility: the decoration cannot receive focus or pointer
-  input. The WPF workflow harness passes source editing, filtering, package
-  maintenance, updates, and compact-layout checks. It also verifies switching
-  embedded images between modes and completely removing artwork in simulated
-  high contrast. There is no background animation or runtime asset download.
-
-Intentional production constraints: dark-mode selected row text remains white
-instead of the concept's cyan for readability; the dark header uses the approved
-all-white logo variant suitable for graphite. The existing native control
-templates and production layout take precedence over generated UI imprecision.
-
-## Comparison history
-
-The first implementation comparison passed without an actionable P0/P1/P2
-finding; no visual correction loop was required. Asset inspection preceded
-integration. Native high-contrast, Narrator, and every Windows scaling setting
-remain separate release checks; rendered palette checks do not claim those tests.
-
-## Implementation checklist
-
-- [x] Embed both selected background variants and the light-mode approved logo.
-- [x] Use neutral base colors and opaque content surfaces.
-- [x] Preserve input behavior, keyboard focus, and high-contrast delegation.
-- [x] Inspect full and compact light/dark renders against the selected concept.
+Native high contrast, Narrator, and mixed-DPI monitor behavior remain separate
+release checks; these rendering checks do not establish those results.
 
 final result: passed

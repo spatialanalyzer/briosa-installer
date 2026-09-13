@@ -86,8 +86,8 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "white" : "color";
         resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
-        // Decorative artwork is local, non-interactive, and completely removed in high contrast.
-        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : WorkspaceBackdrop(dark);
+        // Native vector geometry is non-interactive and completely removed in high contrast.
+        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, Graphite, Silver, Cyan);
         // Let WPF's high-contrast resource dictionary own all native control colors.
         if (highContrast) return;
 
@@ -126,18 +126,6 @@ public sealed class BrandTheme : IDisposable
             "ListBoxItemSelectedBackgroundPressedThemeBrush", "DataGridRowSelectedBackgroundThemeBrush");
         Paint(dark ? white : Blue, "ListBoxItemSelectedForegroundThemeBrush", "DataGridRowSelectedForegroundThemeBrush");
         Paint(accent, "AccentFillColorSelectedTextBackgroundBrush", "TextControlSelectionHighlightColor");
-    }
-
-    private static ImageBrush WorkspaceBackdrop(bool dark)
-    {
-        var brush = new ImageBrush(Bitmap($"Backgrounds/layered-planes-{(dark ? "dark" : "light")}.png"))
-        {
-            Stretch = Stretch.UniformToFill,
-            AlignmentX = AlignmentX.Right,
-            AlignmentY = AlignmentY.Bottom
-        };
-        brush.Freeze();
-        return brush;
     }
 
     private static BitmapSource Bitmap(string path)

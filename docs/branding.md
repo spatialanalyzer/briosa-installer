@@ -38,14 +38,17 @@ white. Selection has a visible indicator and text, so color is not its only cue.
 The underlying Fluent control templates retain their keyboard and automation behavior.
 
 The maintainer selected [Layered Planes](design/layered-planes-reference.png) on
-September 13, 2026. Two local raster assets provide the broad intersecting planes
-and restrained cyan edge in the main workspace. They preserve their aspect ratio
-and crop at the edges when the window changes size. They are decorative, cannot
-receive focus or pointer input, and do not animate or download at runtime. The
+September 13, 2026, then requested native vector geometry to remove the generated
+background PNGs' uneven colors and line artifacts. `LayeredPlanes.cs` now draws
+the broad intersecting planes with WPF geometry and controlled solid-color fills.
+Only the short cyan edge uses a fading stroke. The frozen `DrawingBrush` preserves
+the geometry's proportions, crops at the workspace edges, and renders at the
+current output resolution without scaling a bitmap or using a bitmap cache.
+It cannot receive focus or pointer input and does not animate or download at runtime. The
 sidebar and dialogs use neutral base colors, and grouped package rows and settings
 cards use opaque surfaces for readability. The empty inventory also retains the
-workspace background. These app-specific backgrounds live in `Assets/Backgrounds`,
-separate from the unmodified upstream brand assets.
+workspace background. The old background PNGs are removed. The concept image in
+this document is reference material only; the application never loads it.
 
 `BrandTheme` follows the selected WPF appearance and Windows application theme,
 refreshing resources when system preferences change. It reads preferences only.
@@ -66,6 +69,7 @@ distribution. Builds do not fetch brand assets or install fonts.
 For a brand update, explicitly select a new approved release, verify its checksum,
 copy only the required assets, update provenance, and inspect light/dark, compact,
 selected, focused, and disabled states. The WPF harness renders representative
-screens and checks font loading, logo minimum width, and high-contrast delegation.
+screens at 100%, 150%, and 200% rendering scales and checks vector-only backgrounds,
+font loading, logo minimum width, and high-contrast delegation.
 Native high-contrast, Narrator, and all Windows scaling combinations remain separate
 release checks; simulated palette checks do not establish those results.

@@ -46,7 +46,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   prose. Preserve system high-contrast control colors and offline asset loading.
 - Use the selected Layered Planes background: graphite in dark mode and silver/
   white in light mode, with neutral sidebars and opaque content surfaces. Blue
-  and cyan are accents. Disable decorative background artwork in high contrast.
+  and cyan are accents. Render the planes with native WPF vector geometry and
+  controlled fills; do not reintroduce background PNGs or bitmap caches. Disable
+  decorative background artwork in high contrast.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
 - Installations contains only gRPC server downloads and installed server packages.

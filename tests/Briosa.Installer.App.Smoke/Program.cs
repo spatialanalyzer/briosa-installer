@@ -272,21 +272,26 @@ internal static class Program
         PumpDispatcher();
         var backdrop = Find<Border>(window, "WorkspaceBackdrop");
         Require(!backdrop.IsHitTestVisible && !backdrop.Focusable, "Decorative background can intercept input.");
-        var lightBackdrop = (backdrop.Background as ImageBrush)?.ImageSource;
-        Require(lightBackdrop is BitmapSource { PixelWidth: > 1000 }, "Light background was not loaded from the embedded artwork.");
+        var lightBackdrop = (backdrop.Background as DrawingBrush)?.Drawing;
+        Require(lightBackdrop is DrawingGroup lightPlanes && lightPlanes.IsFrozen &&
+            lightPlanes.Children.Count > 0 && lightPlanes.Children.All(d => d is GeometryDrawing),
+            "Light background is not native vector geometry.");
         if (args.Length > 2) Render(root, args[2] + ".light.png", 820, 580);
         if (args.Length > 0) Render(root, args[0] + ".light.png", 1140, 800);
+        if (args.Length > 0) Render(root, args[0] + ".light-150.png", 1140, 800, 1.5);
 #pragma warning disable WPF0001
         Application.Current.ThemeMode = ThemeMode.Dark;
 #pragma warning restore WPF0001
         BrandTheme.ApplySystem(Application.Current);
         PumpDispatcher();
-        Require(backdrop.Background is ImageBrush darkBackdrop && darkBackdrop.ImageSource is BitmapSource { PixelWidth: > 1000 } &&
-            !ReferenceEquals(lightBackdrop, darkBackdrop.ImageSource), "Dark mode did not switch the embedded background artwork.");
+        Require(backdrop.Background is DrawingBrush { Drawing: DrawingGroup darkPlanes } && darkPlanes.IsFrozen &&
+            darkPlanes.Children.Count > 0 && darkPlanes.Children.All(d => d is GeometryDrawing) &&
+            !ReferenceEquals(lightBackdrop, darkPlanes), "Dark mode did not switch native vector geometry.");
         if (args.Length > 2) Render(root, args[2] + ".dark.png", 820, 580);
         if (args.Length > 0)
         {
             Render(root, args[0] + ".dark.png", 1140, 800);
+            Render(root, args[0] + ".dark-200.png", 1140, 800, 2);
             Page(window, "SettingsNavigation"); Find<TabControl>(window, "SettingsSections").SelectedIndex = 0;
             Render(root, args[0] + ".dark-settings.png", 1140, 800);
         }
@@ -333,10 +338,10 @@ internal static class Program
         root.Measure(new Size(width, height)); root.Arrange(new Rect(0, 0, width, height)); root.UpdateLayout();
         for (var i = 0; i < 3; i++) { PumpDispatcher(); root.UpdateLayout(); }
     }
-    private static void Render(FrameworkElement root, string output, int width, int height)
+    private static void Render(FrameworkElement root, string output, int width, int height, double scale = 1)
     {
         Layout(root, width, height);
-        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32); bitmap.Render(root);
+        var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32); bitmap.Render(root);
         var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var stream = File.Create(Path.GetFullPath(output)); encoder.Save(stream);
     }

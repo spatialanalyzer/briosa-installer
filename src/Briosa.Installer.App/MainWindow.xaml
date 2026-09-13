@@ -23,7 +23,7 @@
         </ListBox>
       </DockPanel>
     </Border>
-    <Border x:Name="WorkspaceBackdrop" Grid.Column="1" Background="{DynamicResource BriosaWorkspaceBrush}" IsHitTestVisible="False" Focusable="False" RenderOptions.BitmapScalingMode="HighQuality" />
+    <Border x:Name="WorkspaceBackdrop" Grid.Column="1" Background="{DynamicResource BriosaWorkspaceBrush}" IsHitTestVisible="False" Focusable="False" />
     <Grid x:Name="PageHost" Grid.Column="1" Margin="28,24">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
