@@ -80,6 +80,8 @@ public static class ReleaseCatalogCodec
     public const int MaximumPackages = 1000;
     private const string VersionPattern = @"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?";
 
+    internal static bool IsValidVersion(string? version) => Matches(version, VersionPattern, 128);
+
     public static CatalogResult<IReadOnlyList<CatalogPackage>> Parse(byte[] bytes)
     {
         if (bytes.Length > MaximumBytes) return CatalogResult<IReadOnlyList<CatalogPackage>>.Fail(CatalogError.TooLarge);
@@ -106,7 +108,7 @@ public static class ReleaseCatalogCodec
                 var version = Text(package, "version");
                 var runtime = Text(package, "runtimeIdentifier");
                 if (!Matches(id, "[A-Za-z0-9][A-Za-z0-9._-]*", 200) || componentText is not ("server" or "installer") ||
-                    !Matches(version, VersionPattern, 128) || !Matches(runtime, "[a-z0-9]+(-[a-z0-9]+)+", 64))
+                    !IsValidVersion(version) || !Matches(runtime, "[a-z0-9]+(-[a-z0-9]+)+", 64))
                     return Fail(CatalogError.InvalidPackage);
                 var component = componentText == "server" ? CatalogComponent.Server : CatalogComponent.Installer;
                 var target = Text(package, "spatialAnalyzerTarget");

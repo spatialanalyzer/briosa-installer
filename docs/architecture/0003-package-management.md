@@ -82,6 +82,13 @@ shared locations.
 
 ## Installer updates and diagnostics
 
+Installations shows gRPC server packages only. Settings owns the running installer
+version, explicit update checks, newer/same/older release labels, reviewed download
+and version selection, restart, and maintenance of downloaded installer versions.
+Checks retain separate catalog state from server browsing and use the saved
+effective updater source. Changing settings invalidates both views. Both pages
+expose the shared store scope, and installed lists filter that store by component.
+
 Installer ZIPs contain a self-contained WPF app, CLI, and launcher and have an
 independent semantic version. Installing one uses the effective updater source
 for metadata, signature, archive, and provenance. Activation verifies installed

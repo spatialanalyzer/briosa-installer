@@ -40,12 +40,16 @@ The four views are:
 | Installations | Exact SA releases, available server packages, installed versions, and package status. | Review installation/update, inspect details, repair files, remove a specific version. |
 | SDK Setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
 | Activity | Package/source/maintenance operations and their outcomes. | Inspect results and sanitized support information. |
-| Settings | All user-configurable settings, including server and installer catalogs, source sharing, authentication, and publisher trust. | Edit configuration through GUI controls; save/import/export the same settings used by scripts. |
+| Settings | All user-configurable settings, plus the running installer version and available installer releases. | Edit/save/import/export source and trust settings; check for installer updates, review download/selection/restart, and maintain downloaded installers. |
 
 Keep this navigation order and open on Installations. Capitalize the app name as
 Briosa. Every supported user-configurable value in `settings.json` must have a
 GUI equivalent under Settings; file editing is optional. Schema-version metadata
 is maintained by the application.
+
+Installations contains only gRPC server downloads and installed servers. Installer
+self-updates and rollback belong in Settings, alongside their update-source
+configuration. A mixed source catalog must not mix these product types in the UI.
 
 Show the active source in the window chrome. Display "Managed by your
 organization" only when actual policy applies; ordinary source controls are

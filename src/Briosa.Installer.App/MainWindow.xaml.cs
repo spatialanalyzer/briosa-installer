@@ -34,12 +34,16 @@ public partial class MainWindow : Window
         {
             customStore = this.packageStore;
             StoreScope.Items.Add(new ComboBoxItem { Content = "Explicit package directory" });
+            InstallerStoreScope.Items.Add(new ComboBoxItem { Content = "Explicit package directory" });
             StoreScope.SelectedIndex = 2;
         }
+        InstallerStoreScope.SelectedIndex = StoreScope.SelectedIndex;
         configuringScope = false;
         SettingsPath.Text = paths.ExplicitFile ?? paths.UserFile;
-        BuildVersionText.Text = "Version " + (System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(MainWindow).Assembly)?.InformationalVersion.Split('+')[0] ?? "development");
+        BuildVersionText.Text = "Version " + currentInstallerVersion;
+        CurrentInstallerVersionText.Text = "Running version: " + currentInstallerVersion;
         StoreLocationText.Text = this.packageStore.Root;
+        InstallerStoreLocationText.Text = this.packageStore.Root;
         foreach (var entry in activity.Read().Reverse()) AddActivity($"{entry.Time:u} {entry.Operation}: {entry.Outcome}");
         UpdateManagementControls();
     }
@@ -218,6 +222,6 @@ public partial class MainWindow : Window
     private void WindowClosing(object? sender, CancelEventArgs e)
     {
         e.Cancel = busy || !ConfirmDiscard();
-        if (!e.Cancel) catalogRead?.Cancel();
+        if (!e.Cancel) { catalogRead?.Cancel(); updaterRead?.Cancel(); }
     }
 }

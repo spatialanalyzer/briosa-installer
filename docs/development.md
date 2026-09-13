@@ -82,6 +82,14 @@ authentication modes, and publisher keys. Authentication/publisher dialogs are
 part of that page. The application maintains schema-version metadata.
 Future settings must include GUI controls using the same validation and persistence.
 
+Installations contains only gRPC server downloads and installed servers, even when
+the source catalog also contains installers. Settings owns installer update checks,
+version comparison, reviewed acquisition/selection/restart, and downloaded-installer
+maintenance. Each catalog view has independent results and cancellation; source
+edits invalidate both. Update labels use semantic version precedence (including
+prereleases, ignoring build metadata); older releases remain explicit rollback choices.
+The package scope is shared and editable from either page, with synchronized controls.
+
 Settings use a shared GUI/CLI lock, content revision, flushed temporary file, and
 replacement. Coordinate external writers: this is not an OS-wide compare-and-swap
 primitive against arbitrary programs. An explicit missing/invalid configuration

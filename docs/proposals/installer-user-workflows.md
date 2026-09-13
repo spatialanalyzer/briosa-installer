@@ -88,7 +88,7 @@ not automatically change shared registration.
 
 | Change | Installer action | Application team's responsibility |
 | --- | --- | --- |
-| Management-app update | Check the configured update catalog, verify its installer payload, and apply the reviewed update/restart while preserving settings and server packages. | Follow applicable software-management policy. |
+| Management-app update | In Settings, check the configured update catalog, compare with the running version, and review the installer download/selection/restart while preserving settings and server packages. | Follow applicable software-management policy. |
 | Server maintenance version | Install another immutable version alongside the existing one. | Test and deliberately adopt the desired runtime through application configuration/dependencies. |
 | Another SA target | Show whether a matching server product is available and install it separately. | Choose matching client dependencies and coordinate SA deployment. |
 | Damaged/previous package | Restore that exact artifact from the configured source when permitted. | Manage application rollback and its data/recovery implications. |

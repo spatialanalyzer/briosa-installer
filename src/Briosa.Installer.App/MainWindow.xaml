@@ -48,6 +48,65 @@
           <StackPanel x:Name="SettingsPage" Visibility="Collapsed">
             <Border Style="{StaticResource Card}">
               <StackPanel>
+                <TextBlock Text="Briosa Installer updates" Style="{StaticResource SectionHeading}" />
+                <TextBlock x:Name="CurrentInstallerVersionText" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <TextBlock Text="Check your saved update source for installer releases. Review a version to download it and select it for the next launch."
+                           TextWrapping="Wrap" />
+                <WrapPanel Margin="0,14,0,12">
+                  <Button x:Name="CheckUpdatesButton" Content="Check for _updates" Click="CheckUpdatesClicked" Margin="0,0,10,0" />
+                  <Button x:Name="CancelUpdateCheckButton" Content="Cancel check" Click="CancelUpdateCheckClicked" IsEnabled="False" />
+                </WrapPanel>
+                <TextBlock x:Name="UpdateStatusText" Text="Save your source settings, then check for updates." TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" Margin="0,0,0,12" />
+                <DataGrid x:Name="InstallerReleases" AutoGenerateColumns="False" IsReadOnly="True" Height="150" CanUserAddRows="False"
+                          HeadersVisibility="Column" RowHeight="34" ColumnHeaderHeight="36" SelectionMode="Single"
+                          SelectionChanged="InstallerReleaseSelectionChanged" AutomationProperties.Name="Available installer versions">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="160" />
+                    <DataGridTextColumn Header="Compared to running version" Binding="{Binding Relationship}" Width="*" MinWidth="210" />
+                    <DataGridTextColumn Header="Download" Binding="{Binding SizeDisplay}" Width="110" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <Button x:Name="InstallUpdateButton" Content="Review and use selected version…" Click="InstallUpdateClicked"
+                        HorizontalAlignment="Left" IsEnabled="False" Margin="0,12,0,0" />
+                <Expander Header="Package location" Margin="0,16,0,0">
+                  <StackPanel Margin="0,8,0,0">
+                    <TextBlock Text="This scope is shared with server installations. Review the destination before applying an update." TextWrapping="Wrap" />
+                    <ComboBox x:Name="InstallerStoreScope" SelectedIndex="0" SelectionChanged="StoreScopeChanged" Padding="8"
+                              Margin="0,8,0,8" AutomationProperties.Name="Installer package scope">
+                      <ComboBoxItem Content="Current user" /><ComboBoxItem Content="All users (requires an administrator terminal)" />
+                    </ComboBox>
+                    <TextBlock x:Name="InstallerStoreLocationText" TextWrapping="Wrap" FontSize="12" />
+                  </StackPanel>
+                </Expander>
+                <Expander x:Name="DownloadedInstallers" Header="Downloaded installer versions" Margin="0,16,0,0">
+                  <StackPanel Margin="0,8,0,0">
+                    <TextBlock Text="Verify, repair, remove, or return to a previously downloaded installer version." TextWrapping="Wrap" />
+                    <Button x:Name="RefreshInstallerVersionsButton" Content="Refresh downloaded versions" Click="RefreshInstalledClicked" HorizontalAlignment="Left" Margin="0,10,0,10" />
+                    <DataGrid x:Name="InstalledInstallerVersions" AutoGenerateColumns="False" IsReadOnly="True" Height="160" CanUserAddRows="False"
+                              HeadersVisibility="Column" RowHeight="34" ColumnHeaderHeight="36" SelectionMode="Single"
+                              SelectionChanged="InstalledSelectionChanged" AutomationProperties.Name="Downloaded installer versions">
+                      <DataGrid.Columns>
+                        <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="*" />
+                      </DataGrid.Columns>
+                    </DataGrid>
+                    <WrapPanel Margin="0,12,0,0">
+                      <Button x:Name="ActivateInstallerButton" Content="Use version…" Click="ActivateInstallerClicked" Margin="0,0,10,10" />
+                      <Button x:Name="VerifyInstallerButton" Content="Verify files" Click="VerifyInstalledClicked" Margin="0,0,10,10" />
+                      <Button x:Name="RepairInstallerButton" Content="Repair…" Click="RepairInstalledClicked" Margin="0,0,10,10" />
+                      <Button x:Name="RemoveInstallerButton" Content="Remove…" Click="RemoveInstalledClicked" Margin="0,0,10,10" />
+                    </WrapPanel>
+                    <TextBox x:Name="InstalledInstallerDetailsText" IsReadOnly="True" TextWrapping="Wrap" MinHeight="60" AutomationProperties.Name="Downloaded installer details" />
+                    <Button x:Name="RecoverInstallerStoreButton" Content="Recover interrupted operations…" Click="RecoverStoreClicked" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                  </StackPanel>
+                </Expander>
+                <ProgressBar x:Name="UpdateProgress" Height="6" Margin="0,16,0,8" Minimum="0" Maximum="100" />
+                <TextBlock x:Name="UpdateOperationStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                <Button x:Name="CancelUpdateOperationButton" Content="Cancel operation" Click="CancelOperationClicked" HorizontalAlignment="Left" IsEnabled="False" Margin="0,10,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}">
+              <StackPanel>
                 <TextBlock Text="Server packages" Style="{StaticResource SectionHeading}" />
                 <TextBlock Text="Use your enterprise catalog or an offline catalog file. The public Briosa catalog has not been published yet."
                            TextWrapping="Wrap" Margin="0,0,0,18" />
@@ -61,7 +120,7 @@
             </Border>
             <Border Style="{StaticResource Card}">
               <StackPanel>
-                <TextBlock Text="Installer updates" Style="{StaticResource SectionHeading}" />
+                <TextBlock Text="Installer update source" Style="{StaticResource SectionHeading}" />
                 <CheckBox x:Name="SameSource" Content="Use the _same source as server packages" IsChecked="True"
                           Checked="SourceChanged" Unchecked="SourceChanged" Margin="0,8,0,18" />
                 <Label Content="Installer _update catalog" Target="{Binding ElementName=InstallerCatalog}" />
@@ -99,14 +158,8 @@
             <Border Style="{StaticResource Card}">
               <StackPanel>
                 <TextBlock Text="Available packages" Style="{StaticResource SectionHeading}" />
-                <TextBlock Text="Browse the selected catalog and preview a package. These are catalog entries, not an inventory of installed software."
+                <TextBlock Text="Download Briosa gRPC servers for your SpatialAnalyzer releases. Refresh the catalog, select a server version, then review and install it."
                            TextWrapping="Wrap" Margin="0,0,0,18" />
-                <Label Content="_Component" Target="{Binding ElementName=CatalogComponentSelector}" />
-                <ComboBox x:Name="CatalogComponentSelector" SelectedIndex="0" SelectionChanged="CatalogComponentChanged"
-                          Padding="8" MinHeight="36" AutomationProperties.Name="Catalog component">
-                  <ComboBoxItem Content="Server packages" />
-                  <ComboBoxItem Content="Installer application" />
-                </ComboBox>
                 <WrapPanel Margin="0,16,0,14">
                   <Button x:Name="RefreshCatalogButton" Content="_Refresh catalog" Click="RefreshCatalogClicked" IsEnabled="False" Margin="0,0,10,0" />
                   <Button x:Name="CancelCatalogButton" Content="_Cancel refresh" Click="CancelCatalogClicked" IsEnabled="False" />
@@ -142,9 +195,8 @@
                   <Button Content="Refresh installed packages" Click="RefreshInstalledClicked" HorizontalAlignment="Left" Margin="0,0,0,14" />
                   <DataGrid x:Name="InstalledPackages" AutoGenerateColumns="False" IsReadOnly="True" Height="270" CanUserAddRows="False"
                             HeadersVisibility="Column" RowHeight="34" ColumnHeaderHeight="36" SelectionMode="Single" SelectionChanged="InstalledSelectionChanged"
-                            AutomationProperties.Name="Installed Briosa packages">
+                            AutomationProperties.Name="Installed Briosa gRPC servers">
                     <DataGrid.Columns>
-                      <DataGridTextColumn Header="Component" Binding="{Binding Component}" Width="110" />
                       <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="140" />
                       <DataGridTextColumn Header="SA target" Binding="{Binding Target}" Width="*" MinWidth="170" />
                     </DataGrid.Columns>
@@ -153,7 +205,6 @@
                     <Button x:Name="VerifyInstalledButton" Content="Verify files" Click="VerifyInstalledClicked" Margin="0,0,10,10" />
                     <Button x:Name="RepairInstalledButton" Content="Repair…" Click="RepairInstalledClicked" Margin="0,0,10,10" />
                     <Button x:Name="RemoveInstalledButton" Content="Remove…" Click="RemoveInstalledClicked" Margin="0,0,10,10" />
-                    <Button x:Name="ActivateInstallerButton" Content="Use installer version…" Click="ActivateInstallerClicked" Margin="0,0,10,10" />
                   </WrapPanel>
                   <TextBox x:Name="InstalledDetailsText" IsReadOnly="True" TextWrapping="Wrap" MinHeight="90" AutomationProperties.Name="Installed package details" />
                   <Button x:Name="RecoverStoreButton" Content="Recover interrupted operations…" Click="RecoverStoreClicked" HorizontalAlignment="Left" Margin="0,16,0,0" />

@@ -18,15 +18,20 @@ expires in seven days; regenerate the demo after expiry.
    and import the publisher's PEM public key after comparing its SHA-256
    fingerprint through a trusted channel. Save. Installer updates share this
    source unless you configure their separate source, credentials, and key.
-2. **Installations / Available:** refresh, select an exact package, inspect its
+2. **Installations / Available:** refresh, select an exact gRPC server package, inspect its
    details, and review installation. Signature, expiry, declared size/digest,
    archive structure, and product manifest are checked before it is committed.
-3. **Installations / Installed:** refresh to see independently installed versions.
+3. **Installations / Installed:** refresh to see independently installed server versions.
    Verify files, repair an exact artifact, remove one version, or recover an
    interrupted operation. Application teams own adoption and change coordination.
-4. **Installer updates:** select Installer application under Available, install a
-   verified version, then choose Use installer version under Installed. Restart
-   when ready. Both metadata and payload use the effective updater source.
+4. **Settings / Briosa Installer updates:** check for updates, compare the listed
+   releases with the running version, and choose **Review and use selected version**.
+   This downloads and verifies the installer and selects it for the next launch;
+   restart when ready. Older releases are labeled for deliberate rollback.
+   Expand **Downloaded installer versions** to verify, repair, remove, or select
+   an existing installer. **Package location** shows the destination and the scope
+   shared with server installations. Both metadata and payload use the saved
+   effective updater source; save source edits before checking.
    Launching through the permanent bootstrap lets version selection refresh that
    launcher and its bundled runtime too. If its file is protected/in use, the
    selected version remains recorded and the app reports that refresh needs retry.

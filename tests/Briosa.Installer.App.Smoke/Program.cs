@@ -73,20 +73,45 @@ internal static class Program
             Find<Button>(window, "PreviewPackageButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => preview.Text.Length > 0);
             Require(preview.Text.Contains("Not verified", StringComparison.Ordinal) && !Find<Button>(window, "InstallPackageButton").IsEnabled, "An unverified catalog enabled installation.");
-            var component = Find<ComboBox>(window, "CatalogComponentSelector");
-            component.SelectedIndex = 1;
-            Require(rows.Items.Count == 0 && preview.Text.Length == 0, "Component selection left stale results.");
-            refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            PumpUntil(() => refresh.IsEnabled);
-            Require(rows.Items.Count == 1 && handler.Requests.Last().Contains("briosa-installer/catalog.json", StringComparison.Ordinal), "Installer check did not use its independent source.");
-            component.SelectedIndex = 0;
+            Require(rows.Items.OfType<CatalogPackage>().All(p => p.Component == CatalogComponent.Server),
+                "Installations included installer downloads.");
+            Require(window.FindName("CatalogComponentSelector") is null, "Installations still exposes a component selector.");
+            navigation.SelectedItem = Find<ListBoxItem>(window, "SettingsNavigation");
+            var checkUpdates = Find<Button>(window, "CheckUpdatesButton");
+            var installerRows = Find<DataGrid>(window, "InstallerReleases");
+            checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            PumpUntil(() => checkUpdates.IsEnabled);
+            Require(installerRows.Items.Count == 1 && handler.Requests.Last().Contains("briosa-installer/catalog.json", StringComparison.Ordinal),
+                "Settings update check did not use its independent source.");
+            Require(installerRows.Items.OfType<InstallerRelease>().All(p => p.Package.Component == CatalogComponent.Installer) &&
+                !Find<Button>(window, "InstallUpdateButton").IsEnabled, "An unsigned updater catalog enabled installation or included servers.");
+            Require(rows.Items.Count == 3 && preview.Text.Length > 0, "Checking installer updates replaced the server catalog.");
+            handler.HoldNext = true;
+            checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            PumpUntil(() => handler.Pending is not null);
+            updater.Text = "https://new-updater.example.com/briosa/catalog.json";
+            handler.Pending!.SetResult(handler.Response());
+            PumpUntil(() => !Find<Button>(window, "CancelUpdateCheckButton").IsEnabled);
+            Require(installerRows.Items.Count == 0 && !Find<Button>(window, "InstallUpdateButton").IsEnabled,
+                "A stale installer check restored results after settings changed.");
+            save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => save.IsEnabled);
+            handler.FailNext = true;
+            var beforeFailure = handler.Requests.Count;
+            checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            PumpUntil(() => checkUpdates.IsEnabled);
+            Require(installerRows.Items.Count == 0 && handler.Requests.Count == beforeFailure + 1 &&
+                handler.Requests.Last().Contains("new-updater.example.com", StringComparison.Ordinal),
+                "A failed updater override used another source or retained results.");
+            checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => checkUpdates.IsEnabled);
+            navigation.SelectedItem = Find<ListBoxItem>(window, "InstallationsNavigation");
             handler.HoldNext = true;
             refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => handler.Pending is not null);
             Find<TextBox>(window, "ServerCatalog").Text = "https://new-mirror.example.com/briosa/catalog.json";
             handler.Pending!.SetResult(handler.Response());
             PumpUntil(() => !Find<Button>(window, "CancelCatalogButton").IsEnabled);
-            Require(rows.Items.Count == 0 && preview.Text.Length == 0, "Late results restored a catalog after its source changed.");
+            Require(rows.Items.Count == 0 && preview.Text.Length == 0 && installerRows.Items.Count == 0,
+                "Late results restored a catalog after its source changed.");
             save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => save.IsEnabled);
             refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -95,6 +120,7 @@ internal static class Program
             Find<Button>(window, "PreviewPackageButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => preview.Text.Length > 0);
             Require(handler.Requests.All(uri => uri.EndsWith("catalog.json", StringComparison.Ordinal)), "Browsing fetched a referenced payload.");
+            checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => checkUpdates.IsEnabled);
             navigation.SelectedItem = Find<ListBoxItem>(window, "SdkNavigation");
             Find<Button>(window, "InspectSdkButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => Find<Button>(window, "InspectSdkButton").IsEnabled);
@@ -156,7 +182,8 @@ internal static class Program
     private static void ExercisePackageWorkflow()
     {
         using var feed = new SignedFeed();
-        var first = feed.AddServer("0.1.0"); var second = feed.AddServer("0.2.0"); var installer = feed.AddInstaller("0.3.0"); feed.Publish();
+        var first = feed.AddServer("0.1.0"); var second = feed.AddServer("0.2.0"); var installer = feed.AddInstaller("0.3.0");
+        var olderInstaller = feed.AddInstaller("0.0.1"); feed.Publish();
         var config = Path.Combine(feed.Root, "settings.json"); File.WriteAllText(config, SettingsCodec.Serialize(feed.Settings));
         var store = new PackageStore(feed.StorePath);
         var window = new MainWindow(new(config), packageStore: store, sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (title, _) => title != "Restart installer");
@@ -190,24 +217,77 @@ internal static class Program
         Find<Button>(window, "RemoveInstalledButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         PumpUntil(() => installed.Items.Count == 1 && save.IsEnabled);
         Require(store.List().Single().Id == second.Id, "GUI removal affected another version.");
-        tabs.SelectedIndex = 0;
-        Find<ComboBox>(window, "CatalogComponentSelector").SelectedIndex = 1;
-        refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => refresh.IsEnabled);
-        available.SelectedIndex = 0;
-        Find<Button>(window, "InstallPackageButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        PumpUntil(() => installed.Items.Count == 2 && save.IsEnabled);
-        installed.SelectedItem = installed.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
-        Find<Button>(window, "ActivateInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Find<ListBox>(window, "Navigation").SelectedItem = Find<ListBoxItem>(window, "SettingsNavigation");
+        var checkUpdates = Find<Button>(window, "CheckUpdatesButton");
+        var installerRows = Find<DataGrid>(window, "InstallerReleases");
+        var downloaded = Find<DataGrid>(window, "InstalledInstallerVersions");
+        checkUpdates.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => checkUpdates.IsEnabled);
+        Require(installerRows.Items.Count == 2 && ((InstallerRelease)installerRows.SelectedItem).Package.Id == installer.Id &&
+            installerRows.Items.OfType<InstallerRelease>().Any(p => p.Comparison < 0),
+            "Settings did not select the newest installer or label the older release for rollback.");
+        Require(Find<Button>(window, "InstallUpdateButton").IsEnabled, "A verified installer did not enable an update.");
+        Find<Button>(window, "InstallUpdateButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         PumpUntil(() => File.Exists(Path.Combine(feed.StorePath, "active-installer.json")) && save.IsEnabled);
+        Require(installed.Items.Count == 1 && downloaded.Items.Count == 1 && available.Items.Count == 2,
+            "Installer acquisition leaked into server available or installed lists.");
+        Require(Find<TextBlock>(window, "UpdateOperationStatusText").Text.Contains("0.3.0 selected", StringComparison.Ordinal),
+            "Installer completion was not reported in Settings.");
+        downloaded.SelectedItem = downloaded.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
+        Find<Button>(window, "VerifyInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => save.IsEnabled);
+        Require(Find<TextBlock>(window, "UpdateOperationStatusText").Text == "Completed.", "Settings could not verify its downloaded installer.");
+        var installerPayload = Path.Combine(store.List().Single(p => p.Id == installer.Id).Directory, "payload", "Briosa.Installer.exe");
+        File.WriteAllText(installerPayload, "deliberately damaged inert installer");
+        downloaded.SelectedItem = downloaded.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
+        Find<Button>(window, "VerifyInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => save.IsEnabled);
+        Require(Find<TextBlock>(window, "UpdateOperationStatusText").Text.Contains("do not match", StringComparison.Ordinal),
+            "Settings verification did not report a damaged installer.");
+        Find<Button>(window, "RepairInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => Find<TextBlock>(window, "UpdateOperationStatusText").Text == "Completed." && save.IsEnabled);
+        store.VerifyAsync(installer.Id).GetAwaiter().GetResult();
+        downloaded.SelectedItem = downloaded.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
+        Find<Button>(window, "RemoveInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => save.IsEnabled);
+        Require(store.List().Any(p => p.Id == installer.Id) && Find<TextBlock>(window, "UpdateOperationStatusText").Text != "Completed.",
+            "Settings allowed removal of the selected installer.");
+        Find<Button>(window, "InstallUpdateButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => Find<TextBlock>(window, "UpdateOperationStatusText").Text.Contains("0.3.0 selected", StringComparison.Ordinal) && save.IsEnabled);
+        Require(downloaded.Items.Count == 1, "Using an already downloaded release did not reuse the existing verified version.");
+        downloaded.SelectedItem = downloaded.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
+        Find<Button>(window, "ActivateInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => save.IsEnabled);
         Require(store.ResolveActiveInstallerAsync().GetAwaiter().GetResult()!.EndsWith("Briosa.Installer.exe", StringComparison.Ordinal), "GUI installer selection was not persisted.");
         Require(File.ReadAllText(config) == SettingsCodec.Serialize(feed.Settings), "Package operations changed source settings.");
+        Find<ComboBox>(window, "InstallerStoreScope").SelectedIndex = 0;
+        Require(Find<ComboBox>(window, "StoreScope").SelectedIndex == 0 && installed.Items.Count == 0 && downloaded.Items.Count == 0,
+            "Settings scope change did not synchronize or clear inventories.");
+        Find<ComboBox>(window, "StoreScope").SelectedIndex = 2;
+        Require(Find<ComboBox>(window, "InstallerStoreScope").SelectedIndex == 2, "Server scope change left a different updater destination.");
+        Find<Button>(window, "RefreshInstallerVersionsButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => save.IsEnabled);
+        Require(installed.Items.Count == 1 && downloaded.Items.Count == 1, "Refreshing Settings did not split the shared inventory.");
+        installerRows.SelectedItem = installerRows.Items.OfType<InstallerRelease>().Single(p => p.Package.Id == olderInstaller.Id);
+        Find<Button>(window, "InstallUpdateButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        PumpUntil(() => downloaded.Items.Count == 2 && save.IsEnabled);
+        Require(store.ResolveActiveInstallerAsync().GetAwaiter().GetResult()!.Contains(olderInstaller.Id, StringComparison.Ordinal),
+            "Settings could not deliberately select an older installer.");
+        downloaded.SelectedItem = downloaded.Items.OfType<InstalledPackage>().Single(p => p.Id == installer.Id);
+        Find<Button>(window, "RemoveInstallerButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); PumpUntil(() => save.IsEnabled);
+        Require(downloaded.Items.Count == 1 && installed.Items.Count == 1 &&
+            store.List().All(p => p.Id != installer.Id), "Settings removal affected servers or failed to remove the inactive installer.");
         window.Close();
     }
 
     private sealed class CatalogHandler : HttpMessageHandler
     {
         public List<string> Requests { get; } = [];
-        public bool HoldNext { get; set; }
+        public bool FailNext { get; set; }
+        public bool HoldNext
+        {
+            get; set
+            {
+                field = value;
+                if (value) Pending = null;
+            }
+        }
         public TaskCompletionSource<HttpResponseMessage>? Pending { get; private set; }
         public HttpResponseMessage Response() => new(HttpStatusCode.OK)
         {
@@ -216,6 +296,7 @@ internal static class Program
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Requests.Add(request.RequestUri!.AbsoluteUri);
+            if (FailNext) { FailNext = false; return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)); }
             if (!HoldNext) return Task.FromResult(Response());
             HoldNext = false;
             Pending = new(TaskCreationOptions.RunContinuationsAsynchronously);

@@ -15,6 +15,12 @@ public partial class MainWindow
 
     private void InvalidateCatalog()
     {
+        InvalidateServerCatalog();
+        InvalidateInstallerCatalog();
+    }
+
+    private void InvalidateServerCatalog()
+    {
         if (CatalogPackages is null) return;
         catalogGeneration++;
         catalogRead?.Cancel();
@@ -25,7 +31,6 @@ public partial class MainWindow
         UpdateCatalogControls();
     }
 
-    private void CatalogComponentChanged(object sender, SelectionChangedEventArgs e) => InvalidateCatalog();
     private void CancelCatalogClicked(object sender, RoutedEventArgs e) => catalogRead?.Cancel();
     private void CatalogSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -53,8 +58,7 @@ public partial class MainWindow
     {
         if (busy || dirty || catalogRead is not null || snapshot?.Settings is null) return;
         var captured = snapshot;
-        var component = CatalogComponentSelector.SelectedIndex == 0 ? CatalogComponent.Server : CatalogComponent.Installer;
-        InvalidateCatalog();
+        InvalidateServerCatalog();
         var generation = catalogGeneration;
         using var cancellation = new CancellationTokenSource();
         catalogRead = cancellation;
@@ -68,7 +72,7 @@ public partial class MainWindow
                 return;
             }
             if (generation != catalogGeneration || catalogClosed) return;
-            var result = await catalogClient.ReadAsync(captured.Settings!, component, cancellation.Token);
+            var result = await catalogClient.ReadAsync(captured.Settings!, CatalogComponent.Server, cancellation.Token);
             if (generation != catalogGeneration || catalogClosed) return;
             // A script may change settings while the catalog request is in flight.
             if (!await SavedSettingsMatchAsync(captured))
@@ -91,7 +95,7 @@ public partial class MainWindow
             catalogSnapshot = ((CatalogResult<CatalogSnapshot>.Success)result).Value;
             CatalogPackages.ItemsSource = catalogSnapshot.Packages;
             var count = catalogSnapshot.Packages.Count;
-            CatalogStatusText.Text = count == 0 ? "No packages for this component are listed in the selected catalog." :
+            CatalogStatusText.Text = count == 0 ? "No gRPC server packages are listed in the selected catalog." :
                 $"{count} package{(count == 1 ? "" : "s")} listed. " + (catalogSnapshot.Publisher is null ? "Import an approved publisher key in Settings to enable installation." : "Publisher signature verified.");
             AddActivity("Catalog refreshed.");
         }
@@ -149,6 +153,8 @@ public partial class MainWindow
         catalogClosed = true;
         catalogGeneration++;
         catalogRead?.Cancel();
+        updaterGeneration++;
+        updaterRead?.Cancel();
         if (ownsCatalogClient) catalogClient.Dispose();
         base.OnClosed(e);
     }

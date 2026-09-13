@@ -41,6 +41,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
+- Installations contains only gRPC server downloads and installed server packages.
+  Installer self-update checks, acquisition, version selection/restart, and
+  downloaded-installer maintenance belong in Settings with the update source.
 - Settings is the GUI home for all user-configurable values in settings.json.
   New configuration options must include equivalent GUI controls and shared
   validation/persistence; do not require hand-editing JSON for supported options.
