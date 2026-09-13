@@ -12,7 +12,7 @@
             BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="0,0,1,0">
       <DockPanel Margin="20,28">
         <StackPanel DockPanel.Dock="Top" Margin="8,0,0,30">
-          <TextBlock Text="briosa" FontSize="30" FontWeight="Bold" />
+          <TextBlock x:Name="AppBrand" Text="Briosa" FontSize="30" FontWeight="Bold" />
           <TextBlock Text="INSTALLER" FontSize="11" Margin="1,4,0,0" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Margin="8,20,0,0">
@@ -29,23 +29,23 @@
               <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             </Style>
           </ListBox.ItemContainerStyle>
-          <ListBoxItem Content="Sources" />
-          <ListBoxItem Content="Installations" />
-          <ListBoxItem Content="SDK setup" />
-          <ListBoxItem Content="Activity" />
+          <ListBoxItem x:Name="InstallationsNavigation" Content="Installations" />
+          <ListBoxItem x:Name="SdkNavigation" Content="SDK Setup" />
+          <ListBoxItem x:Name="ActivityNavigation" Content="Activity" />
+          <ListBoxItem x:Name="SettingsNavigation" Content="Settings" />
         </ListBox>
       </DockPanel>
     </Border>
     <Grid Grid.Column="1" Margin="30,24">
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
       <StackPanel Margin="0,0,0,16">
-        <TextBlock x:Name="PageTitle" Text="Sources" FontSize="28" FontWeight="SemiBold" />
-        <TextBlock x:Name="PageDescription" Text="Choose where Briosa gets server packages and installer updates."
+        <TextBlock x:Name="PageTitle" Text="Installations" FontSize="28" FontWeight="SemiBold" />
+        <TextBlock x:Name="PageDescription" Text="Manage independent server versions for exact SpatialAnalyzer releases."
                    TextWrapping="Wrap" Margin="0,8,0,0" />
       </StackPanel>
       <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,12,0">
         <Grid>
-          <StackPanel x:Name="SourcesPage">
+          <StackPanel x:Name="SettingsPage" Visibility="Collapsed">
             <Border Style="{StaticResource Card}">
               <StackPanel>
                 <TextBlock Text="Server packages" Style="{StaticResource SectionHeading}" />
@@ -87,7 +87,7 @@
             <TextBlock Text="Open Installations to test access, review packages, and install verified releases. Tokens and passwords are held in Windows Credential Manager and are excluded from settings exports."
                        TextWrapping="Wrap" FontSize="12" Margin="0,12,0,0" />
           </StackPanel>
-          <StackPanel x:Name="InstallationsPage" Visibility="Collapsed">
+          <StackPanel x:Name="InstallationsPage">
             <Label Content="Installation _scope" Target="{Binding ElementName=StoreScope}" />
             <ComboBox x:Name="StoreScope" SelectedIndex="0" SelectionChanged="StoreScopeChanged" Padding="8" Margin="0,0,0,10" AutomationProperties.Name="Installation scope">
               <ComboBoxItem Content="Current user" /><ComboBoxItem Content="All users (requires an administrator terminal)" />

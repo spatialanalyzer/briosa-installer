@@ -39,6 +39,12 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 
 ## Implementation expectations
 
+- Capitalize the product name as Briosa. Keep navigation ordered Installations,
+  SDK Setup, Activity, Settings, with Installations as the opening page.
+- Settings is the GUI home for all user-configurable values in settings.json.
+  New configuration options must include equivalent GUI controls and shared
+  validation/persistence; do not require hand-editing JSON for supported options.
+  Schema-version metadata remains maintained by the application.
 - Share one package-management engine between GUI and CLI. Keep resolution,
   policy, planning, verification, installation, and diagnostics testable with fakes.
 - Ship one standard installer with a public release source as the default.

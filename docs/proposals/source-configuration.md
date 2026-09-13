@@ -12,7 +12,7 @@ existing enterprise mirror, such as an Artifactory remote/generic feed. Basic
 mirror support does not require a customized installer, configuration prepared
 by IT, or centrally managed deployment.
 
-In the GUI, the engineer opens Sources, chooses a custom repository, supplies
+In the GUI, the engineer opens Settings, chooses a custom repository, supplies
 the release catalog location, optionally tests access, and saves. The GUI writes
 the same versioned settings file that a script or a person can edit. The
 catalog's location is configuration; the installer executable remains unchanged.

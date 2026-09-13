@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         this.bootstrapPath = bootstrapPath;
         activity = new ActivityStore(System.IO.Path.GetDirectoryName(paths.ExplicitFile ?? paths.UserFile)!);
         InitializeComponent();
+        ShowSelectedPage();
         configuringScope = true;
         if (this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.MachineRoot, StringComparison.OrdinalIgnoreCase)) StoreScope.SelectedIndex = 1;
         else if (!this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.UserRoot, StringComparison.OrdinalIgnoreCase))
@@ -56,6 +57,7 @@ public partial class MainWindow : Window
             if (loaded is Outcome<SettingsSnapshot>.Failure failure)
             {
                 StatusText.Text = $"{failure.Error.Code}: {failure.Error.Message}";
+                CatalogStatusText.Text = "Settings could not be loaded. Open Settings to review the configuration.";
                 AddActivity("Settings could not be loaded.");
                 return;
             }
@@ -85,6 +87,8 @@ public partial class MainWindow : Window
                 _ => "Settings loaded. Catalog access has not been tested.",
             };
             AddActivity("Settings loaded.");
+            if (snapshot.Settings is null)
+                CatalogStatusText.Text = "Open Settings to configure package sources, then save and refresh the catalog.";
         }
         finally { populating = false; SetBusy(false); }
     }
@@ -165,18 +169,27 @@ public partial class MainWindow : Window
 
     private void NavigationChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (SourcesPage is null) return;
-        var pages = new[] { SourcesPage, InstallationsPage, SdkPage, ActivityPage };
-        for (var index = 0; index < pages.Length; index++)
-            pages[index].Visibility = index == Navigation.SelectedIndex ? Visibility.Visible : Visibility.Collapsed;
-        PageTitle.Text = ((ListBoxItem)Navigation.SelectedItem).Content.ToString();
-        PageDescription.Text = Navigation.SelectedIndex switch
+        if (SettingsPage is null) return;
+        ShowSelectedPage();
+    }
+
+    private void ShowSelectedPage()
+    {
+        var pages = new[]
         {
-            0 => "Choose where Briosa gets server packages and installer updates.",
-            1 => "Manage independent server versions for exact SpatialAnalyzer releases.",
-            2 => "Understand SDK setup before planning maintenance.",
-            _ => "Review settings operations from this app session.",
+            (Item: InstallationsNavigation, Panel: InstallationsPage, Description: "Manage independent server versions for exact SpatialAnalyzer releases."),
+            (Item: SdkNavigation, Panel: SdkPage, Description: "Understand SDK setup before planning maintenance."),
+            (Item: ActivityNavigation, Panel: ActivityPage, Description: "Review package-management and settings activity."),
+            (Item: SettingsNavigation, Panel: SettingsPage, Description: "Configure Briosa, including package sources and installer updates."),
         };
+        foreach (var page in pages)
+        {
+            var selected = Navigation.SelectedItem == page.Item;
+            page.Panel.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+            if (!selected) continue;
+            PageTitle.Text = page.Item.Content.ToString();
+            PageDescription.Text = page.Description;
+        }
     }
 
     private void SetBusy(bool value)
@@ -199,7 +212,7 @@ public partial class MainWindow : Window
     }
 
     private bool ConfirmDiscard() => !dirty || MessageBox.Show(this,
-        "Discard your unsaved source settings?", "Briosa Installer", MessageBoxButton.YesNo,
+        "Discard your unsaved settings?", "Briosa Installer", MessageBoxButton.YesNo,
         MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes;
 
     private void WindowClosing(object? sender, CancelEventArgs e)

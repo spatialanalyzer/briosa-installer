@@ -16,7 +16,7 @@ public sealed record CatalogFailure(CatalogError Code)
 {
     public string Message => Code switch
     {
-        CatalogError.InvalidSource => "Choose a valid catalog location in Sources.",
+        CatalogError.InvalidSource => "Choose a valid catalog location in Settings.",
         CatalogError.InvalidDocument => "The source did not return a valid Briosa release catalog.",
         CatalogError.UnsupportedSchema => "This release catalog schema version is not supported.",
         CatalogError.InvalidPackage => "A catalog package has invalid or incomplete metadata.",
@@ -24,7 +24,7 @@ public sealed record CatalogFailure(CatalogError Code)
         CatalogError.UnsafeReference => "A catalog reference leaves the supported mirror layout or uses an unsafe path.",
         CatalogError.ConflictingReference => "The catalog declares different sizes or hashes for the same artifact path.",
         CatalogError.TooLarge => "The catalog exceeds the 1 MiB or 1,000-package limit.",
-        CatalogError.AuthenticationRequired => "The source requires a valid credential. Configure authentication in Sources.",
+        CatalogError.AuthenticationRequired => "The source requires a valid credential. Configure authentication in Settings.",
         CatalogError.VerificationFailed => "Publisher verification failed. Check the approved public key and catalog signature.",
         CatalogError.Expired => "The signed catalog is expired or not yet valid. Obtain a current catalog from your source.",
         CatalogError.AccessDenied => "Access to the selected catalog was denied.",

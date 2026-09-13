@@ -34,6 +34,11 @@ internal static class Program
             window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
             var save = Find<Button>(window, "SaveButton");
             PumpUntil(() => save.IsEnabled);
+            var navigation = Find<ListBox>(window, "Navigation");
+            Require(Find<TextBlock>(window, "PageTitle").Text == "Installations" &&
+                Find<StackPanel>(window, "InstallationsPage").Visibility == Visibility.Visible,
+                "The app did not open on Installations.");
+            navigation.SelectedItem = Find<ListBoxItem>(window, "SettingsNavigation");
             Find<TextBox>(window, "ServerCatalog").Text = "https://artifacts.example.com/artifactory/briosa-servers/catalog.json";
             Find<CheckBox>(window, "SameSource").IsChecked = false;
             var updater = Find<TextBox>(window, "InstallerCatalog");
@@ -47,13 +52,17 @@ internal static class Program
             PumpUntil(() => save.IsEnabled);
             Require(updater.Text.EndsWith("briosa-installer/catalog.json", StringComparison.Ordinal), "WPF reload lost the update source.");
             Require(handler.Requests.Count == 0, "Settings editing made an unexpected network request.");
-            var navigation = Find<ListBox>(window, "Navigation");
+            var titles = new[] { "Installations", "SDK Setup", "Activity", "Settings" };
+            var panels = new[] { "InstallationsPage", "SdkPage", "ActivityPage", "SettingsPage" };
             for (var index = 0; index < 4; index++)
             {
                 navigation.SelectedIndex = index;
-                Require(Find<TextBlock>(window, "PageTitle").Text.Length > 0, "Navigation has no page title.");
+                Require(((ListBoxItem)navigation.Items[index]).Content.ToString() == titles[index] &&
+                    Find<TextBlock>(window, "PageTitle").Text == titles[index] &&
+                    Find<StackPanel>(window, panels[index]).Visibility == Visibility.Visible,
+                    "Navigation did not open the expected page.");
             }
-            navigation.SelectedIndex = 1;
+            navigation.SelectedItem = Find<ListBoxItem>(window, "InstallationsNavigation");
             var refresh = Find<Button>(window, "RefreshCatalogButton");
             var rows = Find<DataGrid>(window, "CatalogPackages");
             refresh.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -86,12 +95,12 @@ internal static class Program
             Find<Button>(window, "PreviewPackageButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => preview.Text.Length > 0);
             Require(handler.Requests.All(uri => uri.EndsWith("catalog.json", StringComparison.Ordinal)), "Browsing fetched a referenced payload.");
-            navigation.SelectedIndex = 2;
+            navigation.SelectedItem = Find<ListBoxItem>(window, "SdkNavigation");
             Find<Button>(window, "InspectSdkButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             PumpUntil(() => Find<Button>(window, "InspectSdkButton").IsEnabled);
             Require(Find<DataGrid>(window, "SdkObservations").Items.Count == 1, "SDK diagnostics did not display the injected evidence.");
-            navigation.SelectedIndex = 1;
-            if (args.Length == 1)
+            navigation.SelectedItem = Find<ListBoxItem>(window, "InstallationsNavigation");
+            if (args.Length > 0)
             {
                 // The preview uses a symbolic settings path instead of the temporary
                 // test directory. Every other element is the actual WPF control tree.
@@ -113,6 +122,19 @@ internal static class Program
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 using var stream = File.Create(Path.GetFullPath(args[0]));
                 encoder.Save(stream);
+                if (args.Length > 1)
+                {
+                    navigation.SelectedItem = Find<ListBoxItem>(window, "SettingsNavigation");
+                    root.Measure(new Size(1120, 820));
+                    root.Arrange(new Rect(0, 0, 1120, 820));
+                    root.UpdateLayout(); PumpDispatcher(); root.UpdateLayout();
+                    var settingsBitmap = new RenderTargetBitmap(1120, 820, 96, 96, PixelFormats.Pbgra32);
+                    settingsBitmap.Render(root);
+                    var settingsEncoder = new PngBitmapEncoder();
+                    settingsEncoder.Frames.Add(BitmapFrame.Create(settingsBitmap));
+                    using var settingsStream = File.Create(Path.GetFullPath(args[1]));
+                    settingsEncoder.Save(settingsStream);
+                }
             }
             window.Close();
             ExercisePackageWorkflow();
@@ -140,7 +162,7 @@ internal static class Program
         var window = new MainWindow(new(config), packageStore: store, sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (title, _) => title != "Restart installer");
         window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
         var save = Find<Button>(window, "SaveButton"); PumpUntil(() => save.IsEnabled);
-        Find<ListBox>(window, "Navigation").SelectedIndex = 1;
+        Find<ListBox>(window, "Navigation").SelectedItem = Find<ListBoxItem>(window, "InstallationsNavigation");
         var refresh = Find<Button>(window, "RefreshCatalogButton");
         var available = Find<DataGrid>(window, "CatalogPackages");
         var installed = Find<DataGrid>(window, "InstalledPackages");

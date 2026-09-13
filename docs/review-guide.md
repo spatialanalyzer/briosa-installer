@@ -14,7 +14,7 @@ expires in seven days; regenerate the demo after expiry.
 
 ## Review the application
 
-1. **Sources:** select the catalog file or HTTPS URL. Configure authentication
+1. **Settings:** select the catalog file or HTTPS URL. Configure authentication
    and import the publisher's PEM public key after comparing its SHA-256
    fingerprint through a trusted channel. Save. Installer updates share this
    source unless you configure their separate source, credentials, and key.
@@ -30,7 +30,7 @@ expires in seven days; regenerate the demo after expiry.
    Launching through the permanent bootstrap lets version selection refresh that
    launcher and its bundled runtime too. If its file is protected/in use, the
    selected version remains recorded and the app reports that refresh needs retry.
-5. **SDK setup:** inspect installed-product and registration evidence, then export
+5. **SDK Setup:** inspect installed-product and registration evidence, then export
    a sanitized IT/vendor handoff if maintenance is needed. The app does not
    activate the SDK, run MPs, or change Windows registration.
 6. **Activity:** review outcomes and export a report without source URLs, paths,

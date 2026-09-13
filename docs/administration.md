@@ -1,6 +1,6 @@
 # Enterprise sources and deployment
 
-Engineers use the ordinary Briosa Installer and change Sources to their approved
+Engineers use Settings in the ordinary Briosa Installer to configure their approved
 Artifactory URL or Windows file/share catalog. They can save through the GUI,
 edit JSON, import settings, or use the CLI. IT does not need to distribute a custom
 installer. Optional machine defaults and restrictions support centralized management.
@@ -23,7 +23,7 @@ republishes metadata under its own signature, explicitly approve that publisher.
 
 ## Authentication and settings
 
-Sources supports anonymous, Bearer access tokens, Basic username/password or token,
+The Settings page supports anonymous, Bearer access tokens, Basic username/password or token,
 and explicit Windows authentication. Secrets reside in the current Windows account's
 Credential Manager under the exact catalog location; settings and diagnostics omit
 them. Changing a URL resets authentication and needs credentials for the new location.
@@ -151,7 +151,7 @@ alone leaves managed packages and settings available.
 
 ## SDK maintenance and support
 
-SDK setup reads installation/COM-registration evidence without activating COM and
+SDK Setup reads installation/COM-registration evidence without activating COM and
 distinguishes file observations from runtime SDK/SA identity. Export the sanitized
 IT/vendor handoff for repair. Automated registry repair awaits a documented supported
 vendor procedure. Exact server runtime identity gates still apply.

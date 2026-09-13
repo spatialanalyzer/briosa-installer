@@ -75,6 +75,13 @@ resolution without opening a window:
 
 ## Configuration and operational behavior
 
+The app opens on Installations. Navigation continues with SDK Setup, Activity,
+and Settings. Settings owns every user-configurable value accepted by
+`settings.json`: server and optional updater catalogs, source sharing,
+authentication modes, and publisher keys. Authentication/publisher dialogs are
+part of that page. The application maintains schema-version metadata.
+Future settings must include GUI controls using the same validation and persistence.
+
 Settings use a shared GUI/CLI lock, content revision, flushed temporary file, and
 replacement. Coordinate external writers: this is not an OS-wide compare-and-swap
 primitive against arbitrary programs. An explicit missing/invalid configuration

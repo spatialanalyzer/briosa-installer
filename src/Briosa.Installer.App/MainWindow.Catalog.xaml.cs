@@ -64,7 +64,7 @@ public partial class MainWindow
         {
             if (!await SavedSettingsMatchAsync(captured))
             {
-                if (generation == catalogGeneration) CatalogStatusText.Text = "Source settings changed or cannot be read. Reload Sources before refreshing.";
+                if (generation == catalogGeneration) CatalogStatusText.Text = "Source settings changed or cannot be read. Reload Settings before refreshing.";
                 return;
             }
             if (generation != catalogGeneration || catalogClosed) return;
@@ -73,7 +73,7 @@ public partial class MainWindow
             // A script may change settings while the catalog request is in flight.
             if (!await SavedSettingsMatchAsync(captured))
             {
-                if (generation == catalogGeneration) CatalogStatusText.Text = "Source settings changed while reading. Reload Sources and refresh again.";
+                if (generation == catalogGeneration) CatalogStatusText.Text = "Source settings changed while reading. Reload Settings and refresh again.";
                 return;
             }
             if (generation != catalogGeneration || catalogClosed) return;
@@ -92,7 +92,7 @@ public partial class MainWindow
             CatalogPackages.ItemsSource = catalogSnapshot.Packages;
             var count = catalogSnapshot.Packages.Count;
             CatalogStatusText.Text = count == 0 ? "No packages for this component are listed in the selected catalog." :
-                $"{count} package{(count == 1 ? "" : "s")} listed. " + (catalogSnapshot.Publisher is null ? "Import an approved publisher key in Sources to enable installation." : "Publisher signature verified.");
+                $"{count} package{(count == 1 ? "" : "s")} listed. " + (catalogSnapshot.Publisher is null ? "Import an approved publisher key in Settings to enable installation." : "Publisher signature verified.");
             AddActivity("Catalog refreshed.");
         }
         finally
@@ -113,7 +113,7 @@ public partial class MainWindow
             if (generation == catalogGeneration)
             {
                 InvalidateCatalog();
-                CatalogStatusText.Text = "Source settings changed or cannot be read. Reload Sources and refresh again.";
+                CatalogStatusText.Text = "Source settings changed or cannot be read. Reload Settings and refresh again.";
             }
             return;
         }
@@ -138,7 +138,7 @@ public partial class MainWindow
             Provenance: {preview.ProvenanceLocation ?? "Not declared"}
 
             Publisher verification: {(preview.Publisher is null ? "Not verified" : "Verified")}
-            Publisher fingerprint: {preview.Publisher?.Fingerprint ?? "Import an approved publisher key in Sources before installation."}
+            Publisher fingerprint: {preview.Publisher?.Fingerprint ?? "Import an approved publisher key in Settings before installation."}
             Payload hashes will be checked during installation. Previewing does not change this machine.
             """;
         AddActivity("Package preview opened.");

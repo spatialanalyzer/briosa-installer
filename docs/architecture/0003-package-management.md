@@ -100,7 +100,7 @@ result: the installer version is selected, but the launcher needs an authorized
 retry. Direct app launches can select versions without rewriting a bootstrap;
 the CLI supports an explicit `--bootstrap` destination for managed deployment.
 
-SDK setup inspects both registry views and user/machine/merged registration using
+SDK Setup inspects both registry views and user/machine/merged registration using
 the CLSID evidenced by Briosa's committed interop surface. It reports installed
 file/registration observations and exports a curated IT/vendor handoff. Automated
 vendor repair remains disabled until a procedure is documented and validated.

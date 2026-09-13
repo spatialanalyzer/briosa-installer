@@ -24,13 +24,13 @@ unchanged internal copy. Its own installation must work offline, including its
 prerequisites. A customized enterprise build is unnecessary.
 
 On first launch, public Briosa releases are selected by default. Before any
-catalog or update request, you can open Sources and choose a custom repository.
+catalog or update request, you can open Settings and choose a custom repository.
 Enter the enterprise Briosa catalog URL, test access when available, and save.
 Use the supported authentication method if required. A settings file supplied
 before first launch can make this step noninteractive.
 
 The GUI, direct file editing, import, and post-install/CLI scripts all use the
-same versioned settings. In Sources, installer updates default to "Use the same
+same versioned settings. In Settings, installer updates default to "Use the same
 source" as server packages. If your organization uses another remote for the
 installer, supply that separate update catalog. It supplies both update metadata
 and the installer download. A failed explicit update source does not fall back

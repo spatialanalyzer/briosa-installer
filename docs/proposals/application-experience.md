@@ -37,10 +37,15 @@ The four views are:
 
 | View | Main content | Actions |
 | --- | --- | --- |
-| Sources | Server-package catalog and installer-update catalog, shared by default; editable settings; authentication and refresh state. | Configure public, enterprise, or offline sources; test access; save/import/export settings. |
 | Installations | Exact SA releases, available server packages, installed versions, and package status. | Review installation/update, inspect details, repair files, remove a specific version. |
-| SDK setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
+| SDK Setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
 | Activity | Package/source/maintenance operations and their outcomes. | Inspect results and sanitized support information. |
+| Settings | All user-configurable settings, including server and installer catalogs, source sharing, authentication, and publisher trust. | Edit configuration through GUI controls; save/import/export the same settings used by scripts. |
+
+Keep this navigation order and open on Installations. Capitalize the app name as
+Briosa. Every supported user-configurable value in `settings.json` must have a
+GUI equivalent under Settings; file editing is optional. Schema-version metadata
+is maintained by the application.
 
 Show the active source in the window chrome. Display "Managed by your
 organization" only when actual policy applies; ordinary source controls are

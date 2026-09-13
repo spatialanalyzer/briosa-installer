@@ -16,7 +16,7 @@ public sealed class ManagementException(ManagementError code) : Exception(Messag
     public ManagementError Code { get; } = code;
     public static string MessageFor(ManagementError code) => code switch
     {
-        ManagementError.AuthenticationRequired => "The source requires a valid credential. Update it in Sources and retry.",
+        ManagementError.AuthenticationRequired => "The source requires a valid credential. Update it in Settings and retry.",
         ManagementError.AccessDenied => "Access was denied. Check your repository permissions or run machine deployment from an authorized administrator terminal.",
         ManagementError.RedirectRejected => "The source redirected the request. Configure its final catalog location.",
         ManagementError.UntrustedPublisher => "Import an approved publisher public key before installing. Confirm its fingerprint through a trusted channel.",
