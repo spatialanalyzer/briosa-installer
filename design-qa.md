@@ -279,3 +279,34 @@ results replacing stale rows, failure/retry, and closing during a scan. The Rele
 build, all 147 core/CLI tests, WPF checks, package publishing and packaged workflows,
 57 local documentation links, and 13 original brand hashes passed. The inspection
 remains read-only; native accessibility and mixed-DPI limitations above still apply.
+
+## Reviewed SDK registration changes
+
+Review builds 24–25 add Change SDK beside Refresh. The selection dialog lists
+installed SA releases and shows the chosen installation path. A separate review
+shows the current SDK, requested SDK, and executable before Windows elevation.
+Read-only evidence remains selectable during maintenance; actions are disabled.
+This avoids the native disabled table's white background in dark mode.
+
+The shared GUI/CLI engine validates the installed vendor procedure, Windows
+Authenticode signer, protected local installation, idle processes, and unchanged
+reviewed setup. It records pre-change evidence privately and verifies registration
+after the vendor command exits. It does not launch an SDK client or issue MP work.
+
+On 2026-09-13, the maintainer-authorized live test used the implemented CLI and
+shared engine to change registration from 2024.1.0508.5 to 2026.1.0529.7 and back
+to 2024.1.0508.5. Both vendor commands exited successfully and both resulting paths
+and versions passed fresh registration verification. An independent final registry
+read confirmed the restored 2024 executable; no SA/SDK/Briosa server processes
+remained. Evidence is retained locally under `artifacts/sdk-registration-review`
+and the private maintenance directory described in `docs/sdk-registration.md`.
+No vendor binaries, registry exports, or private machine records are committed.
+
+Native packaged review exercised selection, the real read-only preflight, the
+current/selected version review, and cancellation without a further mutation.
+Dark and compact light renders retain readable paths and visible actions.
+The Release build, all 167 core/CLI tests (including 20 registration cases), WPF
+workflow checks, complete publishing, packaged CLI/launcher workflows, 63 local
+documentation links, and 13 original brand hashes passed. This validates the
+observed registration procedure, not runtime COM activation, MP readiness, a wider
+SA support matrix, enterprise rollout, Narrator, or mixed-DPI behavior.

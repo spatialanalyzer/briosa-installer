@@ -2,7 +2,8 @@
 
 The WPF app, CLI, and bootstrap launcher share a .NET 10 engine. They manage source
 settings, authentication, signed catalogs, side-by-side packages, verification,
-repair, removal, recovery, installer updates, read-only SDK diagnostics, and activity.
+repair, removal, recovery, installer updates, read-only SDK diagnostics, reviewed
+vendor SDK registration changes, and activity.
 See the [review guide](review-guide.md) and [administration guide](administration.md).
 
 ## Build and validate
@@ -93,7 +94,11 @@ Future settings must include GUI controls using the same validation and persiste
 SDK Setup loads local installation and registry evidence on every page visit,
 independently of package sources. Refresh repeats the scan on demand. A scan does
 not block navigation or unrelated settings; repeated visits share an in-progress
-read. Results arriving after the window closes are ignored.
+read. Results arriving after the window closes are ignored. Change SDK opens a
+separate selection and review flow before requesting Windows elevation for the
+installed vendor's registration command. See [SDK registration](sdk-registration.md)
+for prerequisites, CLI review commands, verification, and recovery. Ordinary tests
+use a fake registration environment and never change machine registration.
 
 Installations contains only gRPC server downloads and installed servers, even when
 the source catalog also contains installers. Settings owns installer update checks,

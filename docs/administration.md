@@ -179,8 +179,10 @@ with **Refresh** at the upper right to reread it while staying on the page. It
 works independently of package sources and refreshes again on each visit.
 The scan reads local setup without activating COM and
 distinguishes file observations from runtime SDK/SA identity. Activity provides
-sanitized support-report export if needed. Automated registry repair awaits a
-documented supported vendor procedure. Exact server runtime identity gates still apply.
+sanitized support-report export if needed. **Change SDK…** uses the installed
+Hexagon registration procedure after review and Windows administrator approval.
+See [SDK registration](sdk-registration.md) for requirements, CLI use, and recovery.
+Exact server runtime identity gates still apply.
 
 The page shows one row per SA installation, with its version and installation
 directory. A **Registered** marker identifies the installation whose bundled

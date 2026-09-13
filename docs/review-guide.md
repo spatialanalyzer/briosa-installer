@@ -47,7 +47,9 @@ expires in seven days; regenerate the demo after expiry.
 5. **SDK Setup:** the configured SDK summary and SA installation table load
    automatically on each visit. **Refresh** at the upper right rereads local setup.
    Use a row's information icon for combined installation and SDK registration
-   details. The app does not activate the SDK, run MPs, or change Windows registration.
+   details. **Change SDK…** reviews and applies the installed Hexagon registration
+   procedure with administrator approval; see [SDK registration](sdk-registration.md).
+   Discovery itself does not activate the SDK or run MPs.
 6. **Activity:** review persistent outcomes in local time, filter **Needs attention**,
    and open details for result codes and recovery guidance. Package entries include
    their version, exact SA target when applicable, and duration. Export a report

@@ -11,6 +11,8 @@ public static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args.FirstOrDefault() == "sdk")
+                return SdkCommands.RunAsync(args[1..], Console.Out, Console.Error).GetAwaiter().GetResult();
             if (args.FirstOrDefault() is "packages" or "credentials" or "trust" or "diagnostics" or "app" or "settings-import" or "settings-export")
                 return ManagementCommands.RunAsync(args, Console.Out, Console.Error, cancellation.Token).GetAwaiter().GetResult();
             return args.FirstOrDefault() == "catalog"
@@ -113,6 +115,8 @@ public static class CliApplication
         catalog preview --component server|installer --id <package-id> [--config <file>]
 
         packages list|verify|recover|remove|install|repair [--store <directory>]
+        sdk plan --installation <SA-directory>
+        sdk use --installation <SA-directory> --review-sha256 <reviewed-plan-hash> --yes
                  [--id <package-id>] [--component server|installer] [--config <file>]
                  [--catalog-sha256 <reviewed-catalog-digest>] [--yes]
         credentials set|remove --component server|installer [--config <file>]

@@ -353,7 +353,10 @@
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
           <DockPanel Margin="0,0,0,12">
-            <Button x:Name="RefreshSdkButton" Content="_Refresh" Click="RefreshSdkClicked" DockPanel.Dock="Right" Margin="8,0,0,0" ToolTip="Reload installed SpatialAnalyzer releases and SDK registration" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+              <Button x:Name="ChangeSdkButton" Content="Change SDK…" Click="ChangeSdkClicked" Margin="0,0,8,0" ToolTip="Choose an installed SA release and review its SDK registration change" />
+              <Button x:Name="RefreshSdkButton" Content="_Refresh" Click="RefreshSdkClicked" ToolTip="Reload installed SpatialAnalyzer releases and SDK registration" />
+            </StackPanel>
             <TextBlock x:Name="SdkRefreshStatusText" Text="Loading SDK information…" Style="{StaticResource Muted}" FontSize="12" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
           </DockPanel>
           <Border Grid.Row="1" Style="{StaticResource Card}">
@@ -361,6 +364,7 @@
               <TextBlock x:Name="SdkSummaryTitle" Text="Loading SDK setup…" Style="{StaticResource SectionHeading}" />
               <TextBlock x:Name="SdkSummaryText" Text="Reading installed SpatialAnalyzer releases and SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
               <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
+              <TextBlock x:Name="SdkMaintenanceStatusText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
             </StackPanel>
           </Border>
@@ -402,6 +406,7 @@
                     <Button Click="SdkDetailsClicked" Width="36" Height="36" MinWidth="0" Padding="0"
                             HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
+                            IsEnabled="{Binding IsEnabled, ElementName=RefreshSdkButton}"
                             ToolTip="Installation and SDK details"
                             AutomationProperties.Name="{Binding Version, StringFormat=Installation and SDK details for SpatialAnalyzer {0}}"
                             AutomationProperties.HelpText="{Binding Location}">

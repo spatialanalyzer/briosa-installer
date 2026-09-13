@@ -33,7 +33,7 @@ package verification remain governed by the existing architecture.
 | Next launch | Running and selected installer versions are separate claims. Selection metadata survives reopening; launch still verifies the selected package through the existing engine. |
 | Appearance | System/Light/Dark applies and persists immediately, including before source setup. Theme-only saves retain catalog results. Windows contrast themes take priority. |
 | Advanced | One shared scope/location control, local refresh, journal recovery, JSON, import/export, and reload. Scope selection does not move packages. |
-| SDK Setup | Configured SDK summary and SA installation table. Each row has an information icon for combined installation/registration details; support export lives on Activity. Inspection reads files/registry only. No COM activation, MP execution, automated registration repair, or readiness claim. |
+| SDK Setup | Configured SDK summary and SA installation table. Each row has an information icon for combined installation/registration details; support export lives on Activity. Inspection reads files/registry only. Change SDK reviews the installed vendor registration procedure, requests Windows elevation, and verifies the result. No MP execution or readiness claim. |
 | Activity | Live actions and saved history use the same rows, local timestamps, outcomes, and safe package context. Details expose result codes and guidance; Needs attention filters failures/cancellations. Unreadable history is reported and preserved. |
 
 Server versions continue to coexist independently. No consuming applications,

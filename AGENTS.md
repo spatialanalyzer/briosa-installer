@@ -9,10 +9,11 @@ precedence where they explicitly override this guide.
 This repository owns the independent Windows installer/manager for exact-SA-target
 Briosa distributions. Its .NET 10/WPF review build includes a shared package engine,
 CLI, launcher, configurable sources/authentication, publisher verification,
-transactional package maintenance, installer selection, and read-only SDK evidence.
+transactional package maintenance, installer selection, read-only SDK evidence,
+and explicitly reviewed vendor SDK registration changes.
 The maintainer selected .NET 10/WPF on 2026-09-06 and authorized completing the app
 without pausing for each increment on 2026-09-12. Do not describe local review
-artifacts as production releases or claim vendor repair or broader SDK compatibility.
+artifacts as production releases or claim broader vendor repair or SDK compatibility.
 
 ## Boundaries
 
@@ -128,6 +129,12 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   unowned SA processes or automatically replay an uncertain MP operation.
 - Registry discovery is not proof of the actual activated SDK. Use only a
   documented, validated vendor procedure for shared registration maintenance.
+  Explicit Change SDK uses the reviewed installed Hexagon /Regserver procedure
+  described in [SDK registration](docs/sdk-registration.md), with pinned publisher
+  identity, protected local installation, reviewed fingerprints, idle-process
+  checks, Windows elevation, private pre-change evidence, and post-verification.
+  Keep vendor registration and read-only discovery separate; no raw registry
+  patches, hidden per-user overrides, automatic retry, or automatic rollback.
   No guessed switches, arbitrary elevated commands, or per-session registry flips.
   Installed SA metadata may omit InstallLocation; recover candidates through an
   existing DisplayIcon file and probe the sibling SDK. Preserve file evidence

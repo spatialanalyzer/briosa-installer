@@ -18,7 +18,8 @@ public partial class MainWindow : Window
     public bool IsWorking => busy || reviewing;
 
     public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null, PackageStore? packageStore = null,
-        ICredentialStore? credentials = null, ISdkDiscovery? sdkDiscovery = null, Func<string, string, bool>? confirmAction = null, string? bootstrapPath = null)
+        ICredentialStore? credentials = null, ISdkDiscovery? sdkDiscovery = null, Func<string, string, bool>? confirmAction = null, string? bootstrapPath = null,
+        ISdkRegistrationService? sdkRegistration = null)
     {
         this.paths = paths;
         this.credentials = credentials ?? new WindowsCredentialStore();
@@ -26,12 +27,13 @@ public partial class MainWindow : Window
         ownsCatalogClient = catalogClient is null;
         this.packageStore = packageStore ?? new PackageStore(credentials: this.credentials);
         this.sdkDiscovery = sdkDiscovery ?? new WindowsSdkDiscovery();
+        this.sdkRegistration = sdkRegistration ?? new SdkRegistrationService();
         this.confirmAction = confirmAction; this.bootstrapPath = bootstrapPath;
         activity = new ActivityStore(System.IO.Path.GetDirectoryName(paths.ExplicitFile ?? paths.UserFile)!);
         InitializeComponent();
         settingsTimer.Tick += async (_, _) => { settingsTimer.Stop(); await PersistSettingsAsync(); };
         liveStatuses = new[] { StatusText, CatalogStatusText, OperationStatusText, UpdateStatusText,
-            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, SdkRefreshStatusText, ActivityStatusText }
+            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, SdkRefreshStatusText, SdkMaintenanceStatusText, ActivityStatusText }
             .Select(text => new LiveStatus(text)).ToArray();
         configuringScope = true;
         if (this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.MachineRoot, StringComparison.OrdinalIgnoreCase)) StoreScope.SelectedIndex = 1;
@@ -243,7 +245,9 @@ public partial class MainWindow : Window
         UpdateProgress.Visibility = Show(operation is not null && installerOperation);
         RecoverStoreButton.IsEnabled = RecoverInstallerStoreButton.IsEnabled = editable;
         RefreshSdkButton.IsEnabled = editable && startupComplete && !sdkReading;
-        SdkObservations.IsEnabled = editable && !sdkReading;
+        // Keep the read-only evidence readable/selectable during maintenance.
+        // Only actions need disabling; the native disabled DataGrid paints a white surface.
+        ChangeSdkButton.IsEnabled = editable && !sdkReading && !sdkChanging && sdkReport?.Observations.Any(o => o.Kind == "Installed SA product") == true;
     }
 
     private async void WindowClosing(object? sender, CancelEventArgs e)

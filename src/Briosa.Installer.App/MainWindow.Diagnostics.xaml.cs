@@ -56,7 +56,7 @@ public partial class MainWindow
     private async void RefreshSdkClicked(object sender, RoutedEventArgs e) => await RefreshSdkSetupAsync();
     private async Task RefreshSdkSetupAsync()
     {
-        if (!startupComplete || sdkReading || catalogClosed) return;
+        if (!startupComplete || sdkReading || sdkChanging || catalogClosed) return;
         sdkReading = true;
         SdkRefreshStatusText.Text = sdkReport is null ? "Loading SDK information…" : "Refreshing SDK information…";
         UpdateInterface();

@@ -6,13 +6,15 @@ distributions for the exact SpatialAnalyzer releases your projects use.
 **Status: functional review build.** The .NET 10/WPF app and CLI configure sources
 and authentication, verify signed catalogs and payloads, install exact products
 side by side, verify/repair/remove packages, recover interrupted operations, and
-select installer updates independently of server versions. SDK setup provides
-read-only evidence and a sanitized handoff. A complete Windows x64 distribution
+select installer updates independently of server versions. SDK Setup discovers
+installed SA releases and can change their shared SDK registration through a
+reviewed Hexagon registration procedure. A complete Windows x64 distribution
 includes the .NET runtime.
 
 No production release, public catalog, or production signing identity is being
-claimed. Automated vendor SDK repair and broader SDK compatibility remain outside
-the implemented runtime contract.
+claimed. Broader vendor installation repair and SDK compatibility remain outside
+the implemented runtime contract. See [SDK registration](docs/sdk-registration.md)
+for the supported procedure, prerequisites, and recovery guidance.
 
 See [build and run instructions](docs/development.md), the
 [finished-app review guide](docs/review-guide.md), and the

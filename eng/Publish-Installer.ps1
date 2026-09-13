@@ -35,6 +35,7 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'THIRD-PARTY-NOTICES.md') -Des
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-DesktopShortcut.ps1') -Destination $packageRoot
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/review-guide.md') -Destination (Join-Path $packageRoot 'README.md')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/administration.md') -Destination (Join-Path $packageRoot 'administration.md')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/sdk-registration.md') -Destination $packageRoot
 $architecture = Join-Path $packageRoot 'architecture'
 $null = New-Item -ItemType Directory -Path $architecture
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/architecture/0003-package-management.md') -Destination $architecture
