@@ -34,8 +34,8 @@ public sealed record ActivityView(ActivityEntry Entry)
     public string AccessibleName => string.Join(", ", new[] { Title, Context, Outcome, Time }.Where(value => value.Length > 0));
     public static string ActionTitle(string code) => code switch
     {
-        "Settings.Save" => "Saved source settings",
-        "Settings.Import" => "Imported source settings",
+        "Settings.Save" => "Saved settings",
+        "Settings.Import" => "Imported settings",
         "Settings.Load" => "Loaded settings",
         "Settings.Test" => "Tested server source",
         "Settings.TestUpdater" => "Tested installer update source",

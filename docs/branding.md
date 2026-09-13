@@ -13,9 +13,13 @@ The published pack was verified against its SHA-256 checksum before copying asse
   application titles, accessible names, and prose continue to use Briosa.
 - Installer is a separate readable product descriptor. No new suite lockup or
   altered wordmark is created. The slogan is omitted from the compact header.
-- The app and bootstrap launcher use the supplied multisize ICO. WPF windows use
-  the same icon resource, so taskbar, title bar, executable, and shortcuts share
-  the approved identity.
+- The app, bootstrap launcher, and WPF windows share the optically centered
+  application ICO in `Assets/AppIcon`. The original tile was centered, but the
+  three-plane symbol's filled area sat about 5.3% below its center. The derivative
+  translates the intact symbol upward by 54 units in the 1024-unit canvas,
+  preserving the background, plane geometry, colors, and small-size optical variant.
+  Native 16, 20, 24, 32, 40, 48, 64, 96, 128, and 256 px frames cover common
+  taskbar and title-bar scaling sizes. Original brand assets remain unmodified.
 - The unmodified Inter variable font is embedded for supporting interface text.
   Logos and fonts load from application resources without network access or a
   Windows font installation. WPF's regular-font resolution is checked by the
@@ -50,8 +54,16 @@ cards use opaque surfaces for readability. The empty inventory also retains the
 workspace background. The old background PNGs are removed. The concept image in
 this document is reference material only; the application never loads it.
 
-`BrandTheme` follows the selected WPF appearance and Windows application theme,
-refreshing resources when system preferences change. It reads preferences only.
+**Settings → Appearance → App theme** offers System, Light, and Dark. Selecting
+a theme previews it immediately; **Save changes** persists it with source settings,
+and **Discard changes** restores the saved choice. `appearance.theme` in
+`settings.json` accepts `system`, `light`, or `dark`; omission defaults to System.
+The saved theme applies before the native window opens and is included in settings
+import/export. Theme-only saves retain catalog results and do not request metadata.
+
+`BrandTheme` applies the preference application-wide, including dialogs. System
+follows Windows app mode; explicit Light/Dark choices remain in effect when
+system preferences change. Windows preferences are only read, never written.
 In high contrast it removes the application's native-control palette overrides,
 leaving WPF's system high-contrast resources in control. The sidebar uses system
 window/highlight colors and the supplied white or black logo as appropriate.
@@ -73,3 +85,14 @@ screens at 100%, 150%, and 200% rendering scales and checks vector-only backgrou
 font loading, logo minimum width, and high-contrast delegation.
 Native high-contrast, Narrator, and all Windows scaling combinations remain separate
 release checks; simulated palette checks do not establish those results.
+
+### Rebuild the application icon
+
+The optional [icon generator](../eng/Build-AppIcon.cjs) uses Node.js and Sharp
+0.35.4. Run `node eng/Build-AppIcon.cjs` with Sharp installed in the authoring
+environment, or pass an absolute module path as its only argument. Normal .NET
+builds use the committed ICO and need neither Node.js nor an image library.
+Inputs are the byte-exact v1 `icons/app-icon.svg` and `icons/favicon.svg` under
+`Assets/Brand`. `Assets/AppIcon/derivation.json` records input/output hashes,
+the placement adjustment, renderer versions, and frame sizes. The distribution
+includes that record with the brand license and original provenance.

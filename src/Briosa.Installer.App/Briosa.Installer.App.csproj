@@ -4,7 +4,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>Briosa.Installer</AssemblyName>
-    <ApplicationIcon>Assets/Brand/icons/favicon.ico</ApplicationIcon>
+    <ApplicationIcon>Assets/AppIcon/briosa.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Briosa.Installer.Core/Briosa.Installer.Core.csproj" />
@@ -12,6 +12,6 @@
   <ItemGroup>
     <Resource Include="Assets/Brand/png/logos/*.png" />
     <Resource Include="Assets/Brand/fonts/Inter-Variable.ttf" />
-    <Resource Include="Assets/Brand/icons/favicon.ico" />
+    <Resource Include="Assets/AppIcon/briosa.ico" />
   </ItemGroup>
 </Project>

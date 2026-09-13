@@ -36,7 +36,7 @@ public static class CliApplication
         for (var index = 2; index < args.Length; index++)
         {
             var key = args[index];
-            if (key is not ("--config" or "--server-catalog" or "--installer-catalog" or "--same-source") || options.ContainsKey(key))
+            if (key is not ("--config" or "--server-catalog" or "--installer-catalog" or "--same-source" or "--theme") || options.ContainsKey(key))
                 return Usage(error);
             if (key == "--same-source") options.Add(key, null);
             else
@@ -80,6 +80,7 @@ public static class CliApplication
                 ServerPublisherKey = previous.ServerPublisherKey,
                 InstallerAuthentication = previous.InstallerCatalog == installer && installer is not null ? previous.InstallerAuthentication : "anonymous",
                 InstallerPublisherKey = installer is null ? null : previous.InstallerPublisherKey ?? previous.ServerPublisherKey,
+                Theme = options.GetValueOrDefault("--theme") ?? previous.Theme,
             };
             var saved = store.Save(snapshot, settings);
             if (saved is Outcome<SettingsSnapshot>.Failure saveFailure) return Fail(error, saveFailure.Error);
@@ -105,9 +106,9 @@ public static class CliApplication
 
         settings show|validate [--config <file>]
         settings set [--config <file>] [--server-catalog <location>]
-                     [--installer-catalog <location> | --same-source]
+                     [--installer-catalog <location> | --same-source] [--theme system|light|dark]
         settings init --config <new-file> --server-catalog <location>
-                      [--installer-catalog <location> | --same-source]
+                      [--installer-catalog <location> | --same-source] [--theme system|light|dark]
         catalog list --component server|installer [--config <file>]
         catalog preview --component server|installer --id <package-id> [--config <file>]
 

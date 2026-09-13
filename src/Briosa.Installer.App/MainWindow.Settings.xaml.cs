@@ -14,6 +14,20 @@ public partial class MainWindow
     private InstallerSettings? testedServerSettings;
     private CatalogSnapshot? testedServerCatalog;
 
+    private static bool SameSources(InstallerSettings? left, InstallerSettings? right) => left is not null && right is not null &&
+        left.Source(CatalogComponent.Server) == right.Source(CatalogComponent.Server) &&
+        left.Source(CatalogComponent.Installer) == right.Source(CatalogComponent.Installer);
+
+    private void ThemeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!initialized || populating) return;
+        var settings = CurrentSettings();
+        BrandTheme.ApplyPreference(Application.Current, settings.Theme);
+        dirty = settings != editorBaseline;
+        StatusText.Text = dirty ? "Previewing appearance. Save changes to keep your settings." : "All changes saved.";
+        UpdateInterface();
+    }
+
     private void UpdateSecurityLabels()
     {
         static string Label(SourceSettings source) => $"Access: {SourceSecurityDialog.AuthenticationLabel(source.Authentication)} · " +
@@ -75,7 +89,7 @@ public partial class MainWindow
         try
         {
             var result = await catalogClient.ReadAsync(settings, component, cancellation.Token);
-            if (generation != sourceTestGeneration || catalogClosed || settings != CurrentSettings()) return;
+            if (generation != sourceTestGeneration || catalogClosed || !SameSources(settings, CurrentSettings())) return;
             if (cancellation.IsCancellationRequested)
             { target.Text = "Connection test cancelled. Settings can still be saved."; RecordActivity(code, "Cancelled"); return; }
             if (result is CatalogResult<CatalogSnapshot>.Failure failure)
@@ -127,4 +141,3 @@ public partial class MainWindow
         { StatusText.Text = "Settings could not be exported. Check file access."; }
     }
 }
-

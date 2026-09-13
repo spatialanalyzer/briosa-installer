@@ -54,6 +54,7 @@ $brandRoot = Join-Path $repositoryRoot 'src/Briosa.Installer.App/Assets/Brand'
 Copy-Item -LiteralPath (Join-Path $brandRoot 'LICENSE') -Destination (Join-Path $licenseRoot 'briosa-brand-LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $brandRoot 'fonts/OFL.txt') -Destination (Join-Path $licenseRoot 'Inter-OFL.txt')
 Copy-Item -LiteralPath (Join-Path $brandRoot 'provenance.json') -Destination (Join-Path $licenseRoot 'briosa-brand-provenance.json')
+Copy-Item -LiteralPath (Join-Path $brandRoot '../AppIcon/derivation.json') -Destination (Join-Path $licenseRoot 'briosa-app-icon-derivation.json')
 foreach ($runtime in @('microsoft.netcore.app.runtime.win-x64', 'microsoft.windowsdesktop.app.runtime.win-x64')) {
     $assets = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Briosa.Installer.App/obj/project.assets.json') -Raw | ConvertFrom-Json
     $dependencies = $assets.project.frameworks.PSObject.Properties.Value.downloadDependencies

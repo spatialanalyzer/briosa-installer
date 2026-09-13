@@ -58,6 +58,12 @@ Changing scope changes the inventory being viewed; it does not move packages.
 Import stages editor changes; Save applies them. An external settings-file change
 invalidates catalog results and requires reload before package operations.
 
+**Settings → Appearance → App theme** selects System, Light, or Dark. System follows
+your Windows app mode. Changes preview immediately; **Save changes** keeps the
+choice for future launches, while **Discard changes** restores the saved theme.
+The choice also appears as `appearance.theme` in JSON and survives import/export.
+Windows contrast themes take priority. Changing Briosa's theme does not change Windows.
+
 Credentials have an explicit separate save boundary: **Save credential now** and
 **Remove stored credential…** change Windows Credential Manager immediately.
 Applying source access settings stages the authentication mode and publisher for

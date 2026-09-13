@@ -31,6 +31,7 @@ package verification remain governed by the existing architecture.
 | Credentials | Explicit Save credential now / Remove stored credential actions immediately update Credential Manager. Applying the dialog stages authentication mode and publisher selection. Cancel/Discard does not undo separately saved credentials. |
 | Installer updates | The ordinary action offers only a newer release. Acquisition and restart are separate. Specific versions and rollback require opening recovery controls and selecting a row; none is automatically selected. |
 | Next launch | Running and selected installer versions are separate claims. Selection metadata survives reopening; launch still verifies the selected package through the existing engine. |
+| Appearance | System/Light/Dark previews immediately, uses shared settings Save/Discard, and persists across launches. Theme-only saves retain catalog results. Windows contrast themes take priority. |
 | Advanced | One shared scope/location control, local refresh, journal recovery, JSON, import/export, and reload. Scope selection does not move packages. |
 | SDK Setup | Summary first, evidence and details second. Inspection reads files/registry only. No COM activation, MP execution, automated registration repair, or readiness claim. |
 | Activity | Live actions and saved history use the same rows, local timestamps, outcomes, and safe package context. Details expose result codes and guidance; Needs attention filters failures/cancellations. Unreadable history is reported and preserved. |
@@ -40,7 +41,7 @@ project profiles, dependency discovery, or impact assessment is introduced.
 
 ## Native presentation and accessibility
 
-Use the built-in WPF Fluent theme with system light/dark appearance, the approved
+Use the built-in WPF Fluent theme with a saved System/Light/Dark preference, the approved
 [Briosa palette and artwork](../branding.md), dynamic brushes, consistent typography,
 spacing, and section cards. Retain
 native control templates and keyboard behavior. Avoid window-local theme settings

@@ -55,6 +55,20 @@ public sealed class BrandTheme : IDisposable
         Apply(app, dark, SystemParameters.HighContrast);
     }
 
+    public static void ApplyPreference(Application app, string theme)
+    {
+#pragma warning disable WPF0001 // App-wide Fluent appearance; never writes a Windows preference.
+        app.ThemeMode = theme switch
+        {
+            "system" => ThemeMode.System,
+            "light" => ThemeMode.Light,
+            "dark" => ThemeMode.Dark,
+            _ => throw new ArgumentOutOfRangeException(nameof(theme)),
+        };
+#pragma warning restore WPF0001
+        ApplySystem(app);
+    }
+
     // Explicit appearance parameters also let the control-tree harness validate both
     // palettes and high-contrast delegation without changing the user's Windows settings.
     public static void Apply(Application app, bool dark, bool highContrast)

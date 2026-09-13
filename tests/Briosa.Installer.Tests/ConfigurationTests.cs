@@ -194,6 +194,48 @@ public sealed class ConfigurationTests : IDisposable
     }
 
     private int Cli(params string[] args) => CliApplication.Run(args, TextWriter.Null, TextWriter.Null, Paths);
+
+    [Theory]
+    [InlineData("system")]
+    [InlineData("light")]
+    [InlineData("dark")]
+    public void AppearanceRoundTripsThroughSettingsAndCliWithoutChangingSources(string theme)
+    {
+        var original = ServerOnly with { InstallerCatalog = @"D:\installer\catalog.json" };
+        Save(Load(), original);
+        Assert.Equal(0, Cli("settings", "set", "--theme", theme));
+        Assert.Equal(original with { Theme = theme }, Load().Settings);
+        var encoded = SettingsCodec.Serialize(Load().Settings!);
+        Assert.Equal(Load().Settings, Assert.IsType<Outcome<InstallerSettings>.Success>(SettingsCodec.Parse(encoded)).Value);
+        Assert.Equal(0, Cli("settings", "set", "--server-catalog", "https://new.example.test/catalog.json"));
+        Assert.Equal(theme, Load().Settings!.Theme);
+    }
+
+    [Theory]
+    [InlineData("null", ConfigurationError.InvalidProperties)]
+    [InlineData("{}", ConfigurationError.InvalidProperties)]
+    [InlineData("{\"theme\":null}", ConfigurationError.InvalidProperties)]
+    [InlineData("{\"theme\":1}", ConfigurationError.InvalidProperties)]
+    [InlineData("{\"theme\":\"dark\",\"theme\":\"light\"}", ConfigurationError.InvalidProperties)]
+    [InlineData("{\"theme\":\"Dark\"}", ConfigurationError.InvalidTheme)]
+    [InlineData("{\"theme\":\"unknown\"}", ConfigurationError.InvalidTheme)]
+    public void RejectsInvalidAppearanceWithoutReplacingSavedConfiguration(string appearance, ConfigurationError expected)
+    {
+        Save(Load(), ServerOnly);
+        var json = "{\"schemaVersion\":1,\"source\":{\"catalog\":\"https://example.test/catalog.json\"},\"appearance\":" + appearance + "}";
+        Assert.Equal(expected, Assert.IsType<Outcome<InstallerSettings>.Failure>(SettingsCodec.Parse(json)).Error.Code);
+        Assert.Equal(2, Cli("settings", "set", "--theme", "unknown"));
+        Assert.Equal(ServerOnly, Load().Settings);
+    }
+
+    [Fact]
+    public void ExistingConfigurationDefaultsToSystemAppearance()
+    {
+        var original = SettingsCodec.Serialize(ServerOnly);
+        Assert.DoesNotContain("appearance", original);
+        Assert.Equal("system", Assert.IsType<Outcome<InstallerSettings>.Success>(SettingsCodec.Parse(original)).Value.Theme);
+    }
+
     private SettingsSnapshot Load() => Assert.IsType<Outcome<SettingsSnapshot>.Success>(store.Load(Paths)).Value;
     private SettingsSnapshot Save(SettingsSnapshot snapshot, InstallerSettings settings) =>
         Assert.IsType<Outcome<SettingsSnapshot>.Success>(store.Save(snapshot, settings)).Value;

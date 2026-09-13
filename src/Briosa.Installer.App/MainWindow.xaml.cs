@@ -103,6 +103,8 @@ public partial class MainWindow : Window
         SameSource.IsChecked = settings?.InstallerCatalog is null;
         serverSecurity = settings?.Source(CatalogComponent.Server);
         installerSecurity = settings?.InstallerCatalog is null ? null : settings.Source(CatalogComponent.Installer);
+        ThemeSelector.SelectedIndex = settings?.Theme switch { "light" => 1, "dark" => 2, _ => 0 };
+        BrandTheme.ApplyPreference(Application.Current, settings?.Theme ?? "system");
         editorBaseline = CurrentSettings(); populating = false;
         UpdateEffectiveSource(); UpdateSecurityLabels();
     }
@@ -111,7 +113,8 @@ public partial class MainWindow : Window
     {
         if (snapshot is null || busy || sourceTest is not null) return;
         var settings = CurrentSettings();
-        var tested = testedServerSettings == settings ? testedServerCatalog : null;
+        var sourcesChanged = !SameSources(snapshot.Settings, settings);
+        var tested = SameSources(testedServerSettings, settings) ? testedServerCatalog : null;
         SetBusy(true);
         try
         {
@@ -120,9 +123,12 @@ public partial class MainWindow : Window
             { StatusText.Text = failure.Error.Message; RecordActivity("Settings.Save", failure.Error.Code.ToString()); return; }
             snapshot = ((Outcome<SettingsSnapshot>.Success)saved).Value;
             editorBaseline = settings; dirty = false; externalChange = false;
-            InvalidateCatalog();
-            if (tested is not null) { catalogSnapshot = tested; catalogFailure = null; CatalogStatusText.Text = CatalogSummary(tested); }
-            StatusText.Text = tested is null ? "Changes saved. Sources can be tested when you are online." : "Changes saved. Server source access and catalog checks completed.";
+            if (sourcesChanged)
+            {
+                InvalidateCatalog();
+                if (tested is not null) { catalogSnapshot = tested; catalogFailure = null; CatalogStatusText.Text = CatalogSummary(tested); }
+            }
+            StatusText.Text = !sourcesChanged ? "All changes saved." : tested is null ? "Changes saved. Sources can be tested when you are online." : "Changes saved. Server source access and catalog checks completed.";
             RecordActivity("Settings.Save", "Succeeded");
             if (returnToServers) { returnToServers = false; Navigation.SelectedItem = InstallationsNavigation; }
         }
@@ -153,7 +159,8 @@ public partial class MainWindow : Window
         var server = serverSecurity?.Catalog == ServerCatalog.Text ? serverSecurity : new SourceSettings(ServerCatalog.Text, PublisherKey: serverSecurity?.PublisherKey);
         var updater = SameSource.IsChecked == true ? null : installerSecurity?.Catalog == InstallerCatalog.Text ? installerSecurity :
             new SourceSettings(InstallerCatalog.Text, PublisherKey: installerSecurity?.PublisherKey ?? serverSecurity?.PublisherKey);
-        return new(server.Catalog, updater?.Catalog, server.Authentication, updater?.Authentication ?? "anonymous", server.PublisherKey, updater?.PublisherKey);
+        return new(server.Catalog, updater?.Catalog, server.Authentication, updater?.Authentication ?? "anonymous", server.PublisherKey, updater?.PublisherKey,
+            (ThemeSelector.SelectedItem as ComboBoxItem)?.Tag.ToString() ?? "system");
     }
 
     private void UpdateEffectiveSource()
@@ -221,6 +228,7 @@ public partial class MainWindow : Window
         ReloadButton.IsEnabled = DiscardButton.IsEnabled = editable;
         JsonButton.IsEnabled = ImportSettingsButton.IsEnabled = ExportSettingsButton.IsEnabled = editable;
         ServerCatalog.IsEnabled = SameSource.IsEnabled = editable;
+        ThemeSelector.IsEnabled = editable;
         ServerSecurityButton.IsEnabled = InstallerSecurityButton.IsEnabled = editable && sourceTest is null;
         TestServerButton.IsEnabled = TestInstallerButton.IsEnabled = editable && sourceTest is null;
         CancelSourceTestButton.Visibility = Show(sourceTest is not null);
@@ -259,7 +267,7 @@ public partial class MainWindow : Window
         SdkDetailsButton.IsEnabled = SdkObservations.SelectedItem is SdkEvidence;
     }
 
-    private bool ConfirmDiscard() => !dirty || ConfirmAction("Discard changes", "Discard the unsaved source settings? Credentials saved separately in the access dialog are not changed.", "Discard changes");
+    private bool ConfirmDiscard() => !dirty || ConfirmAction("Discard changes", "Discard the unsaved settings? Credentials saved separately in the access dialog are not changed.", "Discard changes");
     private void WindowClosing(object? sender, CancelEventArgs e)
     {
         e.Cancel = IsWorking || !ConfirmDiscard();

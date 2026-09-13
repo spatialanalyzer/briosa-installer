@@ -44,12 +44,12 @@ public partial class MainWindow
         UpdateStatusText.Text = "Checking the saved installer update source…"; UpdateInterface();
         try
         {
-            if (!await SavedSettingsMatchAsync(captured))
+            if (!await SavedSettingsMatchAsync(captured, sourcesOnly: true))
             { if (generation == updaterGeneration) UpdateStatusText.Text = "Source settings changed. Reload Settings before checking."; return; }
             if (generation != updaterGeneration || catalogClosed) return;
             var result = await catalogClient.ReadAsync(captured.Settings!, CatalogComponent.Installer, cancellation.Token);
             if (generation != updaterGeneration || catalogClosed) return;
-            if (!await SavedSettingsMatchAsync(captured))
+            if (!await SavedSettingsMatchAsync(captured, sourcesOnly: true))
             { if (generation == updaterGeneration) UpdateStatusText.Text = "Source settings changed during this check. Reload and check again."; return; }
             if (generation != updaterGeneration || catalogClosed) return;
             if (cancellation.IsCancellationRequested)
@@ -91,7 +91,7 @@ public partial class MainWindow
         {
             var captured = snapshot; var catalog = updaterSnapshot; var generation = updaterGeneration;
             if (!catalog.Packages.Contains(release.Package)) return;
-            if (!await SavedSettingsMatchAsync(captured))
+            if (!await SavedSettingsMatchAsync(captured, sourcesOnly: true))
             { InvalidateCatalog(); UpdateOperationStatusText.Text = "Source settings changed. Reload Settings and check again."; return; }
             if (busy || dirty || generation != updaterGeneration || catalogClosed) return;
             var package = release.Package; var rollback = release.Comparison < 0;

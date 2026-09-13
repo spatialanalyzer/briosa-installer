@@ -21,6 +21,8 @@ public partial class App : Application
                 else if (e.Args[index] == "--store") store = e.Args[index + 1]; else bootstrap = e.Args[index + 1];
             }
             var paths = ConfigurationPaths.ForCurrentUser(config);
+            if (new SettingsStore().Load(paths) is Outcome<SettingsSnapshot>.Success { Value.Settings: { } settings })
+                BrandTheme.ApplyPreference(this, settings.Theme);
             new MainWindow(paths, packageStore: new PackageStore(store), bootstrapPath: bootstrap).Show();
         }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or System.IO.IOException or UnauthorizedAccessException)

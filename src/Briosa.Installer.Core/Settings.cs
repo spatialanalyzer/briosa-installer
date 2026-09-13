@@ -14,6 +14,7 @@ public enum ConfigurationError
     WriteFailed,
     SaveConflict,
     FileTooLarge,
+    InvalidTheme,
 }
 
 public sealed record ConfigurationFailure(ConfigurationError Code)
@@ -29,6 +30,7 @@ public sealed record ConfigurationFailure(ConfigurationError Code)
         ConfigurationError.WriteFailed => "Settings could not be saved. Check directory access and whether another editor is saving.",
         ConfigurationError.SaveConflict => "Settings changed since they were loaded. Reload before saving; the file was not overwritten.",
         ConfigurationError.FileTooLarge => "The settings file exceeds the 1 MiB limit.",
+        ConfigurationError.InvalidTheme => "Choose system, light, or dark for the appearance theme.",
         _ => "Settings could not be processed.",
     };
 }
@@ -43,7 +45,7 @@ public abstract record Outcome<T>
 
 public sealed record InstallerSettings(string ServerCatalog, string? InstallerCatalog = null,
     string ServerAuthentication = "anonymous", string InstallerAuthentication = "anonymous",
-    string? ServerPublisherKey = null, string? InstallerPublisherKey = null)
+    string? ServerPublisherKey = null, string? InstallerPublisherKey = null, string Theme = "system")
 {
     public string EffectiveInstallerCatalog => InstallerCatalog ?? ServerCatalog;
     public SourceSettings Source(CatalogComponent component) => component == CatalogComponent.Server || InstallerCatalog is null
@@ -61,7 +63,7 @@ public static class SettingsCodec
         {
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 8 });
             var root = document.RootElement;
-            if (!HasProperties(root, ["schemaVersion", "source"], ["installerUpdates"]))
+            if (!HasProperties(root, ["schemaVersion", "source"], ["installerUpdates", "appearance"]))
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
             var version = root.GetProperty("schemaVersion");
             if (version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out var number) || number != 1)
@@ -74,8 +76,15 @@ public static class SettingsCodec
                 if (!HasProperties(updates, ["source"], []) || !TrySource(updates.GetProperty("source"), out installer))
                     return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
             }
+            var theme = "system";
+            if (root.TryGetProperty("appearance", out var appearance))
+            {
+                if (!HasProperties(appearance, ["theme"], []) || appearance.GetProperty("theme").ValueKind != JsonValueKind.String)
+                    return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
+                theme = appearance.GetProperty("theme").GetString()!;
+            }
             return Validate(new(server!.Catalog, installer?.Catalog, server.Authentication,
-                installer?.Authentication ?? "anonymous", server.PublisherKey, installer?.PublisherKey));
+                installer?.Authentication ?? "anonymous", server.PublisherKey, installer?.PublisherKey, theme));
         }
         catch (JsonException)
         {
@@ -84,6 +93,7 @@ public static class SettingsCodec
     }
 
     public static Outcome<InstallerSettings> Validate(InstallerSettings settings) =>
+        settings.Theme is not ("system" or "light" or "dark") ? Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidTheme) :
         IsCatalog(settings.ServerCatalog) && (settings.InstallerCatalog is null || IsCatalog(settings.InstallerCatalog)) &&
         ValidSecurity(settings.Source(CatalogComponent.Server)) && ValidSecurity(settings.Source(CatalogComponent.Installer)) &&
         (settings.InstallerCatalog is not null || (settings.InstallerAuthentication == "anonymous" && settings.InstallerPublisherKey is null))
@@ -102,6 +112,8 @@ public static class SettingsCodec
             {
                 ["source"] = SourceJson(settings.Source(CatalogComponent.Installer)),
             };
+        // Keep existing documents unchanged when using the default appearance.
+        if (settings.Theme != "system") root["appearance"] = new JsonObject { ["theme"] = settings.Theme };
         return root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
 

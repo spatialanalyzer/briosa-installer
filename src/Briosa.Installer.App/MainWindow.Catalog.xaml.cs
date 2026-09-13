@@ -29,10 +29,11 @@ public partial class MainWindow
     }
     private void CancelCatalogClicked(object sender, RoutedEventArgs e) => catalogRead?.Cancel();
     private void CatalogSelectionChanged(object sender, SelectionChangedEventArgs e) { if (initialized) UpdateInterface(); }
-    private async Task<bool> SavedSettingsMatchAsync(SettingsSnapshot captured)
+    private async Task<bool> SavedSettingsMatchAsync(SettingsSnapshot captured, bool sourcesOnly = false)
     {
         var loaded = await Task.Run(() => store.Load(paths));
-        return loaded is Outcome<SettingsSnapshot>.Success success && success.Value == captured;
+        return loaded is Outcome<SettingsSnapshot>.Success success &&
+            (sourcesOnly ? SameSources(success.Value.Settings, captured.Settings) : success.Value == captured);
     }
     private async void RefreshCatalogClicked(object sender, RoutedEventArgs e)
     {
@@ -52,12 +53,12 @@ public partial class MainWindow
         CatalogStatusText.Text = "Loading available servers…"; RebuildInventory(); UpdateInterface();
         try
         {
-            if (!await SavedSettingsMatchAsync(captured))
+            if (!await SavedSettingsMatchAsync(captured, sourcesOnly: true))
             { if (generation == catalogGeneration) CatalogStatusText.Text = catalogFailure = "Settings changed on disk. Reload Settings before checking."; return; }
             if (generation != catalogGeneration || catalogClosed) return;
             var result = await catalogClient.ReadAsync(captured.Settings!, CatalogComponent.Server, cancellation.Token);
             if (generation != catalogGeneration || catalogClosed) return;
-            if (!await SavedSettingsMatchAsync(captured))
+            if (!await SavedSettingsMatchAsync(captured, sourcesOnly: true))
             { if (generation == catalogGeneration) CatalogStatusText.Text = catalogFailure = "Settings changed during the check. Reload Settings and check again."; return; }
             if (generation != catalogGeneration || catalogClosed) return;
             if (cancellation.IsCancellationRequested)

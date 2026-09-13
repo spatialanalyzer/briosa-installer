@@ -82,7 +82,7 @@ resolution without opening a window:
 The app opens on Installations. Navigation continues with SDK Setup, Activity,
 and Settings. Settings owns every user-configurable value accepted by
 `settings.json`: server and optional updater catalogs, source sharing,
-authentication modes, and publisher keys. Authentication/publisher dialogs are
+authentication modes, publisher keys, and the appearance theme. Authentication/publisher dialogs are
 part of that page. The application maintains schema-version metadata.
 Future settings must include GUI controls using the same validation and persistence.
 
@@ -99,11 +99,12 @@ Returning to the page retains completed results; Refresh reloads both inventorie
 Saved source changes are loaded when the page is next shown, and a tested unchanged
 catalog can be reused immediately. Failed reads wait for an explicit retry.
 
-The UI uses the built-in WPF Fluent resources with the system theme, named Fluent
+The UI uses the built-in WPF Fluent resources with a saved System/Light/Dark theme, named Fluent
 base styles, and the [approved Briosa brand palette](branding.md). The inventory
 groups installed and
 available servers by exact SA target; details and maintenance controls appear in
-context. Settings separates Package sources, Installer updates, and Advanced.
+context. Settings separates Package sources, Installer updates, Appearance, and Advanced.
+Appearance previews immediately and uses the common Save/Discard controls.
 See the [redesign decision](architecture/0004-installer-ux.md) for interaction and
 accessibility requirements, evidence, and remaining manual validation.
 

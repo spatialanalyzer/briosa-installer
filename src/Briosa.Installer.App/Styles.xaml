@@ -5,7 +5,7 @@
   <FontFamily x:Key="BriosaFont">pack://application:,,,/Briosa.Installer;component/Assets/Brand/fonts/#Inter</FontFamily>
   <Style TargetType="Window">
     <Setter Property="FontFamily" Value="{StaticResource BriosaFont}" />
-    <Setter Property="Icon" Value="pack://application:,,,/Briosa.Installer;component/Assets/Brand/icons/favicon.ico" />
+    <Setter Property="Icon" Value="pack://application:,,,/Briosa.Installer;component/Assets/AppIcon/briosa.ico" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />

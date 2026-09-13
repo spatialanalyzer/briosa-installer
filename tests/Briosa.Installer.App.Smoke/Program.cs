@@ -27,10 +27,11 @@ internal static class Program
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             ExerciseSources(directory);
             ExerciseAutomaticCatalogLoading();
+            ExerciseAppearance(directory, args);
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();
             app.Shutdown();
-            Console.WriteLine("WPF smoke passed: first use, source testing/save/discard, mirror isolation, stale checks, grouped inventory, filters, signed side-by-side install, verify/repair/remove, updates/explicit rollback, SDK summaries, persistent Activity, credential boundary, and compact layout. No native window or real SDK was used.");
+            Console.WriteLine("WPF smoke passed: first use, source testing/save/discard, mirror isolation, stale checks, appearance preview/save/discard/reopen and catalog preservation, native icon sizes, grouped inventory, filters, signed side-by-side install, verify/repair/remove, updates/explicit rollback, SDK summaries, persistent Activity, credential boundary, and compact layout. No native window or real SDK was used.");
             return 0;
         }
         catch (Exception exception) { Console.Error.WriteLine(exception); return 1; }
@@ -155,6 +156,74 @@ internal static class Program
         Require(Find<TextBox>(window, "ServerCatalog").Text.Contains("external.example.com", StringComparison.Ordinal), "Reload did not pick up external edits.");
         Require(handler.Requests.All(uri => uri.EndsWith("catalog.json", StringComparison.Ordinal)), "Browsing fetched payloads.");
         window.Close();
+    }
+
+    private static void ExerciseAppearance(string directory, string[] args)
+    {
+        var path = Path.Combine(directory, "appearance.json");
+        var original = new InstallerSettings("https://mirror.example.com/servers/catalog.json", "https://mirror.example.com/updater/catalog.json");
+        File.WriteAllText(path, SettingsCodec.Serialize(original));
+        using var handler = new CatalogHandler();
+        using var catalogs = new ReleaseCatalogClient(handler);
+        MainWindow Open() => new(new(path), catalogs, new PackageStore(Path.Combine(directory, "appearance-store")),
+            sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (_, _) => true);
+        var window = Open(); Load(window);
+        var rows = Find<ListBox>(window, "CatalogPackages");
+        var beforeRequests = handler.Requests.Count;
+        Page(window, "SettingsNavigation");
+        Find<TabControl>(window, "SettingsSections").SelectedItem = Find<TabItem>(window, "AppearanceSection");
+        var selector = Find<ComboBox>(window, "ThemeSelector");
+        Require(selector.SelectedIndex == 0, "Existing settings did not default to System appearance.");
+#pragma warning disable WPF0001
+        selector.SelectedIndex = 2; PumpDispatcher();
+        Require(Application.Current.ThemeMode == ThemeMode.Dark && Find<Button>(window, "SaveButton").IsEnabled, "Dark preview did not apply or become saveable.");
+        Require(File.ReadAllText(path) == SettingsCodec.Serialize(original), "Theme preview silently saved other editor values.");
+        if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-dark.png", 1140, 800);
+        Click(window, "SaveButton"); Ready(window);
+        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings == original with { Theme = "dark" }, "Theme save lost a source or updater override.");
+        Page(window, "InstallationsNavigation"); PumpDispatcher();
+        Require(rows.Items.Count == 3 && handler.Requests.Count == beforeRequests, "Theme-only save lost or reloaded the server catalog.");
+        window.Close();
+
+        window = Open(); Load(window);
+        Page(window, "SettingsNavigation");
+        Find<TabControl>(window, "SettingsSections").SelectedItem = Find<TabItem>(window, "AppearanceSection");
+        selector = Find<ComboBox>(window, "ThemeSelector");
+        Require(selector.SelectedIndex == 2 && Application.Current.ThemeMode == ThemeMode.Dark, "Saved Dark preference did not survive reopening.");
+        selector.SelectedIndex = 1; PumpDispatcher();
+        Require(Application.Current.ThemeMode == ThemeMode.Light, "Light preview did not apply.");
+        // System notifications must retain an explicit app override.
+        BrandTheme.ApplySystem(Application.Current);
+        Require(((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == Color.FromRgb(242, 242, 242), "System refresh overrode explicit Light appearance.");
+        if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-light.png", 1140, 800);
+        if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-compact.png", 820, 580);
+        Click(window, "DiscardButton"); Ready(window);
+        Require(selector.SelectedIndex == 2 && Application.Current.ThemeMode == ThemeMode.Dark, "Discard did not restore the saved theme.");
+
+        // A theme save during an outstanding read must not discard its source result.
+        handler.HoldNext = true; Page(window, "InstallationsNavigation");
+        Click(window, "RefreshCatalogButton"); PumpUntil(() => handler.Pending is not null);
+        Page(window, "SettingsNavigation"); selector.SelectedIndex = 0;
+        Click(window, "SaveButton"); Ready(window);
+        handler.Pending!.SetResult(handler.Response());
+        PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
+        Require(Find<ListBox>(window, "CatalogPackages").Items.Count == 3 && Application.Current.ThemeMode == ThemeMode.System,
+            "System choice failed or invalidated a pending source read.");
+#pragma warning restore WPF0001
+        // Concurrent external writers retain the settings-store conflict protection.
+        selector.SelectedIndex = 1;
+        var external = original with { Theme = "dark", ServerCatalog = "https://external.example.com/catalog.json" };
+        File.WriteAllText(path, SettingsCodec.Serialize(external));
+        Click(window, "SaveButton"); Ready(window);
+        Require(File.ReadAllText(path) == SettingsCodec.Serialize(external) && Find<Button>(window, "SaveButton").IsEnabled,
+            "Appearance save overwrote an external settings edit or hid unsaved changes.");
+        Click(window, "DiscardButton"); Ready(window);
+        Require(selector.SelectedIndex == 2, "Reload ignored an externally configured theme.");
+        window.Close();
+        BrandTheme.ApplyPreference(Application.Current, "system");
+
+        var icon = BitmapDecoder.Create(new Uri("pack://application:,,,/Briosa.Installer;component/Assets/AppIcon/briosa.ico"), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        Require(new[] { 16, 20, 24, 32, 40, 48, 64, 96, 128, 256 }.All(size => icon.Frames.Any(f => f.PixelWidth == size && f.PixelHeight == size)), "The Windows icon lacks native taskbar/DPI frames.");
     }
 
     private static void ExercisePackageWorkflow(string[] args)

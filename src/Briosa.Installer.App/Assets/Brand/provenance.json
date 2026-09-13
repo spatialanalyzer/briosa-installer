@@ -43,6 +43,14 @@
     {
       "path": "png/logos/briosa-horizontal-color.png",
       "sha256": "d7273be8ab85cb397296783405447f28e8a2d6412b7fcf9234d63dde4ed25e59"
+    },
+    {
+      "path": "icons/app-icon.svg",
+      "sha256": "570b2ff9a61d6eca22448a38a020d2d35a28b026a9abe6255360ea1cc48978cc"
+    },
+    {
+      "path": "icons/favicon.svg",
+      "sha256": "67db8d1d23a5617818fe944135e0b6177bf07b9223d1e66f892a82c104745c5a"
     }
   ]
 }

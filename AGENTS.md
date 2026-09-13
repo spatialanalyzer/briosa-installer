@@ -49,6 +49,11 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   and cyan are accents. Render the planes with native WPF vector geometry and
   controlled fills; do not reintroduce background PNGs or bitmap caches. Disable
   decorative background artwork in high contrast.
+- Settings → Appearance owns the saved System/Light/Dark preference. Preview
+  immediately, persist through the common settings Save/Discard flow, and retain
+  Windows contrast-theme priority. Theme-only saves must not reset package catalogs.
+  App/launcher/window icons share the optically centered ICO under `Assets/AppIcon`;
+  preserve its documented derivation and leave original brand assets byte-exact.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
 - Installations contains only gRPC server downloads and installed server packages.

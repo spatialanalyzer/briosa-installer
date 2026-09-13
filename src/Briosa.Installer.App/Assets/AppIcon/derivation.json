@@ -1,0 +1,27 @@
+{
+  "source": "spatialanalyzer/briosa-brand@v1",
+  "commit": "0a86718f66164e4a773bea37f738888a57c6bce0",
+  "inputs": {
+    "icons/favicon.svg": "67db8d1d23a5617818fe944135e0b6177bf07b9223d1e66f892a82c104745c5a",
+    "icons/app-icon.svg": "570b2ff9a61d6eca22448a38a020d2d35a28b026a9abe6255360ea1cc48978cc"
+  },
+  "modification": "Translate the complete three-plane symbol by (0, -54) in the 1024-unit canvas for optical vertical centering. Preserve the background tile, shapes, colors and small-size optical variant.",
+  "generator": "eng/Build-AppIcon.cjs",
+  "renderer": {
+    "sharp": "0.35.4",
+    "vips": "8.18.6"
+  },
+  "sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    96,
+    128,
+    256
+  ],
+  "sha256": "e479cebb16bd460f4123f7032c8f3be585c86cb2cd440c244b033c5d97ce5a1c"
+}

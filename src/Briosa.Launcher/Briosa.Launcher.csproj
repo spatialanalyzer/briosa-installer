@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <AssemblyName>Briosa.Launcher</AssemblyName>
-    <ApplicationIcon>../Briosa.Installer.App/Assets/Brand/icons/favicon.ico</ApplicationIcon>
+    <ApplicationIcon>../Briosa.Installer.App/Assets/AppIcon/briosa.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Briosa.Installer.Core/Briosa.Installer.Core.csproj" />

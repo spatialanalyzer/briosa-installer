@@ -64,6 +64,15 @@ Example settings (URLs and PEM contents are placeholders):
 ```
 
 Omit `installerUpdates` to share the server source, authentication, and publisher.
+An optional `"appearance": { "theme": "dark" }` property selects the app theme;
+accepted values are `system` (the default), `light`, and `dark`. The GUI exposes
+this in **Settings → Appearance** with immediate preview and explicit Save/Discard.
+Scripts can use `Briosa.Installer.Cli.exe settings set --theme dark` on an existing
+configuration. Imports and exports preserve the theme, and source edits retain it.
+Windows contrast themes take priority; no Windows appearance preference is changed.
+Earlier review builds reject the new property; choose System to omit it before
+opening the same configuration in one of those builds.
+
 Import an approved RSA 3072–8192-bit public key after comparing its SHA-256
 fingerprint through a trusted channel, using the GUI or CLI:
 
