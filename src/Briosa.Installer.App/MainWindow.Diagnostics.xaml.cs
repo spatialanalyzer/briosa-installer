@@ -66,34 +66,29 @@ public partial class MainWindow
             SdkObservations.ItemsSource = overview.Installations;
             SdkObservations.SelectedItem = overview.Installations.FirstOrDefault(i => i.IsRegistered);
             SdkObservations.Visibility = Show(overview.Installations.Count > 0);
-            SdkDetailsButton.Visibility = Show(overview.Installations.Count > 0);
             RecordActivity("Sdk.Inspect", "Succeeded");
         }
         catch (Exception exception) when (exception is ManagementException or IOException or UnauthorizedAccessException)
         {
-            sdkReport = null; SdkObservations.ItemsSource = null; SdkObservations.Visibility = SdkDetailsButton.Visibility = Visibility.Collapsed;
+            sdkReport = null; SdkObservations.ItemsSource = null; SdkObservations.Visibility = Visibility.Collapsed;
             SdkSummaryTitle.Text = "Inspection could not complete";
             SdkSummaryText.Text = "Check access to Windows installation information, then inspect again.";
             RecordActivity("Sdk.Inspect", "Failed");
         }
         finally { SetBusy(false); }
     }
-    private void SdkSelectionChanged(object sender, SelectionChangedEventArgs e) { if (initialized) UpdateInterface(); }
     private void SdkDetailsClicked(object sender, RoutedEventArgs e)
     {
-        if (SdkObservations.SelectedItem is not SaInstallationRow row) return;
+        if (busy || sender is not FrameworkElement { DataContext: SaInstallationRow row } || sdkReport is null) return;
         var registration = row.IsRegistered ? "This installation's SDK path is registered." :
             "This installation's SDK path is not referenced by the inspected registration.";
-        new DetailsDialog("SA installation", $"SpatialAnalyzer {row.Version}\nInstallation path: {row.Location}\n\n{registration}\n\nInstallation evidence: {row.Installation.Context}")
+        var evidence = sdkReport.Observations.Where(o => o.Kind is SdkReport.ConfiguredRegistration or "Other SDK registration" or "Discovery incomplete")
+            .Select(o => $"{o.Kind}\nVersion: {o.Version}\nRegistry context: {o.Context}\nPath: {o.Location}\n{o.Status}").ToArray();
+        var workstation = evidence.Length > 0 ? string.Join("\n\n", evidence) : "No SDK registration was found for the inspecting user.";
+        new DetailsDialog($"SpatialAnalyzer {row.Version}",
+            $"Installation path: {row.Location}\nInstallation evidence: {row.Installation.Context}\n\n{registration}\n\n" +
+            $"SDK registration on this workstation\n\n{workstation}\n\n{sdkReport.Guidance}")
         { Owner = this }.ShowDialog();
-    }
-    private void SdkGuidanceClicked(object sender, RoutedEventArgs e)
-    {
-        var evidence = sdkReport?.Observations.Where(o => o.Kind is SdkReport.ConfiguredRegistration or "Other SDK registration" or "Discovery incomplete")
-            .Select(o => $"{o.Kind}\nVersion: {o.Version}\nRegistry context: {o.Context}\nPath: {o.Location}\n{o.Status}") ?? [];
-        var guidance = sdkReport?.Guidance ??
-            "Inspect SDK setup to identify the registered SDK and installed SA releases. Registration is setup evidence; Briosa validates runtime identities when it connects. This app does not activate the SDK or change registration.";
-        new DetailsDialog("SDK registration details", string.Join("\n\n", evidence.Append(guidance))) { Owner = this }.ShowDialog();
     }
     private void ExportDiagnosticsClicked(object sender, RoutedEventArgs e)
     {
@@ -107,6 +102,5 @@ public partial class MainWindow
     private void ShowExportResult(string message)
     {
         ActivityStatusText.Text = message;
-        if (Navigation.SelectedItem == SdkNavigation) { SdkNextStepText.Text = message; SdkNextStepText.Visibility = Visibility.Visible; }
     }
 }

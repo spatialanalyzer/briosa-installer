@@ -175,18 +175,19 @@ alone leaves managed packages and settings available.
 ## SDK maintenance and support
 
 SDK Setup reads installation/COM-registration evidence without activating COM and
-distinguishes file observations from runtime SDK/SA identity. Export the sanitized
-IT/vendor handoff for repair. Automated registry repair awaits a documented supported
-vendor procedure. Exact server runtime identity gates still apply.
+distinguishes file observations from runtime SDK/SA identity. Activity provides
+sanitized support-report export if needed. Automated registry repair awaits a
+documented supported vendor procedure. Exact server runtime identity gates still apply.
 
 The page shows one row per SA installation, with its version and installation
 directory. A **Registered** marker identifies the installation whose bundled
 SDK path matches the configured registration. The match uses the complete path,
 so two copies of the same SA release remain distinguishable. The summary leads
-with the configured SDK version and describes relevant findings. Installation
-and registration details are available separately; the diagnostic report retains
-the underlying file/registry evidence. The marker denotes registration, not runtime
-readiness.
+with the configured SDK version and describes relevant findings. Each row's
+information icon opens a combined dialog with that installation's details and
+the workstation's SDK registration evidence. The diagnostic report retains the
+underlying file/registry observations. The marker denotes registration, not
+runtime readiness.
 
 Discovery reads both Windows registry views and uses the merged classes view for
 the inspecting user to label **Configured SDK registration**. Matching machine

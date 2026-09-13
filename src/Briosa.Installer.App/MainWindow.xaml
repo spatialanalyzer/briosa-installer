@@ -349,9 +349,7 @@
         <Grid x:Name="SdkPage" Visibility="Collapsed">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <Border Style="{StaticResource Card}">
             <StackPanel>
@@ -359,13 +357,10 @@
               <TextBlock x:Name="SdkSummaryText" Text="Find installed SpatialAnalyzer releases and inspect SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
               <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
-              <WrapPanel Margin="0,14,0,0">
-                <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" Margin="0,0,8,0" />
-                <Button x:Name="ExportSdkButton" Content="Export handoff report…" Click="ExportDiagnosticsClicked" IsEnabled="False" />
-              </WrapPanel>
+              <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" HorizontalAlignment="Left" Margin="0,14,0,0" />
             </StackPanel>
           </Border>
-          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" SelectionChanged="SdkSelectionChanged" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
+          <DataGrid x:Name="SdkObservations" Grid.Row="1" RowHeight="NaN" MinRowHeight="48" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
             <DataGrid.Resources>
               <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
                 <Setter Property="TextWrapping" Value="Wrap" />
@@ -397,12 +392,26 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Installation path" Binding="{Binding Location}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTemplateColumn Width="48" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <Button Click="SdkDetailsClicked" Width="36" Height="36" MinWidth="0" Padding="0"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
+                            ToolTip="Installation and SDK details"
+                            AutomationProperties.Name="{Binding Version, StringFormat=Installation and SDK details for SpatialAnalyzer {0}}"
+                            AutomationProperties.HelpText="{Binding Location}">
+                      <Grid Width="18" Height="18" IsHitTestVisible="False">
+                        <Ellipse Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Margin="1" />
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4.5,0,0" />
+                        <Path Data="M9,8.5 L9,13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
             </DataGrid.Columns>
           </DataGrid>
-          <WrapPanel Grid.Row="3" Margin="0,12,0,0">
-            <Button x:Name="SdkDetailsButton" Content="Installation details…" Click="SdkDetailsClicked" Visibility="Collapsed" Margin="0,0,8,0" />
-            <Button x:Name="SdkGuidanceButton" Content="Registration details…" Click="SdkGuidanceClicked" />
-          </WrapPanel>
         </Grid>
         <Grid x:Name="ActivityPage" Visibility="Collapsed">
           <Grid.RowDefinitions>

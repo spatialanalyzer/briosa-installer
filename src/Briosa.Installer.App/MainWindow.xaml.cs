@@ -240,8 +240,7 @@ public partial class MainWindow : Window
         OperationProgress.Visibility = Show(operation is not null && !installerOperation);
         UpdateProgress.Visibility = Show(operation is not null && installerOperation);
         RecoverStoreButton.IsEnabled = RecoverInstallerStoreButton.IsEnabled = editable;
-        InspectSdkButton.IsEnabled = editable; ExportSdkButton.IsEnabled = editable && sdkReport is not null;
-        SdkDetailsButton.IsEnabled = editable && SdkObservations.SelectedItem is SaInstallationRow;
+        InspectSdkButton.IsEnabled = SdkObservations.IsEnabled = editable;
     }
 
     private async void WindowClosing(object? sender, CancelEventArgs e)

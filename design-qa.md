@@ -238,3 +238,23 @@ publishing and packaged CLI/launcher checks, 56 local documentation links,
 and 13 original brand asset hashes passed. No COM activation, SA connection,
 or registration change was performed. Native high contrast, Narrator, and
 mixed-DPI release checks remain subject to the limitations above.
+
+## SDK row information follow-up
+
+Review build 22 removes SDK Setup's handoff export and bottom details buttons.
+A small vector information icon in each row opens one dialog containing the
+chosen installation's path and registration status plus the workstation's
+registration evidence. Each icon has a 36 px hit area, descriptive accessible
+name including the SA version, and an installation-path help description.
+Support-report export remains on Activity.
+
+Reviewed dark and compact light renders under `artifacts/sdk-row-details-review`:
+all three rows retain readable paths, registration markers, and visible information
+icons. Native packaged review confirmed that clicking the unselected 2026 row's
+icon opens its own installation details while identifying 2024 as the workstation's
+configured SDK. Escape closes the dialog and returns to the table.
+
+The Release build, 147 core/CLI tests, WPF workflow checks, complete publishing,
+packaged CLI/launcher checks, 57 local documentation links, and 13 original brand
+hashes passed. Inspection remains read-only. The native high-contrast, Narrator,
+and mixed-DPI release limitations above still apply.

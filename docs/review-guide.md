@@ -44,9 +44,9 @@ expires in seven days; regenerate the demo after expiry.
    Launching through the permanent bootstrap lets version selection refresh that
    launcher and its bundled runtime too. If its file is protected/in use, the
    selected version remains recorded and the app reports that refresh needs retry.
-5. **SDK Setup:** inspect the summary and installed-product/registration evidence, then export
-   a sanitized IT/vendor handoff if maintenance is needed. The app does not
-   activate the SDK, run MPs, or change Windows registration.
+5. **SDK Setup:** inspect the configured SDK summary and SA installation table.
+   Use a row's information icon for combined installation and SDK registration
+   details. The app does not activate the SDK, run MPs, or change Windows registration.
 6. **Activity:** review persistent outcomes in local time, filter **Needs attention**,
    and open details for result codes and recovery guidance. Package entries include
    their version, exact SA target when applicable, and duration. Export a report

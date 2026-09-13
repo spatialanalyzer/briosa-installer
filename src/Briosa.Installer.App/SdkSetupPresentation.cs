@@ -36,7 +36,7 @@ public sealed record SdkSetupPresentation(string Title, string Summary, string F
 
         var findings = new List<string>();
         if (registered.Length == 0 && !incomplete) findings.Add("No SDK registration was found for the inspecting user.");
-        if (unresolved) findings.Add("The configured SDK could not be fully identified. See registration details.");
+        if (unresolved) findings.Add("The configured SDK could not be fully identified.");
         if (missing) findings.Add("The registered SDK executable is missing.");
         if (registered.Any(r => FullPath(r.Location) is not null && !installations.Any(i => i.Registrations.Contains(r))))
             findings.Add("A registered SDK path does not match any listed SA installation.");
@@ -44,7 +44,7 @@ public sealed record SdkSetupPresentation(string Title, string Summary, string F
         if (registered.Any(o => o.State == SdkEvidenceState.UnquotedPath))
             findings.Add("The registered path is unquoted; Windows launch resolution may be ambiguous.");
         if (report.Observations.Any(o => o.Kind == "Other SDK registration"))
-            findings.Add("A different underlying registration was also found. See registration details.");
+            findings.Add("A different underlying registration was also found.");
         if (incomplete) findings.Add("Some installation or registry locations could not be inspected.");
         return new("Configured SDK: " + title, summary, string.Join(" ", findings), installations);
     }

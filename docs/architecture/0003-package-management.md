@@ -109,7 +109,8 @@ the CLI supports an explicit `--bootstrap` destination for managed deployment.
 
 SDK Setup inspects both registry views and user/machine/merged registration using
 the CLSID evidenced by Briosa's committed interop surface. It reports installed
-file/registration observations and exports a curated IT/vendor handoff. Automated
+file/registration observations through a combined details dialog accessed from
+each installation row's information icon. Sanitized export lives on Activity. Automated
 vendor repair remains disabled until a procedure is documented and validated.
 Current exact runtime SDK/SA identity gates remain authoritative.
 
