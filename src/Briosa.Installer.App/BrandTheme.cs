@@ -114,7 +114,7 @@ public sealed class BrandTheme : IDisposable
         // a system foreground that may be intended for a different highlight.
         resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaTextSelectionTextBrush"] = Brush(highContrast ? SystemColors.HighlightTextColor : onAccent);
-        var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "white" : "color";
+        var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "inverse" : "color";
         resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
         // Native vector geometry is non-interactive and completely removed in high contrast.
         resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, darkBase, Silver, Cyan);

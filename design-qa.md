@@ -187,3 +187,15 @@ focus on a header retains a visible native focus ring. Settings continue to save
 automatically. All 119 core/CLI tests, WPF smoke workflows, packaged CLI/launcher
 checks, 56 local documentation links, and 13 original brand asset hashes passed.
 The native contrast-theme and mixed-DPI release limitations above still apply.
+
+## Settings cursor and navbar symbol follow-up
+
+Review build 18 moves the hand cursor from TabItem to its header template, preventing
+cursor inheritance into Settings content. The dark navbar now uses the supplied
+inverse-color horizontal logo with the same three-color symbol as the taskbar icon;
+the supplied wordmark and light-mode logo are retained.
+
+Reviewed the dark appearance render under `artifacts/cursor-brand-review` and the
+packaged app on Settings, including interaction with the header and blank card
+content. The content displays the normal pointer. All 119 core/CLI tests, WPF smoke
+workflows, package checks, documentation links, and original asset hashes passed.

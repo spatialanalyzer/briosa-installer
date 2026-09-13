@@ -7,7 +7,9 @@ The published pack was verified against its SHA-256 checksum before copying asse
 ## Artwork and typography
 
 - The navigation header uses the supplied color horizontal logo on silver in
-  light mode and the all-white logo on graphite in dark mode.
+  light mode and the inverse-color logo on graphite in dark mode. The latter
+  uses the same white, silver-gray, and cyan-blue symbol as the taskbar icon,
+  alongside the supplied white wordmark.
   It is displayed at 160 logical pixels without distortion, with additional clear
   space in a 208-pixel sidebar. The wordmark is the supplied lowercase artwork;
   application titles, accessible names, and prose continue to use Briosa.
@@ -51,6 +53,8 @@ white. Selection has a visible indicator and text, so color is not its only cue.
 The Settings header template uses a three-pixel underline without a filled tab shape.
 It retains native TabControl/TabItem selection, keyboard navigation, automation
 semantics and keyboard focus cues. Other controls keep their Fluent templates.
+The hand cursor is scoped to the header template, so section content retains
+the normal pointer and individual controls retain their own cursors.
 
 Navigation's local Fluent brushes live on the ListBox rather than a shared style,
 so they refresh when the theme changes. TextBox and PasswordBox use explicit

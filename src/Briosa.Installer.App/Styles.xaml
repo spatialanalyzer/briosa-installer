@@ -105,11 +105,11 @@
     <Setter Property="Margin" Value="0" />
     <Setter Property="Padding" Value="4,8,4,9" />
     <Setter Property="MinHeight" Value="40" />
-    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="TabItem">
-          <Grid Background="Transparent" Margin="0,0,12,0" SnapsToDevicePixels="True">
+          <!-- Keep the hand cursor on the header; TabItem properties also inherit into its content. -->
+          <Grid Background="Transparent" Margin="0,0,12,0" SnapsToDevicePixels="True" Cursor="Hand">
             <Grid.RowDefinitions>
               <RowDefinition Height="*" />
               <RowDefinition Height="3" />

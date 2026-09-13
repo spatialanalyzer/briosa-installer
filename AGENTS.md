@@ -62,6 +62,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   The selected navigation label specifically uses the sidebar charcoal on cyan
   in dark mode. Settings sections use transparent headers and a selected underline,
   retaining native TabControl/TabItem keyboard and automation behavior.
+  Keep the hand cursor on the header template only; setting it on TabItem also
+  affects section content. The navbar uses the color logo in light mode and the
+  inverse-color logo in dark mode, matching the taskbar symbol's three colors.
   App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
   with white, silver-gray, and cyan-blue planes and equal left/right padding;
   do not restore the blue background tile or the rejected vertical offset.
