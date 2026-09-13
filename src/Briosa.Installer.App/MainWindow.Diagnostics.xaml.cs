@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -91,6 +93,27 @@ public partial class MainWindow
         }
         finally { sdkReading = false; if (!catalogClosed) UpdateInterface(); }
     }
+    private void ShowSaInstallationClicked(object sender, RoutedEventArgs e)
+    {
+        if (busy || reviewing || sdkReading || sender is not FrameworkElement { DataContext: SaInstallationRow row }) return;
+        try
+        {
+            if (!Path.IsPathFullyQualified(row.Location) || row.Location.IndexOfAny(Path.GetInvalidPathChars()) >= 0 ||
+                !Directory.Exists(row.Location)) throw new DirectoryNotFoundException();
+            var start = new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"))
+            { UseShellExecute = false };
+            start.ArgumentList.Add(Path.TrimEndingDirectorySeparator(Path.GetFullPath(row.Location)));
+            using var process = Process.Start(start);
+            if (process is null) throw new IOException();
+        }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException or Win32Exception or ArgumentException)
+        {
+            new DetailsDialog("Installation folder unavailable",
+                "The SA installation folder could not be opened in File Explorer. Refresh SDK Setup if the installation has moved or been removed, and check that you have access to its folder.")
+            { Owner = this }.ShowDialog();
+        }
+    }
+
     private void SdkDetailsClicked(object sender, RoutedEventArgs e)
     {
         if (busy || sdkReading || sender is not FrameworkElement { DataContext: SaInstallationRow row } || sdkReport is null) return;

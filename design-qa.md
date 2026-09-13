@@ -373,3 +373,23 @@ The Release build, 167 core/CLI tests, WPF checks, packaged CLI/launcher workflo
 63 documentation links, and 13 original brand hashes passed. This styling change
 does not alter recommendation or registration behavior. Native high-contrast,
 Narrator, and mixed-DPI release checks retain their previously recorded limits.
+
+## Installation folder actions and summary cleanup
+
+Review build 29 removes the unquoted-path sentence from the Configured SDK summary
+while preserving the underlying registration evidence for the information dialog
+and diagnostics. Each installation row has a native vector folder icon beside its
+information icon, with a 36 px hit area, version-specific accessible name, and
+installation-path help text. It opens that row's directory through Windows File
+Explorer, with one separate path argument; it does not launch SA or its SDK.
+Missing or inaccessible locations produce recovery guidance instead of a crash.
+
+Dark and compact light renders under `artifacts/sdk-installation-folders-review`
+retain readable paths, both row actions, and scrolling at compact sizes. Native
+Build 29 review confirmed the summary cleanup and opened the unselected
+2026.1.0529.4 row's own installation directory in File Explorer while the configured
+SDK remained 2024.1.0508.5. No registration mutation or SA connection occurred.
+
+The Release build, 167 core/CLI tests, WPF checks, packaged CLI/launcher workflows,
+63 local documentation links, and 13 original brand hashes passed. Existing native
+high-contrast, Narrator, and mixed-DPI release-validation limits remain unchanged.

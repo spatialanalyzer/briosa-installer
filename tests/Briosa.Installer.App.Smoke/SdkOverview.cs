@@ -60,8 +60,9 @@ internal static partial class Program
         Require(!service.Installations[0].IsRegistered && service.Title == "Configured SDK: Needs review",
             "A service registration was matched to a non-authoritative local executable.");
         var unquoted = Present(Product("2099.1.0101.1", first), Registered("2099.1.0101.1", first, SdkEvidenceState.UnquotedPath));
-        Require(unquoted.Installations[0].IsRegistered && unquoted.Findings.Contains("unquoted", StringComparison.Ordinal),
-            "Unquoted path caveat was lost during presentation.");
+        Require(unquoted.Installations[0].IsRegistered && !unquoted.Findings.Contains("unquoted", StringComparison.Ordinal) &&
+            unquoted.Installations[0].Registrations[0].State == SdkEvidenceState.UnquotedPath,
+            "Keep unquoted-path evidence in details without repeating it in the summary.");
 
         static SdkObservation SdkFile(string version, string directory) =>
             new("Installed SDK file", "Fixture", version, directory + @"\SpatialAnalyzerSDK.exe", "File version");

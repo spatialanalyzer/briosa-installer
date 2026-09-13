@@ -406,9 +406,22 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Installation path" Binding="{Binding Location}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
-              <DataGridTemplateColumn Width="48" CanUserResize="False">
+              <DataGridTemplateColumn Width="88" CanUserResize="False">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Click="ShowSaInstallationClicked" Width="36" Height="36" MinWidth="0" Padding="0" Margin="0,0,4,0"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
+                            IsEnabled="{Binding IsEnabled, ElementName=RefreshSdkButton}"
+                            ToolTip="Show installation in File Explorer"
+                            AutomationProperties.Name="{Binding Version, StringFormat=Show SpatialAnalyzer {0} in File Explorer}"
+                            AutomationProperties.HelpText="{Binding Location}">
+                      <Grid Width="18" Height="18" IsHitTestVisible="False">
+                        <Path Data="M2,6 L2,4.5 Q2,3.5 3,3.5 L7,3.5 L9,5.5 L15,5.5 Q16,5.5 16,6.5 L16,13.5 Q16,14.5 15,14.5 L3,14.5 Q2,14.5 2,13.5 Z M2,7 L16,7"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                      </Grid>
+                    </Button>
                     <Button Click="SdkDetailsClicked" Width="36" Height="36" MinWidth="0" Padding="0"
                             HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
@@ -422,6 +435,7 @@
                         <Path Data="M9,8.5 L9,13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                       </Grid>
                     </Button>
+                    </StackPanel>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>

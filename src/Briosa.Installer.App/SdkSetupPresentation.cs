@@ -49,8 +49,6 @@ public sealed record SdkSetupPresentation(string Title, string Summary, string F
         if (registered.Any(r => FullPath(r.Location) is not null && !installations.Any(i => i.Registrations.Contains(r))))
             findings.Add("A registered SDK path does not match any listed SA installation.");
         if (versions.Length > 1 && !unresolved) findings.Add("The registry views refer to different SDK versions.");
-        if (registered.Any(o => o.State == SdkEvidenceState.UnquotedPath))
-            findings.Add("The registered path is unquoted; Windows launch resolution may be ambiguous.");
         if (report.Observations.Any(o => o.Kind == "Other SDK registration"))
             findings.Add("A different underlying registration was also found.");
         if (incomplete) findings.Add("Some installation or registry locations could not be inspected.");

@@ -1,6 +1,11 @@
 # Changing the configured SDK
 
 SDK Setup loads local installation and registration information automatically.
+Each row's folder icon opens that SA installation directory in Windows File
+Explorer; the information icon shows installation and registration details.
+The unquoted-path diagnostic is retained in the detailed evidence rather than
+the Configured SDK summary.
+
 Choose **Change SDK…**, select the SA release whose bundled SDK you want to use,
 then review the current version, selected version, and executable path. Close SA,
 its SDK, and Briosa servers before proceeding. Choose **Change SDK** and approve

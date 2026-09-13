@@ -148,6 +148,9 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   observations in diagnostics and the combined installation/registration dialog,
   opened through an accessible information icon in each row. Keep export on
   Activity; do not restore SDK Setup's export or bottom details buttons.
+  Keep the unquoted-path caveat in detailed evidence rather than the summary.
+  Each row also has an accessible folder icon that opens that row's installation
+  directory in Windows File Explorer, independently of the selected table row.
   Retain incomplete, missing, and conflicting evidence.
   When complete local evidence identifies an older configured SDK, recommend the
   newest installed SA release's available SDK in a non-blocking advisory. State
