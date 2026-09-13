@@ -365,7 +365,7 @@
               <TextBlock x:Name="SdkSummaryText" Text="Reading installed SpatialAnalyzer releases and SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
               <Border x:Name="SdkRecommendation" Visibility="Collapsed" BorderBrush="{DynamicResource BriosaSelectionBorderBrush}" BorderThickness="3,0,0,0" Padding="12,0,0,0" Margin="0,12,0,4">
                 <StackPanel>
-                  <TextBlock Text="Newer SDK available" FontWeight="SemiBold" Foreground="{DynamicResource BriosaSectionSelectedTextBrush}" Margin="0,0,0,4" />
+                  <TextBlock Text="SDK registration warning" FontWeight="SemiBold" Foreground="{DynamicResource BriosaSectionSelectedTextBrush}" Margin="0,0,0,4" />
                   <TextBlock x:Name="SdkRecommendationText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                 </StackPanel>
               </Border>

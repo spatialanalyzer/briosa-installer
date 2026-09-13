@@ -14,6 +14,12 @@ public sealed record SaInstallationRow(SdkObservation Installation, IReadOnlyLis
     public string AccessibleName => $"SpatialAnalyzer {Version}, {(IsRegistered ? "SDK registered" : "SDK not registered")}, {Location}";
 }
 
+public sealed record SdkInstallationChoice(SdkObservation Installation, bool IsRecommended)
+{
+    public string DisplayName => Installation.Version + (IsRecommended ? " — Recommended" : "");
+    public override string ToString() => DisplayName;
+}
+
 public sealed record SdkSetupPresentation(string Title, string Summary, string Findings, IReadOnlyList<SaInstallationRow> Installations)
 {
     public string Recommendation { get; init; } = "";
@@ -49,25 +55,32 @@ public sealed record SdkSetupPresentation(string Title, string Summary, string F
             findings.Add("A different underlying registration was also found.");
         if (incomplete) findings.Add("Some installation or registry locations could not be inspected.");
         return new("Configured SDK: " + title, summary, string.Join(" ", findings), installations)
-        { Recommendation = RecommendNewestSdk(report, registered, installations) };
+        { Recommendation = RecommendNewestSdk(report, registered) };
     }
 
-    private static string RecommendNewestSdk(SdkReport report, SdkObservation[] registered, SaInstallationRow[] installations)
+    public static IReadOnlyList<SdkInstallationChoice> RegistrationChoices(SdkReport report)
+    {
+        var installed = report.Observations.Where(o => o.Kind == "Installed SA product")
+            .Select(product => (Product: product, Version: ParseRelease(product.Version))).ToArray();
+        var newest = report.Observations.Any(o => o.Kind == "Discovery incomplete") ||
+            installed.Any(i => i.Version is null) ? null : installed.Select(i => i.Version).Max();
+        return installed.Select(i => new SdkInstallationChoice(i.Product, newest is not null && i.Version == newest &&
+            report.Observations.Any(o => o.Kind == "Installed SDK file" && o.State == SdkEvidenceState.Observed &&
+                ParseRelease(o.Version) == newest && Matches(i.Product, o)))).ToArray();
+    }
+
+    private static string RecommendNewestSdk(SdkReport report, SdkObservation[] registered)
     {
         // Recommend only from complete, comparable local evidence; never turn an
         // ambiguous registration into a version choice or recommend a downgrade.
-        if (report.Observations.Any(o => o.Kind == "Discovery incomplete") ||
-            registered.Length == 0 || installations.Length == 0 ||
+        if (registered.Length == 0 ||
             registered.Any(o => o.State is not (SdkEvidenceState.Observed or SdkEvidenceState.UnquotedPath))) return "";
         var current = registered.Select(o => ParseRelease(o.Version)).Distinct().ToArray();
-        var installed = installations.Select(i => (Product: i.Installation, Version: ParseRelease(i.Version))).ToArray();
-        if (current.Length != 1 || current[0] is null || installed.Any(i => i.Version is null)) return "";
-        var newest = installed.MaxBy(i => i.Version);
-        if (current[0] >= newest.Version || !report.Observations.Any(o =>
-            o.Kind == "Installed SDK file" && o.State == SdkEvidenceState.Observed &&
-            ParseRelease(o.Version) == newest.Version && installed.Any(i =>
-                i.Version == newest.Version && Matches(i.Product, o)))) return "";
-        return $"For most users, we strongly recommend registering SDK {newest.Product.Version}, included with the newest installed SA release. " +
+        var recommended = RegistrationChoices(report).FirstOrDefault(i => i.IsRecommended);
+        if (current.Length != 1 || current[0] is null || recommended is null ||
+            current[0] >= ParseRelease(recommended.Installation.Version)) return "";
+        return "The registered SDK does not match the latest SA release installed on this machine. " +
+            "For most users, we strongly recommend registering the SDK included with that release. " +
             "Keeping an older SDK is valid when your workflow requires it. Select Change SDK… to review.";
     }
 

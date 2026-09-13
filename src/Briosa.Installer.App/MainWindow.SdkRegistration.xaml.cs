@@ -11,8 +11,7 @@ public partial class MainWindow
     private async void ChangeSdkClicked(object sender, RoutedEventArgs e)
     {
         if (busy || reviewing || sdkReading || sdkChanging || sdkReport is null) return;
-        var choices = sdkReport.Observations.Where(o => o.Kind == "Installed SA product").ToArray();
-        var selection = new SdkChoiceDialog(choices, SdkSummaryTitle.Text) { Owner = this };
+        var selection = new SdkChoiceDialog(sdkReport, SdkSummaryTitle.Text) { Owner = this };
         if (selection.ShowDialog() != true || selection.SelectedInstallation is not { } selected) return;
         sdkChanging = true; SetBusy(true);
         SdkMaintenanceStatusText.Visibility = Visibility.Visible;

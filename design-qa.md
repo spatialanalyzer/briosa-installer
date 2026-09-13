@@ -335,3 +335,26 @@ table. Native packaged review confirmed automatic display of the 2026.1.0529.7
 recommendation with 2024.1.0508.5 still registered. No SDK registration mutation or
 runtime SA connection was performed for this change. Existing native accessibility
 and mixed-DPI validation limitations still apply.
+
+## Registration warning wording and recommended selection
+
+Review build 27 titles the advisory "SDK registration warning" and describes the
+mismatch with the latest SA release installed on the machine without embedding a
+release number or advertising a software update. Intentional older-SDK use remains
+valid. Change SDK labels each available copy of the newest local release
+"Recommended"; this uses the same numeric comparison and local file evidence as
+the warning, without selecting or registering it automatically.
+
+Expanded WPF checks cover unordered versions, fourth-component ordering, equivalent
+release copies, incomplete discovery, missing SDK files, no installations, and
+preserving the selected installation path for both recommended and older choices.
+Native Build 27 review verified the revised warning and the open dropdown showing
+2026.1.0529.7 as Recommended, including that text in the accessibility tree.
+The workstation's configured SDK remains 2024.1.0508.5; this change performed no
+registration mutation or SA connection.
+
+Release build, 167 core/CLI tests, WPF workflow checks, package publishing and
+packaged CLI/launcher workflows, 63 local documentation links, and 13 original
+brand hashes passed. Dark and compact light renders are retained under
+`artifacts/sdk-registration-guidance-review`. Existing accessibility and mixed-DPI
+release-validation limits remain unchanged.

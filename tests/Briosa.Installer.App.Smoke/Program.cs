@@ -29,6 +29,7 @@ internal static partial class Program
             ExerciseAutomaticCatalogLoading();
             ExerciseAppearance(directory, args);
             ExerciseSdkInstallationOverview();
+            ExerciseSdkRegistrationChoices();
             ExerciseAutomaticSdkLoading();
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();

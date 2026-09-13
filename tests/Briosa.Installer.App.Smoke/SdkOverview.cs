@@ -78,10 +78,11 @@ internal static partial class Program
             var recommendation = Present(Product(newest, second), SdkFile(newest, second), Registered(current, first));
             Require((recommendation.Recommendation.Length > 0) == expected,
                 $"SDK recommendation incorrectly compared {current} with {newest}.");
-            if (expected) Require(recommendation.Recommendation.Contains(newest, StringComparison.Ordinal) &&
+            if (expected) Require(!recommendation.Recommendation.Contains(newest, StringComparison.Ordinal) &&
+                recommendation.Recommendation.Contains("does not match the latest SA release installed on this machine", StringComparison.Ordinal) &&
                 recommendation.Recommendation.Contains("strongly recommend", StringComparison.Ordinal) &&
                 recommendation.Recommendation.Contains("Keeping an older SDK is valid", StringComparison.Ordinal),
-                "The advisory must identify the local version and preserve intentional older-SDK use.");
+                "The warning must explain the local mismatch without advertising a version or invalidating older-SDK use.");
         }
         SdkObservation[] available = [Product("2099.1.0101.1", first), Product("2099.2.0202.2", second),
             SdkFile("2099.2.0202.2", second), Registered("2099.1.0101.1", first, SdkEvidenceState.UnquotedPath)];

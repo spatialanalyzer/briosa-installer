@@ -153,6 +153,10 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   newest installed SA release's available SDK in a non-blocking advisory. State
   that keeping an older SDK is valid for workflows that require it. Compare full
   numeric release versions, never recommend a downgrade, and never switch automatically.
+  Title this advisory "SDK registration warning" and describe the mismatch with
+  the latest SA release installed on this machine without advertising an update
+  or embedding a version in the warning. Mark that locally installed version
+  "Recommended" in Change SDK, using the same local evidence and comparison.
   Load local SDK evidence automatically on each visit to SDK Setup, with a
   Refresh button above the summary at the right. Keep scans off the UI thread,
   prevent overlapping reads, and leave navigation and unrelated work responsive.
