@@ -2,8 +2,10 @@
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
   </ResourceDictionary.MergedDictionaries>
+  <FontFamily x:Key="BriosaFont">pack://application:,,,/Briosa.Installer;component/Assets/Brand/fonts/#Inter</FontFamily>
   <Style TargetType="Window">
-    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontFamily" Value="{StaticResource BriosaFont}" />
+    <Setter Property="Icon" Value="pack://application:,,,/Briosa.Installer;component/Assets/Brand/icons/favicon.ico" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
@@ -45,6 +47,7 @@
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
   <Style x:Key="SectionHeading" TargetType="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BriosaHeadingBrush}" />
     <Setter Property="FontSize" Value="18" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="TextWrapping" Value="Wrap" />
@@ -82,8 +85,22 @@
     </Setter>
   </Style>
   <Style x:Key="NavigationItem" TargetType="ListBoxItem" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
+      <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
+      <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedTextColor}" />
+      <SolidColorBrush x:Key="ListBoxItemUnselectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationHoverColor}" />
+    </Style.Resources>
+    <Setter Property="Foreground" Value="{DynamicResource BriosaNavigationTextBrush}" />
+    <Setter Property="Border.CornerRadius" Value="5" />
+    <Setter Property="BorderThickness" Value="2" />
     <Setter Property="Padding" Value="12,11" />
     <Setter Property="Margin" Value="0,0,0,5" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Style.Triggers>
+      <Trigger Property="IsKeyboardFocusWithin" Value="True">
+        <Setter Property="BorderBrush" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}" />
+      </Trigger>
+    </Style.Triggers>
   </Style>
 </ResourceDictionary>

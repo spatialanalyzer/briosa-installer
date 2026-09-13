@@ -30,7 +30,7 @@ The WPF harness loads the real resources/control tree and exercises the full wor
 with signed inert fixtures, temporary directories, and fake SDK observations.
 It does not display a native window or control another application. Pass up to three
 PNG paths to render the server inventory, source settings, and compact inventory;
-a light-theme variant is also saved beside the first output. The harness exercises
+light/dark variants are also saved beside the first output. The harness exercises
 source test/save/discard, stale requests, filtered recovery, semantic update/rollback
 states, safe Activity metadata, explicit credential saves, and compact layout.
 This is not interactive accessibility,
@@ -100,7 +100,8 @@ Saved source changes are loaded when the page is next shown, and a tested unchan
 catalog can be reused immediately. Failed reads wait for an explicit retry.
 
 The UI uses the built-in WPF Fluent resources with the system theme, named Fluent
-base styles, and dynamic palette brushes. The inventory groups installed and
+base styles, and the [approved Briosa brand palette](branding.md). The inventory
+groups installed and
 available servers by exact SA target; details and maintenance controls appear in
 context. Settings separates Package sources, Installer updates, and Advanced.
 See the [redesign decision](architecture/0004-installer-ux.md) for interaction and

@@ -40,12 +40,14 @@ project profiles, dependency discovery, or impact assessment is introduced.
 
 ## Native presentation and accessibility
 
-Use the built-in WPF Fluent theme with system light/dark appearance, system accent,
-dynamic theme brushes, consistent typography, spacing, and section cards. Retain
+Use the built-in WPF Fluent theme with system light/dark appearance, the approved
+[Briosa palette and artwork](../branding.md), dynamic brushes, consistent typography,
+spacing, and section cards. Retain
 native control templates and keyboard behavior. Avoid window-local theme settings
 that shadow application styles. Custom controls build on named Fluent base styles.
 
-The main window supports a compact 820 × 580 logical size. A flexible server list
+The main window supports a compact 820 × 580 logical size. The 208-unit navigation
+column preserves the approved 160-unit horizontal logo and clear space. A flexible server list
 keeps selected actions visible; longer settings content scrolls above a fixed save
 area. Confirmation details scroll above fixed Cancel/action buttons. Cancel receives
 initial focus. Status is expressed in text, with meaningful automation names and

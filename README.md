@@ -19,6 +19,8 @@ See [build and run instructions](docs/development.md), the
 [package-management architecture](docs/architecture/0003-package-management.md).
 The [UX redesign decision](docs/architecture/0004-installer-ux.md) describes the
 current screens, interaction boundaries, and validation limits.
+The app incorporates [Briosa brand v1](docs/branding.md), including the approved
+wordmark, palette, icons, and bundled Inter font.
 
 ## Proposed experience
 

@@ -31,6 +31,7 @@ foreach ($project in @('Briosa.Installer.App', 'Briosa.Installer.Cli', 'Briosa.L
     }
 }
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination (Join-Path $packageRoot 'LICENSE.txt')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'THIRD-PARTY-NOTICES.md') -Destination $packageRoot
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-DesktopShortcut.ps1') -Destination $packageRoot
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/review-guide.md') -Destination (Join-Path $packageRoot 'README.md')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs/administration.md') -Destination (Join-Path $packageRoot 'administration.md')
@@ -49,6 +50,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not locate runtime license material.' }
 $nugetRoot = ($nugetLine -split ': ', 2)[1].Trim()
 $licenseRoot = Join-Path $packageRoot 'licenses'
 $null = New-Item -ItemType Directory -Path $licenseRoot
+$brandRoot = Join-Path $repositoryRoot 'src/Briosa.Installer.App/Assets/Brand'
+Copy-Item -LiteralPath (Join-Path $brandRoot 'LICENSE') -Destination (Join-Path $licenseRoot 'briosa-brand-LICENSE.txt')
+Copy-Item -LiteralPath (Join-Path $brandRoot 'fonts/OFL.txt') -Destination (Join-Path $licenseRoot 'Inter-OFL.txt')
+Copy-Item -LiteralPath (Join-Path $brandRoot 'provenance.json') -Destination (Join-Path $licenseRoot 'briosa-brand-provenance.json')
 foreach ($runtime in @('microsoft.netcore.app.runtime.win-x64', 'microsoft.windowsdesktop.app.runtime.win-x64')) {
     $assets = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Briosa.Installer.App/obj/project.assets.json') -Raw | ConvertFrom-Json
     $dependencies = $assets.project.frameworks.PSObject.Properties.Value.downloadDependencies

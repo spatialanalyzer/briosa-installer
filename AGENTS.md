@@ -39,6 +39,11 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 
 ## Implementation expectations
 
+- Use [briosa-brand](https://github.com/spatialanalyzer/briosa-brand) as the source
+  of truth for artwork, palette, typography, size, and clear space. The app currently
+  vendors approved v1 assets under `Assets/Brand`, with their original licenses and
+  provenance. Keep the outlined lowercase wordmark intact; capitalize Briosa in
+  prose. Preserve system high-contrast control colors and offline asset loading.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
 - Installations contains only gRPC server downloads and installed server packages.

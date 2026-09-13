@@ -5,9 +5,11 @@ namespace Briosa.Installer.App;
 
 public partial class App : Application
 {
+    private BrandTheme? brandTheme;
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        brandTheme = new BrandTheme(this);
         try
         {
             string? config = null, store = null, bootstrap = null;
@@ -26,5 +28,10 @@ public partial class App : Application
             MessageBox.Show("The settings location is invalid or inaccessible.", "Briosa Installer");
             Shutdown(2);
         }
+    }
+    protected override void OnExit(ExitEventArgs e)
+    {
+        brandTheme?.Dispose();
+        base.OnExit(e);
     }
 }

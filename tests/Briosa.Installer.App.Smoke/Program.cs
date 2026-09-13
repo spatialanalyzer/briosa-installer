@@ -23,6 +23,7 @@ internal static class Program
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown, ThemeMode = ThemeMode.System };
 #pragma warning restore WPF0001
             app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Briosa.Installer;component/Styles.xaml", UriKind.Absolute) });
+            using var brandTheme = new BrandTheme(app);
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             ExerciseSources(directory);
             ExerciseAutomaticCatalogLoading();
@@ -249,6 +250,10 @@ internal static class Program
         Page(window, "InstallationsNavigation"); rows.SelectedItem = rows.Items.OfType<ServerRow>().Single(r => r.Id == second.Id);
         var root = (FrameworkElement)window.Content;
         Layout(root, 820, 580);
+        var logo = Find<Image>(window, "AppBrand");
+        Require(logo.ActualWidth >= 160 && logo.Source is BitmapSource, "Brand logo is missing or smaller than the approved minimum.");
+        var typeface = new Typeface(window.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+        Require(typeface.TryGetGlyphTypeface(out var glyphs) && glyphs.FontUri.ToString().Contains("Inter-Variable.ttf", StringComparison.OrdinalIgnoreCase), "The bundled Inter font was not resolved.");
         var actions = Find<Border>(window, "ServerSelectionPanel");
         var actionPoint = actions.TranslatePoint(new Point(0, actions.ActualHeight), root);
         Require(actions.ActualHeight > 0 && actionPoint.Y <= 580, "Server actions fall below the compact viewport.");
@@ -258,11 +263,33 @@ internal static class Program
             Render(root, args[0], 1140, 800);
             if (args.Length > 1) { Page(window, "SettingsNavigation"); Find<TabControl>(window, "SettingsSections").SelectedIndex = 0; Render(root, args[1], 1140, 800); }
             if (args.Length > 2) { Page(window, "InstallationsNavigation"); Render(root, args[2], 820, 580); }
-#pragma warning disable WPF0001
-            Application.Current.ThemeMode = ThemeMode.Light;
-#pragma warning restore WPF0001
-            PumpDispatcher(); Render(root, args[0] + ".light.png", 1140, 800);
         }
+#pragma warning disable WPF0001
+        var originalTheme = Application.Current.ThemeMode;
+        Application.Current.ThemeMode = ThemeMode.Light;
+#pragma warning restore WPF0001
+        BrandTheme.ApplySystem(Application.Current);
+        PumpDispatcher();
+        if (args.Length > 0) Render(root, args[0] + ".light.png", 1140, 800);
+#pragma warning disable WPF0001
+        Application.Current.ThemeMode = ThemeMode.Dark;
+#pragma warning restore WPF0001
+        BrandTheme.ApplySystem(Application.Current);
+        PumpDispatcher();
+        if (args.Length > 0)
+        {
+            Render(root, args[0] + ".dark.png", 1140, 800);
+            Page(window, "SettingsNavigation"); Find<TabControl>(window, "SettingsSections").SelectedIndex = 0;
+            Render(root, args[0] + ".dark-settings.png", 1140, 800);
+        }
+        BrandTheme.Apply(Application.Current, dark: true, highContrast: true);
+        Require(!Application.Current.Resources.Keys.Cast<object>().Contains("AccentButtonBackground") &&
+            ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == SystemColors.WindowColor,
+            "High contrast did not release native controls and navigation to system colors.");
+#pragma warning disable WPF0001
+        Application.Current.ThemeMode = originalTheme;
+#pragma warning restore WPF0001
+        BrandTheme.ApplySystem(Application.Current);
         Require(File.ReadAllText(config) == SettingsCodec.Serialize(feed.Settings), "Package operations changed source settings.");
         window.Close();
     }

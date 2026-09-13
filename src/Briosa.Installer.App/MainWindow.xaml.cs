@@ -287,7 +287,7 @@ public partial class MainWindow : Window
     {
         if (!initialized) return;
         var compact = ActualWidth < 980;
-        NavigationColumn.Width = new GridLength(compact ? 164 : 190);
+        NavigationColumn.Width = new GridLength(208);
         PageHost.Margin = compact ? new Thickness(20, 18, 20, 18) : new Thickness(28, 24, 28, 24);
 
     }
