@@ -358,3 +358,18 @@ packaged CLI/launcher workflows, 63 local documentation links, and 13 original
 brand hashes passed. Dark and compact light renders are retained under
 `artifacts/sdk-registration-guidance-review`. Existing accessibility and mixed-DPI
 release-validation limits remain unchanged.
+
+## Amber warning accents
+
+Review build 28 uses complementary amber for the SDK warning heading and left
+rule: #9C5700 in light mode and #FFC46B in dark mode. Their contrast against the
+corresponding card surfaces is 4.97:1 and 9.26:1. Body text retains its normal
+color. High contrast maps the warning accent to system window text color, and
+the explicit warning heading remains a non-color cue.
+
+Dark and compact light renders under `artifacts/sdk-warning-colors-review` were
+inspected. Native packaged review confirmed the amber treatment on SDK Setup.
+The Release build, 167 core/CLI tests, WPF checks, packaged CLI/launcher workflows,
+63 documentation links, and 13 original brand hashes passed. This styling change
+does not alter recommendation or registration behavior. Native high-contrast,
+Narrator, and mixed-DPI release checks retain their previously recorded limits.

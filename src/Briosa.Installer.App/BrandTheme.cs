@@ -108,6 +108,9 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaNavigationBrush"] = Brush(navBackground);
         resources["BriosaNavigationTextBrush"] = Brush(navText);
         resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
+        // Semantic amber complements blue while staying readable on each card surface.
+        resources["BriosaWarningBrush"] = Brush(highContrast ? SystemColors.WindowTextColor :
+            dark ? Color.FromRgb(255, 196, 107) : Color.FromRgb(156, 87, 0));
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaSectionSelectedTextBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : accent);
         // WPF otherwise blends SelectionBrush with the input surface and inherits

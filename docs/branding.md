@@ -39,9 +39,16 @@ The published pack was verified against its SHA-256 checksum before copying asse
 | Selected text | White on opaque deep blue | Deep blue on opaque cyan |
 | Selected rows | Blue-tinted fill and deep-blue indicator | Cyan-tinted charcoal fill and cyan indicator |
 | Settings sections | Transparent header with a deep-blue underline | Transparent header with a cyan underline |
+| SDK registration warning | Dark amber `#9C5700` heading and rule | Light amber `#FFC46B` heading and rule |
 | Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
 
 The five approved sRGB colors are copied in `Assets/Brand/colors.json`. The maintainer
+requested complementary amber for the SDK warning; these semantic UI colors extend
+the app palette without changing the original brand assets. Warning text accents
+have 4.97:1 contrast on the light card and 9.26:1 on the dark card. Body text keeps
+its normal readable color, and Windows high contrast substitutes system text color
+for the warning accent.
+The maintainer
 requested darker backgrounds; dark mode now shades graphite toward black, with a
 `#1A1B1C` sidebar and lower-opacity plane edges. Light mode is unchanged. Surface,
 hover, and border tints are derived from them. Action hover/press states darken

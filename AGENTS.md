@@ -157,6 +157,8 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   the latest SA release installed on this machine without advertising an update
   or embedding a version in the warning. Mark that locally installed version
   "Recommended" in Change SDK, using the same local evidence and comparison.
+  Use complementary amber for the warning heading and rule: darker in light mode,
+  lighter in dark mode, with system text color taking priority in high contrast.
   Load local SDK evidence automatically on each visit to SDK Setup, with a
   Refresh button above the summary at the right. Keep scans off the UI thread,
   prevent overlapping reads, and leave navigation and unrelated work responsive.
