@@ -135,6 +135,11 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   and retain unquoted-path ambiguity. Label the merged classes registration for
   each view as configured; do not count its matching machine entry twice or promote
   another underlying registration when the merged read is unavailable.
+  SDK Setup shows one row per SA installation, its directory, and a persistent
+  Registered marker matched by the complete sibling SDK path (never version alone).
+  The summary leads with the configured SDK version. Keep raw SDK/registry
+  observations in diagnostics and registration details, rather than separate
+  installation-table rows. Retain incomplete, missing, and conflicting evidence.
 - Ordinary builds/tests must not require SA or proprietary binaries. Obtain
   explicit current-task permission before controlling SA, activating its SDK,
   changing registry state, or running licensed integration tests.

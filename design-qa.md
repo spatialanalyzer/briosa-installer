@@ -216,3 +216,25 @@ or registration change was performed. The 147 core/CLI tests (including 28 new
 discovery cases), WPF workflows, package checks, documentation links, and original
 brand hashes passed. Runtime SDK identity and broader deployment checks remain
 outside this inspection.
+
+## SDK installation overview follow-up
+
+Review build 21 consolidates SDK Setup into one row per SA installation, with
+its installation directory and a checkmark plus Registered label matched to the
+full registered SDK path. The summary leads with the configured SDK version;
+discovery caveats appear beneath it and complete registry evidence remains in
+Registration details. Selecting a row does not change registration or its marker.
+
+Reviewed the light/dark and compact SDK renders under
+`artifacts/sdk-overview-review`. Paths wrap at 820 × 580 without hiding the three
+fixture installations or footer actions. Native read-only inspection in the
+packaged app shows the workstation's three installations and identifies
+2024.1.0508.5 as configured. The checkmark remains on that installation when
+another row is selected, and the registration details dialog retains the
+registered executable path and unquoted-path finding.
+
+The 147 core/CLI tests, expanded WPF presentation/workflow checks, complete
+publishing and packaged CLI/launcher checks, 56 local documentation links,
+and 13 original brand asset hashes passed. No COM activation, SA connection,
+or registration change was performed. Native high contrast, Narrator, and
+mixed-DPI release checks remain subject to the limitations above.

@@ -357,6 +357,7 @@
             <StackPanel>
               <TextBlock x:Name="SdkSummaryTitle" Text="Inspect this workstation" Style="{StaticResource SectionHeading}" />
               <TextBlock x:Name="SdkSummaryText" Text="Find installed SpatialAnalyzer releases and inspect SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+              <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
               <WrapPanel Margin="0,14,0,0">
                 <Button x:Name="InspectSdkButton" Content="_Inspect SDK setup" Click="InspectSdkClicked" Margin="0,0,8,0" />
@@ -364,8 +365,7 @@
               </WrapPanel>
             </StackPanel>
           </Border>
-          <TextBlock x:Name="SdkNextStepText" Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,12" />
-          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="42" SelectionChanged="SdkSelectionChanged" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installation and SDK registration evidence">
+          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" SelectionChanged="SdkSelectionChanged" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
             <DataGrid.Resources>
               <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
                 <Setter Property="TextWrapping" Value="Wrap" />
@@ -374,14 +374,34 @@
               </Style>
             </DataGrid.Resources>
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Observation" Binding="{Binding Kind}" Width="200" ElementStyle="{StaticResource SdkEvidenceCell}" />
-              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="145" ElementStyle="{StaticResource SdkEvidenceCell}" />
-              <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTextColumn Header="SA version" Binding="{Binding Version}" Width="145" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTemplateColumn Header="SDK" Width="112">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,6,8,6" ToolTip="{Binding RegistrationHint}">
+                      <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRegistered}" Value="False">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </StackPanel.Style>
+                      <Grid Width="12" Height="12" Margin="0,0,6,0" IsHitTestVisible="False">
+                        <Path Data="M1.5,6 L4.5,9 L10.5,3" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                      </Grid>
+                      <TextBlock Text="Registered" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Installation path" Binding="{Binding Location}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
             </DataGrid.Columns>
           </DataGrid>
           <WrapPanel Grid.Row="3" Margin="0,12,0,0">
-            <Button x:Name="SdkDetailsButton" Content="View selected evidence…" Click="SdkDetailsClicked" Visibility="Collapsed" Margin="0,0,8,0" />
-            <Button x:Name="SdkGuidanceButton" Content="About SDK registration" Click="SdkGuidanceClicked" />
+            <Button x:Name="SdkDetailsButton" Content="Installation details…" Click="SdkDetailsClicked" Visibility="Collapsed" Margin="0,0,8,0" />
+            <Button x:Name="SdkGuidanceButton" Content="Registration details…" Click="SdkGuidanceClicked" />
           </WrapPanel>
         </Grid>
         <Grid x:Name="ActivityPage" Visibility="Collapsed">

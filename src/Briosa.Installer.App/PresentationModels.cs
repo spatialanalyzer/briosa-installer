@@ -17,13 +17,6 @@ public sealed record DownloadedInstaller(InstalledPackage Package)
     public string Version => Package.Version;
     public string AccessibleName => $"Downloaded Briosa Installer {Version}";
 }
-public sealed record SdkEvidence(SdkObservation Observation)
-{
-    public string Kind => Observation.Kind;
-    public string Version => Observation.Version;
-    public string Status => Observation.Status;
-    public string AccessibleName => $"{Kind}, version {Version}, {Observation.Status}";
-}
 public sealed record ActivityView(ActivityEntry Entry)
 {
     public string Title => ActionTitle(Entry.Operation);

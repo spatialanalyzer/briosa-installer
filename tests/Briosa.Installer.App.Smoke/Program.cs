@@ -28,6 +28,7 @@ internal static partial class Program
             ExerciseSources(directory);
             ExerciseAutomaticCatalogLoading();
             ExerciseAppearance(directory, args);
+            ExerciseSdkInstallationOverview();
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();
             app.Shutdown();
@@ -333,11 +334,11 @@ internal static partial class Program
         oldWindow.Close();
 
         Page(window, "SdkNavigation"); Click(window, "InspectSdkButton"); Ready(window);
-        var sdkRows = Find<DataGrid>(window, "SdkObservations").Items.OfType<SdkEvidence>().ToArray();
-        Require(sdkRows.Length == 7 && sdkRows[0].Kind == SdkReport.ConfiguredRegistration &&
-            Find<TextBlock>(window, "SdkSummaryText").Text.Contains("Configured SDK: 2099.1.0101.1. 3 installed SDK files", StringComparison.Ordinal) &&
-            Find<TextBlock>(window, "SdkSummaryText").Text.Contains("not been validated", StringComparison.Ordinal),
-            "SDK summary lost the configured older SDK, installed files, or runtime distinction.");
+        var sdkRows = Find<DataGrid>(window, "SdkObservations").Items.OfType<SaInstallationRow>().ToArray();
+        Require(sdkRows.Length == 3 && sdkRows.Count(r => r.IsRegistered) == 1 && sdkRows[0].IsRegistered &&
+            Find<TextBlock>(window, "SdkSummaryTitle").Text == "Configured SDK: 2099.1.0101.1" &&
+            Find<TextBlock>(window, "SdkSummaryText").Text.Contains("3 SpatialAnalyzer installations found", StringComparison.Ordinal),
+            "SDK overview did not consolidate installations or identify the registered installation.");
         if (args.Length > 0)
         {
 #pragma warning disable WPF0001
@@ -506,9 +507,9 @@ internal static partial class Program
         public SdkReport Inspect() => new(DateTimeOffset.UtcNow,
             new[] { "2099.1.0101.1", "2099.2.0202.2", "2099.2.0202.3" }.SelectMany(v => new[]
             {
-                new SdkObservation("Installed SA product", "Fixture / 32-bit", v, "Fixture only", "Installer registration; runtime not observed"),
-                new SdkObservation("Installed SDK file", "Fixture / 32-bit", v, "Fixture only", "File version evidence only"),
-            }).Append(new(SdkReport.ConfiguredRegistration, "Fixture / 32-bit", "2099.1.0101.1", "Fixture only",
+                new SdkObservation("Installed SA product", "Fixture / 32-bit", v, $@"C:\Program Files (x86)\Vendor\SpatialAnalyzer {v}", "Installer registration; runtime not observed"),
+                new SdkObservation("Installed SDK file", "Fixture / 32-bit", v, $@"C:\Program Files (x86)\Vendor\SpatialAnalyzer {v}\SpatialAnalyzerSDK.exe", "File version evidence only"),
+            }).Append(new(SdkReport.ConfiguredRegistration, "Fixture / 32-bit", "2099.1.0101.1", @"C:\Program Files (x86)\Vendor\SpatialAnalyzer 2099.1.0101.1\SpatialAnalyzerSDK.exe",
                 "Unquoted path; file identified, activation not observed", SdkEvidenceState.UnquotedPath)).ToArray(),
             "Fixture handoff; no registry access or SDK activation.");
     }
