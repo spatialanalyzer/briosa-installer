@@ -6,7 +6,8 @@ The published pack was verified against its SHA-256 checksum before copying asse
 
 ## Artwork and typography
 
-- The navigation header uses the supplied inverse horizontal logo on deep blue.
+- The navigation header uses the supplied color horizontal logo on silver in
+  light mode and the all-white logo on graphite in dark mode.
   It is displayed at 160 logical pixels without distortion, with additional clear
   space in a 208-pixel sidebar. The wordmark is the supplied lowercase artwork;
   application titles, accessible names, and prose continue to use Briosa.
@@ -24,23 +25,34 @@ The published pack was verified against its SHA-256 checksum before copying asse
 
 | Use | Light mode | Dark mode |
 | --- | --- | --- |
-| Main background | White `#FFFFFF` | Deep blue `#003875` |
+| Main background | Layered white `#FFFFFF` and silver `#F2F2F2` planes | Layered graphite `#585B62` planes |
 | Body text | Graphite `#585B62` | White `#FFFFFF` |
 | Headings | Deep blue | White |
 | Primary action | White on deep blue | Deep blue on cyan `#00BAF1` |
-| Navigation | White on deep blue; selected row uses deep blue on cyan | Same |
-| Surfaces | Silver `#F2F2F2` | White tints over deep blue |
+| Navigation | Graphite on silver; selected row uses deep blue on cyan | White on graphite; selected row uses deep blue on cyan |
+| Surfaces | Opaque silver/white | Opaque graphite tints |
 
 The five approved sRGB colors are copied in `Assets/Brand/colors.json`. Surface,
 hover, and border tints are derived from them. Cyan is not used as normal text on
 white. Selection has a visible indicator and text, so color is not its only cue.
 The underlying Fluent control templates retain their keyboard and automation behavior.
 
+The maintainer selected [Layered Planes](design/layered-planes-reference.png) on
+September 13, 2026. Two local raster assets provide the broad intersecting planes
+and restrained cyan edge in the main workspace. They preserve their aspect ratio
+and crop at the edges when the window changes size. They are decorative, cannot
+receive focus or pointer input, and do not animate or download at runtime. The
+sidebar and dialogs use neutral base colors, and grouped package rows and settings
+cards use opaque surfaces for readability. The empty inventory also retains the
+workspace background. These app-specific backgrounds live in `Assets/Backgrounds`,
+separate from the unmodified upstream brand assets.
+
 `BrandTheme` follows the selected WPF appearance and Windows application theme,
 refreshing resources when system preferences change. It reads preferences only.
 In high contrast it removes the application's native-control palette overrides,
 leaving WPF's system high-contrast resources in control. The sidebar uses system
 window/highlight colors and the supplied white or black logo as appropriate.
+Decorative planes are removed completely in high contrast.
 
 ## Provenance and packaging
 

@@ -23,6 +23,7 @@
         </ListBox>
       </DockPanel>
     </Border>
+    <Border x:Name="WorkspaceBackdrop" Grid.Column="1" Background="{DynamicResource BriosaWorkspaceBrush}" IsHitTestVisible="False" Focusable="False" RenderOptions.BitmapScalingMode="HighQuality" />
     <Grid x:Name="PageHost" Grid.Column="1" Margin="28,24">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
@@ -128,7 +129,7 @@
                 </GroupStyle>
               </ListBox.GroupStyle>
             </ListBox>
-            <Border x:Name="InventoryEmpty" Background="{DynamicResource ApplicationBackgroundBrush}" Padding="24">
+            <Border x:Name="InventoryEmpty" Background="Transparent" Padding="24">
               <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="430">
                 <TextBlock x:Name="EmptyTitle" Text="Get your first Briosa server" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" />
                 <TextBlock x:Name="EmptyDescription" TextWrapping="Wrap" TextAlignment="Center" Margin="0,10,0,18" />

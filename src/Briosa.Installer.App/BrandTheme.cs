@@ -13,7 +13,7 @@ public sealed class BrandTheme : IDisposable
 {
     private readonly Application app;
     private static readonly HashSet<string> nativeOverrides = [];
-    private static readonly Dictionary<string, BitmapSource> logos = [];
+    private static readonly Dictionary<string, BitmapSource> images = [];
     private static readonly Color Blue = Color.FromRgb(0, 56, 117);
     private static readonly Color Cyan = Color.FromRgb(0, 186, 241);
     private static readonly Color Graphite = Color.FromRgb(88, 91, 98);
@@ -64,27 +64,30 @@ public sealed class BrandTheme : IDisposable
         nativeOverrides.Clear();
         var white = Colors.White;
         var text = dark ? white : Graphite;
-        var background = dark ? Blue : white;
-        var surface = dark ? Mix(Blue, white, .08) : Silver;
-        var control = dark ? Mix(Blue, white, .12) : white;
-        var border = dark ? Mix(Blue, Silver, .6) : Mix(Graphite, white, .25);
+        var background = dark ? Graphite : white;
+        var surface = dark ? Mix(Graphite, white, .04) : Silver;
+        var control = dark ? Mix(Graphite, white, .02) : white;
+        var border = dark ? Mix(Graphite, Silver, .45) : Mix(Graphite, white, .25);
         var accent = dark ? Cyan : Blue;
         var onAccent = dark ? Blue : white;
-        var selected = dark ? Mix(Blue, Cyan, .2) : Silver;
-        var navBackground = highContrast ? SystemColors.WindowColor : Blue;
-        var navText = highContrast ? SystemColors.WindowTextColor : white;
+        var selected = dark ? Mix(Graphite, Cyan, .10) : Silver;
+        var navBackground = highContrast ? SystemColors.WindowColor : dark ? Graphite : Silver;
+        var navText = highContrast ? SystemColors.WindowTextColor : text;
         var navSelected = highContrast ? SystemColors.HighlightColor : Cyan;
         var navSelectedText = highContrast ? SystemColors.HighlightTextColor : Blue;
         resources["BriosaNavigationBackgroundColor"] = navBackground;
         resources["BriosaNavigationTextColor"] = navText;
         resources["BriosaNavigationSelectedColor"] = navSelected;
         resources["BriosaNavigationSelectedTextColor"] = navSelectedText;
-        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : Mix(Blue, white, .12);
+        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(Graphite, white, .12) : Mix(Silver, Graphite, .06);
         resources["BriosaNavigationBrush"] = Brush(navBackground);
         resources["BriosaNavigationTextBrush"] = Brush(navText);
         resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
-        resources["BriosaLogo"] = Logo(highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : "inverse");
+        var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "white" : "color";
+        resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
+        // Decorative artwork is local, non-interactive, and completely removed in high contrast.
+        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : WorkspaceBackdrop(dark);
         // Let WPF's high-contrast resource dictionary own all native control colors.
         if (highContrast) return;
 
@@ -103,10 +106,11 @@ public sealed class BrandTheme : IDisposable
             "CheckBoxForegroundChecked", "DataGridColumnHeaderForeground", "ExpanderHeaderForeground", "TabViewForeground", "TabViewItemForegroundSelected");
         Paint(control, "ControlFillColorDefaultBrush", "ControlFillColorInputActiveBrush", "ButtonBackground", "TextControlBackground",
             "TextControlBackgroundFocused", "ComboBoxBackground", "ComboBoxBackgroundFocused", "ComboBoxDropDownBackground");
-        Paint(dark ? Mix(Blue, white, .2) : Silver, "ButtonBackgroundPointerOver", "ButtonBackgroundPressed", "TextControlBackgroundPointerOver",
+        Paint(dark ? Mix(Graphite, white, .12) : Silver, "ButtonBackgroundPointerOver", "ButtonBackgroundPressed", "TextControlBackgroundPointerOver",
             "ComboBoxBackgroundPointerOver", "ComboBoxBackgroundPressed", "ComboBoxDropDownBackgroundPointerOver",
             "ListBoxItemUnselectedBackgroundPointerOverThemeBrush");
-        Paint(border, "ControlElevationBorderBrush", "ButtonBorderBrush", "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed",
+        Paint(dark ? Mix(Graphite, white, .25) : Mix(Graphite, white, .65), "ControlElevationBorderBrush");
+        Paint(border, "ButtonBorderBrush", "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed",
             "TextControlBorderBrush", "TextControlBorderBrushPointerOver", "ComboBoxBorderBrush", "ComboBoxDropDownBorderBrush");
         Paint(accent, "AccentFillColorDefaultBrush", "AccentFillColorSecondaryBrush", "AccentFillColorTertiaryBrush", "AccentButtonBackground",
             "AccentTextFillColorPrimaryBrush", "AccentTextFillColorSecondaryBrush", "AccentTextFillColorTertiaryBrush",
@@ -124,18 +128,30 @@ public sealed class BrandTheme : IDisposable
         Paint(accent, "AccentFillColorSelectedTextBackgroundBrush", "TextControlSelectionHighlightColor");
     }
 
-    private static BitmapSource Logo(string variant)
+    private static ImageBrush WorkspaceBackdrop(bool dark)
     {
-        if (!logos.TryGetValue(variant, out var logo))
+        var brush = new ImageBrush(Bitmap($"Backgrounds/layered-planes-{(dark ? "dark" : "light")}.png"))
+        {
+            Stretch = Stretch.UniformToFill,
+            AlignmentX = AlignmentX.Right,
+            AlignmentY = AlignmentY.Bottom
+        };
+        brush.Freeze();
+        return brush;
+    }
+
+    private static BitmapSource Bitmap(string path)
+    {
+        if (!images.TryGetValue(path, out var image))
         {
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri($"pack://application:,,,/Briosa.Installer;component/Assets/Brand/png/logos/briosa-horizontal-{variant}.png");
+            bitmap.UriSource = new Uri($"pack://application:,,,/Briosa.Installer;component/Assets/{path}");
             bitmap.EndInit(); bitmap.Freeze();
-            logos[variant] = logo = bitmap;
+            images[path] = image = bitmap;
         }
-        return logo;
+        return image;
     }
 
     private static SolidColorBrush Brush(Color color) { var brush = new SolidColorBrush(color); brush.Freeze(); return brush; }

@@ -270,12 +270,20 @@ internal static class Program
 #pragma warning restore WPF0001
         BrandTheme.ApplySystem(Application.Current);
         PumpDispatcher();
+        var backdrop = Find<Border>(window, "WorkspaceBackdrop");
+        Require(!backdrop.IsHitTestVisible && !backdrop.Focusable, "Decorative background can intercept input.");
+        var lightBackdrop = (backdrop.Background as ImageBrush)?.ImageSource;
+        Require(lightBackdrop is BitmapSource { PixelWidth: > 1000 }, "Light background was not loaded from the embedded artwork.");
+        if (args.Length > 2) Render(root, args[2] + ".light.png", 820, 580);
         if (args.Length > 0) Render(root, args[0] + ".light.png", 1140, 800);
 #pragma warning disable WPF0001
         Application.Current.ThemeMode = ThemeMode.Dark;
 #pragma warning restore WPF0001
         BrandTheme.ApplySystem(Application.Current);
         PumpDispatcher();
+        Require(backdrop.Background is ImageBrush darkBackdrop && darkBackdrop.ImageSource is BitmapSource { PixelWidth: > 1000 } &&
+            !ReferenceEquals(lightBackdrop, darkBackdrop.ImageSource), "Dark mode did not switch the embedded background artwork.");
+        if (args.Length > 2) Render(root, args[2] + ".dark.png", 820, 580);
         if (args.Length > 0)
         {
             Render(root, args[0] + ".dark.png", 1140, 800);
@@ -284,8 +292,9 @@ internal static class Program
         }
         BrandTheme.Apply(Application.Current, dark: true, highContrast: true);
         Require(!Application.Current.Resources.Keys.Cast<object>().Contains("AccentButtonBackground") &&
-            ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == SystemColors.WindowColor,
-            "High contrast did not release native controls and navigation to system colors.");
+            ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == SystemColors.WindowColor &&
+            backdrop.Background is SolidColorBrush plainBackdrop && plainBackdrop.Color == SystemColors.WindowColor,
+            "High contrast did not release native controls, navigation and background to system colors.");
 #pragma warning disable WPF0001
         Application.Current.ThemeMode = originalTheme;
 #pragma warning restore WPF0001
