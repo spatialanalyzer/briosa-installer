@@ -56,6 +56,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   Appearance works before source setup and retains Windows contrast-theme priority.
   Theme-only saves must not reset package catalogs. Use the deeper charcoal shade
   of graphite for dark backgrounds, with subtle native vector planes.
+  Theme accents use deep blue with white text in light mode and cyan with deep-blue
+  text in dark mode. Pair selection fills and foregrounds, including text inputs;
+  retain visible focus/selection indicators and recheck live theme changes.
   App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
   with white, silver-gray, and cyan-blue planes and equal left/right padding;
   do not restore the blue background tile or the rejected vertical offset.

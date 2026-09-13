@@ -16,6 +16,14 @@
           <TextBlock x:Name="UnsavedNavigationText" Text="Settings need attention" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,12,0,0" FontWeight="SemiBold" />
         </StackPanel>
         <ListBox x:Name="Navigation" SelectionChanged="NavigationChanged" SelectedIndex="0" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Installer navigation">
+          <!-- Keep local brushes on the live element: style-scoped Freezables
+               can retain the theme from their first resource lookup. -->
+          <ListBox.Resources>
+            <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
+            <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationSelectedHoverColor}" />
+            <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedTextColor}" />
+            <SolidColorBrush x:Key="ListBoxItemUnselectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationHoverColor}" />
+          </ListBox.Resources>
           <ListBoxItem x:Name="InstallationsNavigation" Content="Installations" />
           <ListBoxItem x:Name="SdkNavigation" Content="SDK Setup" />
           <ListBoxItem x:Name="ActivityNavigation" Content="Activity" />

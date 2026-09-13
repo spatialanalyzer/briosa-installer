@@ -87,20 +87,32 @@ public sealed class BrandTheme : IDisposable
         var border = dark ? Mix(darkBase, Silver, .43) : Mix(Graphite, white, .25);
         var accent = dark ? Cyan : Blue;
         var onAccent = dark ? Blue : white;
-        var selected = dark ? Mix(darkBase, Cyan, .12) : Silver;
+        // Pair every accent fill with its foreground. Light-theme interaction
+        // darkens blue; dark-theme interaction lifts cyan without losing contrast.
+        var accentHover = Mix(accent, dark ? white : Colors.Black, .08);
+        var accentPressed = Mix(accent, dark ? white : Colors.Black, .16);
+        var selected = Mix(background, accent, dark ? .12 : .10);
+        var selectedHover = Mix(background, accent, dark ? .20 : .16);
+        var hover = dark ? Mix(darkBase, white, .12) : Silver;
+        var pressed = dark ? Mix(darkBase, white, .17) : Mix(Silver, Graphite, .10);
         var navBackground = highContrast ? SystemColors.WindowColor : dark ? Mix(darkBase, Colors.Black, .14) : Silver;
         var navText = highContrast ? SystemColors.WindowTextColor : text;
-        var navSelected = highContrast ? SystemColors.HighlightColor : Cyan;
-        var navSelectedText = highContrast ? SystemColors.HighlightTextColor : Blue;
+        var navSelected = highContrast ? SystemColors.HighlightColor : accent;
+        var navSelectedText = highContrast ? SystemColors.HighlightTextColor : onAccent;
         resources["BriosaNavigationBackgroundColor"] = navBackground;
         resources["BriosaNavigationTextColor"] = navText;
         resources["BriosaNavigationSelectedColor"] = navSelected;
+        resources["BriosaNavigationSelectedHoverColor"] = highContrast ? SystemColors.HighlightColor : accentHover;
         resources["BriosaNavigationSelectedTextColor"] = navSelectedText;
         resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(darkBase, white, .10) : Mix(Silver, Graphite, .06);
         resources["BriosaNavigationBrush"] = Brush(navBackground);
         resources["BriosaNavigationTextBrush"] = Brush(navText);
         resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
+        // WPF otherwise blends SelectionBrush with the input surface and inherits
+        // a system foreground that may be intended for a different highlight.
+        resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
+        resources["BriosaTextSelectionTextBrush"] = Brush(highContrast ? SystemColors.HighlightTextColor : onAccent);
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "white" : "color";
         resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
         // Native vector geometry is non-interactive and completely removed in high contrast.
@@ -115,32 +127,38 @@ public sealed class BrandTheme : IDisposable
         }
         Paint(background, "ApplicationBackgroundBrush", "WindowBackground");
         Paint(surface, "CardBackgroundFillColorDefaultBrush", "CardBackgroundFillColorSecondaryBrush", "LayerFillColorDefaultBrush",
-            "DataGridHeaderBackground", "DataGridColumnHeaderBackground", "ExpanderHeaderBackground", "ExpanderContentBackground", "TabViewItemHeaderBackgroundSelected");
+            "DataGridHeaderBackground", "DataGridColumnHeaderBackground", "ExpanderHeaderBackground", "ExpanderContentBackground");
         Paint(text, "TextFillColorPrimaryBrush", "TextFillColorSecondaryBrush", "ListBoxItemForeground", "ButtonForeground",
             "ButtonForegroundPointerOver", "ButtonForegroundPressed", "TextControlForeground", "TextControlForegroundPointerOver", "TextControlForegroundFocused",
-            "ComboBoxForeground", "ComboBoxForegroundPointerOver", "ComboBoxForegroundPressed", "ComboBoxForegroundFocused",
+            "ComboBoxForeground", "ComboBoxForegroundPointerOver", "ComboBoxForegroundPressed", "ComboBoxForegroundFocused", "ComboBoxForegroundFocusedPressed",
             "ComboBoxDropDownForeground", "ComboBoxItemForeground", "ComboBoxItemForegroundSelected", "CheckBoxForegroundUnchecked",
-            "CheckBoxForegroundChecked", "DataGridColumnHeaderForeground", "ExpanderHeaderForeground", "TabViewForeground", "TabViewItemForegroundSelected");
+            "CheckBoxForegroundChecked", "DataGridColumnHeaderForeground", "ExpanderHeaderForeground", "TabViewForeground");
         Paint(control, "ControlFillColorDefaultBrush", "ControlFillColorInputActiveBrush", "ButtonBackground", "TextControlBackground",
             "TextControlBackgroundFocused", "ComboBoxBackground", "ComboBoxBackgroundFocused", "ComboBoxDropDownBackground");
-        Paint(dark ? Mix(darkBase, white, .12) : Silver, "ButtonBackgroundPointerOver", "ButtonBackgroundPressed", "TextControlBackgroundPointerOver",
-            "ComboBoxBackgroundPointerOver", "ComboBoxBackgroundPressed", "ComboBoxDropDownBackgroundPointerOver",
+        Paint(hover, "ButtonBackgroundPointerOver", "TextControlBackgroundPointerOver",
+            "ComboBoxBackgroundPointerOver", "ComboBoxDropDownBackgroundPointerOver",
             "ListBoxItemUnselectedBackgroundPointerOverThemeBrush");
+        Paint(pressed, "ButtonBackgroundPressed", "ComboBoxBackgroundPressed");
         Paint(dark ? Mix(darkBase, white, .18) : Mix(Graphite, white, .65), "ControlElevationBorderBrush");
-        Paint(border, "ButtonBorderBrush", "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed",
-            "TextControlBorderBrush", "TextControlBorderBrushPointerOver", "ComboBoxBorderBrush", "ComboBoxDropDownBorderBrush");
-        Paint(accent, "AccentFillColorDefaultBrush", "AccentFillColorSecondaryBrush", "AccentFillColorTertiaryBrush", "AccentButtonBackground",
+        Paint(border, "ButtonBorderBrush", "TextControlBorderBrush", "TextControlElevationBorderBrush",
+            "ComboBoxBorderBrush", "ComboBoxDropDownBorderBrush");
+        Paint(dark ? Mix(darkBase, Silver, .56) : Mix(Graphite, white, .15),
+            "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed", "TextControlBorderBrushPointerOver",
+            "ComboBoxBorderBrushPointerOver", "ComboBoxBorderBrushPressed");
+        Paint(accent, "AccentFillColorDefaultBrush", "AccentButtonBackground", "AccentButtonBorderBrush",
             "AccentTextFillColorPrimaryBrush", "AccentTextFillColorSecondaryBrush", "AccentTextFillColorTertiaryBrush",
             "TextControlBorderBrushFocused", "TextControlFocusedBorderBrush", "ComboBoxBorderBrushFocused", "ComboBoxItemPillFillBrush",
-            "CheckBoxCheckBackgroundFillChecked", "CheckBoxCheckBackgroundFillCheckedPointerOver", "CheckBoxCheckBackgroundFillCheckedPressed",
-            "CheckBoxCheckBackgroundStrokeChecked", "CheckBoxCheckBackgroundStrokeCheckedPointerOver", "CheckBoxCheckBackgroundStrokeCheckedPressed",
-            "ProgressBarForeground", "KeyboardFocusBorderColorBrush");
-        Paint(Mix(accent, white, .08), "AccentButtonBackgroundPointerOver");
-        Paint(Mix(accent, white, .16), "AccentButtonBackgroundPressed");
+            "CheckBoxCheckBackgroundFillChecked", "CheckBoxCheckBackgroundStrokeChecked",
+            "ProgressBarForeground", "KeyboardFocusBorderColorBrush", "TabViewItemForegroundSelected", "TabViewSelectedItemBorderBrush");
+        Paint(accentHover, "AccentFillColorSecondaryBrush", "AccentButtonBackgroundPointerOver", "AccentButtonBorderBrushPointerOver",
+            "CheckBoxCheckBackgroundFillCheckedPointerOver", "CheckBoxCheckBackgroundStrokeCheckedPointerOver");
+        Paint(accentPressed, "AccentFillColorTertiaryBrush", "AccentButtonBackgroundPressed", "AccentButtonBorderBrushPressed",
+            "CheckBoxCheckBackgroundFillCheckedPressed", "CheckBoxCheckBackgroundStrokeCheckedPressed");
         Paint(onAccent, "TextOnAccentFillColorPrimaryBrush", "TextOnAccentFillColorSecondaryBrush", "AccentButtonForeground",
             "AccentButtonForegroundPointerOver", "AccentButtonForegroundPressed", "CheckBoxCheckGlyphForeground", "CheckBoxCheckGlyphForegroundPressed");
-        Paint(selected, "ListBoxItemSelectedBackgroundThemeBrush", "ListBoxItemSelectedBackgroundPointerOverThemeBrush",
-            "ListBoxItemSelectedBackgroundPressedThemeBrush", "DataGridRowSelectedBackgroundThemeBrush");
+        Paint(selected, "ListBoxItemSelectedBackgroundThemeBrush", "DataGridRowSelectedBackgroundThemeBrush",
+            "ComboBoxItemBackgroundSelected", "TabViewItemHeaderBackgroundSelected");
+        Paint(selectedHover, "ListBoxItemSelectedBackgroundPointerOverThemeBrush", "ListBoxItemSelectedBackgroundPressedThemeBrush");
         Paint(dark ? white : Blue, "ListBoxItemSelectedForegroundThemeBrush", "DataGridRowSelectedForegroundThemeBrush");
         Paint(accent, "AccentFillColorSelectedTextBackgroundBrush", "TextControlSelectionHighlightColor");
     }

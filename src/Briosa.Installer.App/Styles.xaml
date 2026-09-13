@@ -29,9 +29,17 @@
     </Setter>
   </Style>
   <Style TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+    <Setter Property="SelectionBrush" Value="{DynamicResource BriosaTextSelectionBrush}" />
+    <Setter Property="SelectionTextBrush" Value="{DynamicResource BriosaTextSelectionTextBrush}" />
+    <Setter Property="SelectionOpacity" Value="1" />
     <Setter Property="Padding" Value="10,7" />
     <Setter Property="MinHeight" Value="36" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style TargetType="PasswordBox" BasedOn="{StaticResource DefaultPasswordBoxStyle}">
+    <Setter Property="SelectionBrush" Value="{DynamicResource BriosaTextSelectionBrush}" />
+    <Setter Property="SelectionTextBrush" Value="{DynamicResource BriosaTextSelectionTextBrush}" />
+    <Setter Property="SelectionOpacity" Value="1" />
   </Style>
   <Style TargetType="ComboBox" BasedOn="{StaticResource DefaultComboBoxStyle}">
     <Setter Property="MinHeight" Value="36" />
@@ -80,17 +88,18 @@
       <Setter.Value>
         <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultDataGridRowStyle}">
           <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+          <Setter Property="BorderThickness" Value="3,0,0,0" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+          <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+              <Setter Property="BorderBrush" Value="{DynamicResource BriosaSelectionBorderBrush}" />
+            </Trigger>
+          </Style.Triggers>
         </Style>
       </Setter.Value>
     </Setter>
   </Style>
   <Style x:Key="NavigationItem" TargetType="ListBoxItem" BasedOn="{StaticResource DefaultListBoxItemStyle}">
-    <Style.Resources>
-      <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
-      <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
-      <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedTextColor}" />
-      <SolidColorBrush x:Key="ListBoxItemUnselectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationHoverColor}" />
-    </Style.Resources>
     <Setter Property="Foreground" Value="{DynamicResource BriosaNavigationTextBrush}" />
     <Setter Property="Border.CornerRadius" Value="5" />
     <Setter Property="BorderThickness" Value="2" />

@@ -1,6 +1,55 @@
 # Design validation
 
-## Current review: automatic settings and deeper dark mode
+## Current review: theme-aware interaction colors
+
+Scope: selection, text highlighting, focus and interaction states in the existing
+light/dark app. The background design and approved artwork are retained.
+
+1. **Appearance and navigation — corrected.** Native review-build-14 captures
+   confirmed cyan navigation selection in both themes. It provided only 2.02:1
+   contrast against the light sidebar. White on deep blue now gives 11.52:1 text
+   contrast in light mode; deep blue on cyan gives 5.10:1 in dark mode. The
+   control-tree check also caught style-scoped brushes retaining the old theme.
+   Moving the local brushes onto the live navigation ListBox fixes theme changes
+   while retaining the Fluent control template.
+2. **Settings inputs — corrected.** Selected text previously relied on a translucent
+   highlight and an independently chosen Windows foreground. TextBox and PasswordBox
+   now use explicit opaque theme-matched pairs, including system highlight pairs
+   in high contrast. Native testing caught WPF's legacy adorner renderer covering
+   selected letters despite correct brush properties. The app and harness now
+   opt into non-adorner selection rendering at process startup. Selected Settings
+   tabs use an accent border, tint and text.
+3. **Package selections and actions — corrected.** Selected rows use a theme tint
+   and a visible accent edge, including updater tables. Primary buttons and checked
+   controls share paired fills/foregrounds; light-theme hover/press darkens blue,
+   while dark-theme hover/press lifts cyan. Neutral controls get distinct pressed
+   fills and stronger hover/press boundaries. Existing focus rings remain visible.
+
+Evidence for this review is under `artifacts/color-audit/`: native before captures
+`01-before-dark-selection.png` and `02-before-light-navigation.png`; actual WPF
+control renders `controls.png.light-install-action.png`, `.dark-install-action.png`,
+`.light-sources.png`, `.dark-sources.png`, `.light-updates.png`, `.dark-updates.png`,
+and the light/dark compact and scaled variants. Text-selection pixel verification
+uses a native window; offscreen renders alone do not display active text selection.
+Native review-build-16 captures `03-after-dark-selection.png`,
+`04-after-light-navigation.png`, and `05-after-light-selection.png` confirm readable
+selected letters and immediate navigation palette changes in the packaged executable.
+The 119 core/CLI tests, WPF workflow/contrast checks, locked build, and review-16
+packaged workflows passed. Local documentation links and original brand hashes
+were also checked. Review build 15 was superseded during native verification.
+
+The contrast harness checks resolved navigation template brushes after theme switches,
+TextBox/PasswordBox selection properties, 4.5:1 normal text, and 3:1 focus/selection
+indicators and interactive control boundaries. It preserves system high-contrast
+delegation. These checks do not establish full accessibility compliance, native
+high-contrast behavior, Narrator support, or all Windows DPI combinations.
+
+Control resource mappings were checked against the official WPF sources for
+[text fields](https://github.com/dotnet/wpf/blob/v10.0.0/src/Microsoft.DotNet.Wpf/src/Themes/PresentationFramework.Fluent/Styles/TextBox.xaml),
+[navigation](https://github.com/dotnet/wpf/blob/v10.0.0/src/Microsoft.DotNet.Wpf/src/Themes/PresentationFramework.Fluent/Styles/ListBoxItem.xaml),
+and [focus rings](https://github.com/dotnet/wpf/blob/v10.0.0/src/Microsoft.DotNet.Wpf/src/Themes/PresentationFramework.Fluent/Resources/DefaultFocusVisualStyle.xaml).
+
+## Earlier review: automatic settings and deeper dark mode
 
 The maintainer rejected the manual Save/Discard workflow and requested substantially
 darker backgrounds. Settings now apply and persist automatically. Text fields wait

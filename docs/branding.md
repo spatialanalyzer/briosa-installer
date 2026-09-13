@@ -33,15 +33,33 @@ The published pack was verified against its SHA-256 checksum before copying asse
 | Body text | Graphite `#585B62` | White `#FFFFFF` |
 | Headings | Deep blue | White |
 | Primary action | White on deep blue | Deep blue on cyan `#00BAF1` |
-| Navigation | Graphite on silver; selected row uses deep blue on cyan | White on graphite; selected row uses deep blue on cyan |
+| Navigation | Graphite on silver; selected row uses white on deep blue | White on graphite; selected row uses deep blue on cyan |
+| Selected text | White on opaque deep blue | Deep blue on opaque cyan |
+| Selected rows and tabs | Blue-tinted fill and deep-blue indicator | Cyan-tinted charcoal fill and cyan indicator |
 | Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
 
 The five approved sRGB colors are copied in `Assets/Brand/colors.json`. The maintainer
 requested darker backgrounds; dark mode now shades graphite toward black, with a
 `#1A1B1C` sidebar and lower-opacity plane edges. Light mode is unchanged. Surface,
-hover, and border tints are derived from them. Cyan is not used as normal text on
+hover, and border tints are derived from them. Action hover/press states darken
+blue in light mode and lift cyan in dark mode. Selected navigation and primary
+action text have at least 11.52:1 contrast in light mode and 5.10:1 in dark mode.
+Control boundaries remain visible against their normal, hovered, and pressed fills.
+Cyan is not used as normal text on
 white. Selection has a visible indicator and text, so color is not its only cue.
 The underlying Fluent control templates retain their keyboard and automation behavior.
+
+Navigation's local Fluent brushes live on the ListBox rather than a shared style,
+so they refresh when the theme changes. TextBox and PasswordBox use explicit
+opaque selection foreground/background pairs. Native keyboard focus rings remain,
+and high contrast substitutes system highlight colors for both parts of the pair.
+WPF projects opt into the non-adorner selection renderer at process startup through
+`Directory.Build.targets`; its legacy adorner renderer ignores SelectionTextBrush
+and can draw opaque highlights over the letters. See Microsoft's
+[selection-rendering compatibility note](https://github.com/microsoft/dotnet/blob/main/Documentation/compatibility/wpf-SelectionTextBrush-property-for-non-adorner-selection.md).
+The WPF harness checks the resolved navigation template and text-selection properties,
+4.5:1 text contrast, and 3:1 selection/focus/control boundaries across both themes;
+these targeted checks do not claim complete accessibility compliance.
 
 The maintainer selected [Layered Planes](design/layered-planes-reference.png) on
 September 13, 2026, then requested native vector geometry to remove the generated

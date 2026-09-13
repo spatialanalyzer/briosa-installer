@@ -10,7 +10,7 @@ using Briosa.Installer.App;
 using Briosa.Installer.Core;
 using Briosa.Installer.Tests;
 
-internal static class Program
+internal static partial class Program
 {
     [STAThread]
     private static int Main(string[] args)
@@ -373,6 +373,7 @@ internal static class Program
         if (args.Length > 2) Render(root, args[2] + ".light.png", 820, 580);
         if (args.Length > 0) Render(root, args[0] + ".light.png", 1140, 800);
         if (args.Length > 0) Render(root, args[0] + ".light-150.png", 1140, 800, 1.5);
+        CheckThemeContrast(window, "light", args);
 #pragma warning disable WPF0001
         Application.Current.ThemeMode = ThemeMode.Dark;
 #pragma warning restore WPF0001
@@ -382,6 +383,7 @@ internal static class Program
             darkPlanes.Children.Count > 0 && darkPlanes.Children.All(d => d is GeometryDrawing) &&
             !ReferenceEquals(lightBackdrop, darkPlanes), "Dark mode did not switch native vector geometry.");
         if (args.Length > 2) Render(root, args[2] + ".dark.png", 820, 580);
+        CheckThemeContrast(window, "dark", args);
         if (args.Length > 0)
         {
             Render(root, args[0] + ".dark.png", 1140, 800);
@@ -390,8 +392,13 @@ internal static class Program
             Render(root, args[0] + ".dark-settings.png", 1140, 800);
         }
         BrandTheme.Apply(Application.Current, dark: true, highContrast: true);
+        var contrastNavigation = (ListBoxItem)Find<ListBox>(window, "Navigation").SelectedItem;
         Require(!Application.Current.Resources.Keys.Cast<object>().Contains("AccentButtonBackground") &&
             ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == SystemColors.WindowColor &&
+            ((SolidColorBrush)contrastNavigation.FindResource("ListBoxItemSelectedBackgroundThemeBrush")).Color == SystemColors.HighlightColor &&
+            ((SolidColorBrush)contrastNavigation.FindResource("ListBoxItemSelectedForegroundThemeBrush")).Color == SystemColors.HighlightTextColor &&
+            Find<TextBox>(window, "ServerCatalog").SelectionTextBrush is SolidColorBrush selectionText && selectionText.Color == SystemColors.HighlightTextColor &&
+            Find<TextBox>(window, "ServerCatalog").SelectionBrush is SolidColorBrush selection && selection.Color == SystemColors.HighlightColor &&
             backdrop.Background is SolidColorBrush plainBackdrop && plainBackdrop.Color == SystemColors.WindowColor,
             "High contrast did not release native controls, navigation and background to system colors.");
 #pragma warning disable WPF0001
