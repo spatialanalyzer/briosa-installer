@@ -176,7 +176,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
-          <TabControl x:Name="SettingsSections" Background="Transparent" BorderThickness="0" AutomationProperties.Name="Settings sections">
+          <TabControl x:Name="SettingsSections" ItemContainerStyle="{StaticResource SettingsSection}" Background="Transparent" BorderThickness="0" AutomationProperties.Name="Settings sections">
             <TabItem x:Name="SourcesSection" Header="Package sources">
               <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,12,0">
                 <StackPanel>

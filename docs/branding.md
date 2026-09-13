@@ -33,9 +33,10 @@ The published pack was verified against its SHA-256 checksum before copying asse
 | Body text | Graphite `#585B62` | White `#FFFFFF` |
 | Headings | Deep blue | White |
 | Primary action | White on deep blue | Deep blue on cyan `#00BAF1` |
-| Navigation | Graphite on silver; selected row uses white on deep blue | White on graphite; selected row uses deep blue on cyan |
+| Navigation | Graphite on silver; selected row uses white on deep blue | White on graphite; selected row uses sidebar charcoal `#1A1B1C` on cyan |
 | Selected text | White on opaque deep blue | Deep blue on opaque cyan |
-| Selected rows and tabs | Blue-tinted fill and deep-blue indicator | Cyan-tinted charcoal fill and cyan indicator |
+| Selected rows | Blue-tinted fill and deep-blue indicator | Cyan-tinted charcoal fill and cyan indicator |
+| Settings sections | Transparent header with a deep-blue underline | Transparent header with a cyan underline |
 | Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
 
 The five approved sRGB colors are copied in `Assets/Brand/colors.json`. The maintainer
@@ -47,7 +48,9 @@ action text have at least 11.52:1 contrast in light mode and 5.10:1 in dark mode
 Control boundaries remain visible against their normal, hovered, and pressed fills.
 Cyan is not used as normal text on
 white. Selection has a visible indicator and text, so color is not its only cue.
-The underlying Fluent control templates retain their keyboard and automation behavior.
+The Settings header template uses a three-pixel underline without a filled tab shape.
+It retains native TabControl/TabItem selection, keyboard navigation, automation
+semantics and keyboard focus cues. Other controls keep their Fluent templates.
 
 Navigation's local Fluent brushes live on the ListBox rather than a shared style,
 so they refresh when the theme changes. TextBox and PasswordBox use explicit

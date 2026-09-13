@@ -59,6 +59,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   Theme accents use deep blue with white text in light mode and cyan with deep-blue
   text in dark mode. Pair selection fills and foregrounds, including text inputs;
   retain visible focus/selection indicators and recheck live theme changes.
+  The selected navigation label specifically uses the sidebar charcoal on cyan
+  in dark mode. Settings sections use transparent headers and a selected underline,
+  retaining native TabControl/TabItem keyboard and automation behavior.
   App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
   with white, silver-gray, and cyan-blue planes and equal left/right padding;
   do not restore the blue background tile or the rejected vertical offset.

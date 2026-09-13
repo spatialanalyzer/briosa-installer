@@ -98,7 +98,7 @@ public sealed class BrandTheme : IDisposable
         var navBackground = highContrast ? SystemColors.WindowColor : dark ? Mix(darkBase, Colors.Black, .14) : Silver;
         var navText = highContrast ? SystemColors.WindowTextColor : text;
         var navSelected = highContrast ? SystemColors.HighlightColor : accent;
-        var navSelectedText = highContrast ? SystemColors.HighlightTextColor : onAccent;
+        var navSelectedText = highContrast ? SystemColors.HighlightTextColor : dark ? navBackground : white;
         resources["BriosaNavigationBackgroundColor"] = navBackground;
         resources["BriosaNavigationTextColor"] = navText;
         resources["BriosaNavigationSelectedColor"] = navSelected;
@@ -109,6 +109,7 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaNavigationTextBrush"] = Brush(navText);
         resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
+        resources["BriosaSectionSelectedTextBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : accent);
         // WPF otherwise blends SelectionBrush with the input surface and inherits
         // a system foreground that may be intended for a different highlight.
         resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);

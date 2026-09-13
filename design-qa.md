@@ -168,3 +168,22 @@ does not expose the Windows taskbar, so direct taskbar placement and stale pinne
 shortcut behavior remain for the maintainer's visual review. No Windows icon cache
 or pinned shortcut was modified. Native contrast themes and mixed-DPI checks remain
 subject to the release limitations above.
+
+## Settings section underline follow-up
+
+Review build 17 replaces the filled Settings section headers with transparent
+headers and a 3 px underline beneath the selected label. The label and underline
+use deep blue in light mode and cyan in dark mode. Selected navigation text now
+matches the sidebar charcoal in dark mode, retaining the existing cyan fill.
+
+Reviewed the light/dark appearance renders and the 820 × 580 compact render under
+`artifacts/underline-review`. All four complete labels fit on one row. Spacing is
+inside the header template because native TabPanel layout excludes item margins
+when allocating width; using an outer margin initially clipped the labels.
+
+The packaged app was checked in both themes with immediate theme switching.
+Ctrl+Tab and Ctrl+Shift+Tab change the selected section and its underline; keyboard
+focus on a header retains a visible native focus ring. Settings continue to save
+automatically. All 119 core/CLI tests, WPF smoke workflows, packaged CLI/launcher
+checks, 56 local documentation links, and 13 original brand asset hashes passed.
+The native contrast-theme and mixed-DPI release limitations above still apply.
