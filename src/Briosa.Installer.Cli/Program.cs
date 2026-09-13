@@ -48,7 +48,7 @@ public static class CliApplication
         if (options.ContainsKey("--same-source") && options.ContainsKey("--installer-catalog")) return Usage(error);
         var command = args[1];
         if (command is "show" or "validate" && options.Keys.Any(key => key != "--config")) return Usage(error);
-        if (command == "init" && (!options.ContainsKey("--config") || !options.ContainsKey("--server-catalog"))) return Usage(error);
+        if (command == "init" && (!options.ContainsKey("--config") || (!options.ContainsKey("--server-catalog") && !options.ContainsKey("--theme")))) return Usage(error);
         try
         {
             var paths = options.TryGetValue("--config", out var config) ? defaults with { ExplicitFile = Path.GetFullPath(config!) } : defaults;
@@ -68,7 +68,7 @@ public static class CliApplication
                 output.Write(command == "show" ? SettingsCodec.Serialize(snapshot.Settings) : "Settings are valid. Catalog access has not been tested.\n");
                 return 0;
             }
-            var server = options.GetValueOrDefault("--server-catalog") ?? snapshot.Settings?.ServerCatalog;
+            var server = options.GetValueOrDefault("--server-catalog") ?? snapshot.Settings?.ServerCatalog ?? (options.ContainsKey("--theme") ? "" : null);
             if (server is null) return Usage(error);
             var installer = options.ContainsKey("--same-source") ? null :
                 options.GetValueOrDefault("--installer-catalog") ?? snapshot.Settings?.InstallerCatalog;

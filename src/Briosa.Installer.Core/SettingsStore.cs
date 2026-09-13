@@ -32,7 +32,7 @@ public sealed class SettingsStore
 
     public Outcome<SettingsSnapshot> Save(SettingsSnapshot snapshot, InstallerSettings settings)
     {
-        if (SettingsCodec.Validate(settings) is Outcome<InstallerSettings>.Failure invalid)
+        if (SettingsCodec.ValidateDocument(settings) is Outcome<InstallerSettings>.Failure invalid)
             return new Outcome<SettingsSnapshot>.Failure(invalid.Error);
         string? temporaryPath = null;
         try

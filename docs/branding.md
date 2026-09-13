@@ -29,14 +29,16 @@ The published pack was verified against its SHA-256 checksum before copying asse
 
 | Use | Light mode | Dark mode |
 | --- | --- | --- |
-| Main background | Layered white `#FFFFFF` and silver `#F2F2F2` planes | Layered graphite `#585B62` planes |
+| Main background | Layered white `#FFFFFF` and silver `#F2F2F2` planes | Deep graphite `#1E1F21`, with planes near `#242527` and `#1B1C1E` |
 | Body text | Graphite `#585B62` | White `#FFFFFF` |
 | Headings | Deep blue | White |
 | Primary action | White on deep blue | Deep blue on cyan `#00BAF1` |
 | Navigation | Graphite on silver; selected row uses deep blue on cyan | White on graphite; selected row uses deep blue on cyan |
-| Surfaces | Opaque silver/white | Opaque graphite tints |
+| Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
 
-The five approved sRGB colors are copied in `Assets/Brand/colors.json`. Surface,
+The five approved sRGB colors are copied in `Assets/Brand/colors.json`. The maintainer
+requested darker backgrounds; dark mode now shades graphite toward black, with a
+`#1A1B1C` sidebar and lower-opacity plane edges. Light mode is unchanged. Surface,
 hover, and border tints are derived from them. Cyan is not used as normal text on
 white. Selection has a visible indicator and text, so color is not its only cue.
 The underlying Fluent control templates retain their keyboard and automation behavior.
@@ -55,8 +57,8 @@ workspace background. The old background PNGs are removed. The concept image in
 this document is reference material only; the application never loads it.
 
 **Settings → Appearance → App theme** offers System, Light, and Dark. Selecting
-a theme previews it immediately; **Save changes** persists it with source settings,
-and **Discard changes** restores the saved choice. `appearance.theme` in
+a theme applies and saves it immediately, even before a source has been configured.
+There is no Save/Discard step. `appearance.theme` in
 `settings.json` accepts `system`, `light`, or `dark`; omission defaults to System.
 The saved theme applies before the native window opens and is included in settings
 import/export. Theme-only saves retain catalog results and do not request metadata.

@@ -23,9 +23,7 @@ public partial class MainWindow
         if (!initialized || populating) return;
         var settings = CurrentSettings();
         BrandTheme.ApplyPreference(Application.Current, settings.Theme);
-        dirty = settings != editorBaseline;
-        StatusText.Text = dirty ? "Previewing appearance. Save changes to keep your settings." : "All changes saved.";
-        UpdateInterface();
+        ScheduleSettings();
     }
 
     private void UpdateSecurityLabels()
@@ -37,26 +35,27 @@ public partial class MainWindow
     }
     private void ServerSecurityClicked(object sender, RoutedEventArgs e) => EditSecurity(CatalogComponent.Server);
     private void InstallerSecurityClicked(object sender, RoutedEventArgs e) => EditSecurity(CatalogComponent.Installer);
-    private void EditSecurity(CatalogComponent component)
+    private async void EditSecurity(CatalogComponent component)
     {
         if (busy || sourceTest is not null) return;
+        await PersistSettingsAsync();
+        if (settingsError is not null) return;
         var settings = CurrentSettings();
         if (SettingsCodec.Validate(settings) is Outcome<InstallerSettings>.Failure invalid)
         { StatusText.Text = invalid.Error.Message; return; }
-        var dialog = new SourceSecurityDialog(settings.Source(component), credentials) { Owner = this };
-        var applied = dialog.ShowDialog() == true;
-        if (applied)
+        var dialog = new SourceSecurityDialog(settings.Source(component), credentials, async source =>
         {
-            if (component == CatalogComponent.Server || SameSource.IsChecked == true) serverSecurity = dialog.Result;
-            else installerSecurity = dialog.Result;
-            dirty = CurrentSettings() != editorBaseline;
-        }
-        if (applied || dialog.CredentialChanged)
+            if (component == CatalogComponent.Server || SameSource.IsChecked == true) serverSecurity = source;
+            else installerSecurity = source;
+            InvalidateCatalog(); InvalidateSourceTests(); UpdateSecurityLabels();
+            ScheduleSettings(); await PersistSettingsAsync();
+            return settingsError;
+        }) { Owner = this };
+        dialog.ShowDialog();
+        if (dialog.CredentialChanged)
         {
             InvalidateCatalog(); InvalidateSourceTests(); UpdateSecurityLabels(); UpdateInterface();
-            StatusText.Text = (dialog.CredentialChanged ? "Credential changes were saved separately. " : "") +
-                (dirty ? "Save source settings to apply the access method and publisher selection." : "Source settings are unchanged.");
-            if (dialog.CredentialChanged) RecordActivity(dialog.CredentialRemoved ? "Credentials.Remove" : "Credentials.Save", "Succeeded");
+            RecordActivity(dialog.CredentialRemoved ? "Credentials.Remove" : "Credentials.Save", "Succeeded");
         }
     }
     private void BrowseSourceClicked(object sender, RoutedEventArgs e)
@@ -91,7 +90,7 @@ public partial class MainWindow
             var result = await catalogClient.ReadAsync(settings, component, cancellation.Token);
             if (generation != sourceTestGeneration || catalogClosed || !SameSources(settings, CurrentSettings())) return;
             if (cancellation.IsCancellationRequested)
-            { target.Text = "Connection test cancelled. Settings can still be saved."; RecordActivity(code, "Cancelled"); return; }
+            { target.Text = "Connection test cancelled."; RecordActivity(code, "Cancelled"); return; }
             if (result is CatalogResult<CatalogSnapshot>.Failure failure)
             { target.Text = failure.Error.Message; RecordActivity(code, failure.Error.Code.ToString()); return; }
             var catalog = ((CatalogResult<CatalogSnapshot>.Success)result).Value;
@@ -110,29 +109,31 @@ public partial class MainWindow
     private void JsonClicked(object sender, RoutedEventArgs e)
     {
         var settings = CurrentSettings();
-        if (SettingsCodec.Validate(settings) is Outcome<InstallerSettings>.Failure failure)
+        if (SettingsCodec.ValidateDocument(settings) is Outcome<InstallerSettings>.Failure failure)
         { StatusText.Text = failure.Error.Message; return; }
-        new DetailsDialog("Settings JSON — editor values", SettingsCodec.Serialize(settings)) { Owner = this }.ShowDialog();
+        new DetailsDialog("Settings JSON", SettingsCodec.Serialize(settings)) { Owner = this }.ShowDialog();
     }
-    private void ImportSettingsClicked(object sender, RoutedEventArgs e)
+    private async void ImportSettingsClicked(object sender, RoutedEventArgs e)
     {
-        if (busy || !ConfirmDiscard()) return;
+        if (busy) return;
+        await PersistSettingsAsync();
         var dialog = new OpenFileDialog { Filter = "Installer settings (*.json)|*.json" };
         if (dialog.ShowDialog(this) != true) return;
         var imported = store.Load(new(dialog.FileName, ExplicitFile: dialog.FileName));
         if (imported is not Outcome<SettingsSnapshot>.Success { Value.Settings: { } settings })
         { StatusText.Text = "This file could not be imported. Check its format and access."; RecordActivity("Settings.Import", "Failed"); return; }
         var baseline = editorBaseline;
-        PopulateEditor(settings); editorBaseline = baseline; dirty = CurrentSettings() != baseline;
+        PopulateEditor(settings); editorBaseline = baseline;
         InvalidateCatalog(); InvalidateSourceTests(); UpdateInterface();
         SettingsSections.SelectedItem = SourcesSection;
-        StatusText.Text = "Settings imported into the editor. Review and save to apply them. Credentials were not imported.";
+        ScheduleSettings(); await PersistSettingsAsync();
+        if (settingsError is null) StatusText.Text = "Settings imported and applied. Credentials were not imported.";
     }
     private void ExportSettingsClicked(object sender, RoutedEventArgs e)
     {
         if (busy) return;
         var settings = CurrentSettings();
-        if (SettingsCodec.Validate(settings) is Outcome<InstallerSettings>.Failure failure)
+        if (SettingsCodec.ValidateDocument(settings) is Outcome<InstallerSettings>.Failure failure)
         { StatusText.Text = failure.Error.Message; return; }
         var dialog = new SaveFileDialog { Filter = "Installer settings (*.json)|*.json", FileName = "briosa-settings.json" };
         if (dialog.ShowDialog(this) != true) return;

@@ -31,8 +31,9 @@ with signed inert fixtures, temporary directories, and fake SDK observations.
 It does not display a native window or control another application. Pass up to three
 PNG paths to render the server inventory, source settings, and compact inventory;
 light/dark variants are also saved beside the first output. The harness exercises
-source test/save/discard, stale requests, filtered recovery, semantic update/rollback
-states, safe Activity metadata, explicit credential saves, and compact layout.
+automatic source persistence, stale requests, filtered recovery, semantic update/rollback
+states, safe Activity metadata, automatic credential saves, rapid edits, close
+flushing, concurrent-writer protection, write-failure recovery, and compact layout.
 This is not interactive accessibility,
 clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
@@ -104,7 +105,11 @@ base styles, and the [approved Briosa brand palette](branding.md). The inventory
 groups installed and
 available servers by exact SA target; details and maintenance controls appear in
 context. Settings separates Package sources, Installer updates, Appearance, and Advanced.
-Appearance previews immediately and uses the common Save/Discard controls.
+Settings persist automatically. Text fields debounce for 450 ms and flush on
+focus loss, navigation, and close. Invalid input preserves the last valid source;
+appearance can persist before setup and while source text is incomplete. Access
+and publisher fields also apply automatically. Failed writes expose recovery actions
+without overwriting external edits. Clean windows reload external changes on activation.
 See the [redesign decision](architecture/0004-installer-ux.md) for interaction and
 accessibility requirements, evidence, and remaining manual validation.
 

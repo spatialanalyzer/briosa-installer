@@ -12,7 +12,7 @@ public partial class MainWindow : Window
     private readonly SettingsStore store = new();
     private SettingsSnapshot? snapshot;
     private InstallerSettings? editorBaseline;
-    private bool initialized, populating, dirty, busy, reviewing, externalChange, checkingExternal, returnToServers;
+    private bool initialized, populating, dirty, busy, reviewing, externalChange, checkingExternal;
     private bool startupComplete;
     private readonly LiveStatus[] liveStatuses;
     public bool IsWorking => busy || reviewing;
@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         this.confirmAction = confirmAction; this.bootstrapPath = bootstrapPath;
         activity = new ActivityStore(System.IO.Path.GetDirectoryName(paths.ExplicitFile ?? paths.UserFile)!);
         InitializeComponent();
+        settingsTimer.Tick += async (_, _) => { settingsTimer.Stop(); await PersistSettingsAsync(); };
         liveStatuses = new[] { StatusText, CatalogStatusText, OperationStatusText, UpdateStatusText,
             UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, ActivityStatusText }
             .Select(text => new LiveStatus(text)).ToArray();
@@ -61,14 +62,17 @@ public partial class MainWindow : Window
 
     private async Task ReloadAsync()
     {
+        settingsTimer.Stop();
+        if (writingSettings && settingsWrite is not null) await settingsWrite;
         InvalidateCatalog(); InvalidateSourceTests(); SetBusy(true);
         try
         {
             var loaded = await Task.Run(() => store.Load(paths));
             snapshot = loaded is Outcome<SettingsSnapshot>.Success success ? success.Value : null;
-            externalChange = false;
+            externalChange = false; settingsError = null;
             if (loaded is Outcome<SettingsSnapshot>.Failure failure)
             {
+                settingsError = failure.Error.Message;
                 StatusText.Text = failure.Error.Message; CatalogStatusText.Text = "Settings need attention. Open package source settings.";
                 RecordActivity("Settings.Load", failure.Error.Code.ToString()); return;
             }
@@ -88,10 +92,11 @@ public partial class MainWindow : Window
             catch (ManagementException e) { PolicyText.Text = e.Message; PolicyText.Visibility = Visibility.Visible; }
             StatusText.Text = snapshot.Origin switch
             {
-                SettingsOrigin.SetupRequired => defaults is null ? "Enter a catalog to get started. No public source is configured in this review build." : "Review the default source or enter your enterprise mirror, then save.",
-                SettingsOrigin.MachineDefaults => "Machine defaults loaded. Saving creates your personal settings file.",
-                _ => "All changes saved.",
+                SettingsOrigin.SetupRequired => defaults is null ? "Enter a catalog to get started. Changes are saved automatically." : "The default source is ready. Enter your enterprise mirror to change it.",
+                SettingsOrigin.MachineDefaults => "Using your organization's defaults. Changes are saved to your personal settings file.",
+                _ => "Settings are saved automatically.",
             };
+            if (defaults is not null) ScheduleSettings();
         }
         finally { populating = false; SetBusy(false); RebuildInventory(); }
     }
@@ -109,35 +114,9 @@ public partial class MainWindow : Window
         UpdateEffectiveSource(); UpdateSecurityLabels();
     }
 
-    private async void SaveClicked(object sender, RoutedEventArgs e)
-    {
-        if (snapshot is null || busy || sourceTest is not null) return;
-        var settings = CurrentSettings();
-        var sourcesChanged = !SameSources(snapshot.Settings, settings);
-        var tested = SameSources(testedServerSettings, settings) ? testedServerCatalog : null;
-        SetBusy(true);
-        try
-        {
-            var saved = await Task.Run(() => store.Save(snapshot, settings));
-            if (saved is Outcome<SettingsSnapshot>.Failure failure)
-            { StatusText.Text = failure.Error.Message; RecordActivity("Settings.Save", failure.Error.Code.ToString()); return; }
-            snapshot = ((Outcome<SettingsSnapshot>.Success)saved).Value;
-            editorBaseline = settings; dirty = false; externalChange = false;
-            if (sourcesChanged)
-            {
-                InvalidateCatalog();
-                if (tested is not null) { catalogSnapshot = tested; catalogFailure = null; CatalogStatusText.Text = CatalogSummary(tested); }
-            }
-            StatusText.Text = !sourcesChanged ? "All changes saved." : tested is null ? "Changes saved. Sources can be tested when you are online." : "Changes saved. Server source access and catalog checks completed.";
-            RecordActivity("Settings.Save", "Succeeded");
-            if (returnToServers) { returnToServers = false; Navigation.SelectedItem = InstallationsNavigation; }
-        }
-        finally { SetBusy(false); RebuildInventory(); await EnsureServerCatalogAsync(); }
-    }
-
     private async void ReloadClicked(object sender, RoutedEventArgs e)
     {
-        if (!busy && ConfirmDiscard())
+        if (!busy && !reviewing)
         {
             await ReloadAsync();
             await EnsureServerCatalogAsync();
@@ -148,15 +127,13 @@ public partial class MainWindow : Window
     {
         if (!initialized || populating) return;
         UpdateEffectiveSource();
-        dirty = CurrentSettings() != editorBaseline;
         InvalidateCatalog(); InvalidateSourceTests(); UpdateSecurityLabels();
-        StatusText.Text = dirty ? "Unsaved changes. Save to use these sources for package operations." : "All changes saved.";
-        UpdateInterface();
+        ScheduleSettings(debounce: sender is TextBox);
     }
 
     private InstallerSettings CurrentSettings()
     {
-        var server = serverSecurity?.Catalog == ServerCatalog.Text ? serverSecurity : new SourceSettings(ServerCatalog.Text, PublisherKey: serverSecurity?.PublisherKey);
+        var server = ServerCatalog.Text.Length == 0 ? new SourceSettings("") : serverSecurity?.Catalog == ServerCatalog.Text ? serverSecurity : new SourceSettings(ServerCatalog.Text, PublisherKey: serverSecurity?.PublisherKey);
         var updater = SameSource.IsChecked == true ? null : installerSecurity?.Catalog == InstallerCatalog.Text ? installerSecurity :
             new SourceSettings(InstallerCatalog.Text, PublisherKey: installerSecurity?.PublisherKey ?? serverSecurity?.PublisherKey);
         return new(server.Catalog, updater?.Catalog, server.Authentication, updater?.Authentication ?? "anonymous", server.PublisherKey, updater?.PublisherKey,
@@ -171,9 +148,9 @@ public partial class MainWindow : Window
         var effective = CurrentSettings().EffectiveInstallerCatalog;
         EffectiveSource.Text = string.IsNullOrWhiteSpace(effective) ? "Choose the server source above, or use a separate update source." :
             (SameSource.IsChecked == true ? "Shares the server catalog, authentication, and publisher.\n" : "Separate source for installer updates.\n") + effective;
-        SourceSummaryButton.Content = snapshot?.Settings is null ? "Configure package source" : "Package source · " + SourceLabel(snapshot.Settings.ServerCatalog);
+        SourceSummaryButton.Content = !HasSource ? "Configure package source" : "Package source · " + SourceLabel(snapshot!.Settings!.ServerCatalog);
         SourceSummaryButton.ToolTip = snapshot?.Settings?.ServerCatalog;
-        UpdateSourceText.Text = snapshot?.Settings is null ? "Configure and save a source in Package sources." : "Update source: " + SourceLabel(snapshot.Settings.EffectiveInstallerCatalog);
+        UpdateSourceText.Text = !HasSource ? "Configure a source in Package sources." : "Update source: " + SourceLabel(snapshot!.Settings!.EffectiveInstallerCatalog);
         UpdateSourceText.ToolTip = snapshot?.Settings?.EffectiveInstallerCatalog;
     }
 
@@ -187,6 +164,7 @@ public partial class MainWindow : Window
     {
         if (!initialized) return;
         ShowSelectedPage();
+        if (settingsTimer.IsEnabled) await PersistSettingsAsync();
         await EnsureServerCatalogAsync();
     }
     private void ShowSelectedPage()
@@ -208,7 +186,6 @@ public partial class MainWindow : Window
     }
     private void ConfigureSourceClicked(object sender, RoutedEventArgs e)
     {
-        returnToServers = Navigation.SelectedItem == InstallationsNavigation;
         Navigation.SelectedItem = SettingsNavigation; SettingsSections.SelectedItem = SourcesSection;
         Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() => { ServerCatalog.BringIntoView(); ServerCatalog.Focus(); }));
     }
@@ -221,11 +198,11 @@ public partial class MainWindow : Window
     {
         if (!initialized) return;
         var editable = !busy && !reviewing;
-        var configured = snapshot?.Settings is not null && !dirty && !externalChange;
-        SaveButton.IsEnabled = editable && sourceTest is null && snapshot is not null && (dirty || snapshot.Settings is null);
-        SaveChangesBar.Visibility = Show(dirty || snapshot?.Settings is null);
-        UnsavedNavigationText.Visibility = Show(dirty);
-        ReloadButton.IsEnabled = DiscardButton.IsEnabled = editable;
+        var configured = HasSource && !dirty && !externalChange && !IsSavingSettings;
+        SettingsRecoveryBar.Visibility = Show(settingsError is not null);
+        UnsavedNavigationText.Visibility = Show(settingsError is not null);
+        RetrySettingsButton.IsEnabled = editable && !externalChange && snapshot is not null && !IsSavingSettings;
+        ReloadButton.IsEnabled = ReloadSettingsButton.IsEnabled = editable && !writingSettings;
         JsonButton.IsEnabled = ImportSettingsButton.IsEnabled = ExportSettingsButton.IsEnabled = editable;
         ServerCatalog.IsEnabled = SameSource.IsEnabled = editable;
         ThemeSelector.IsEnabled = editable;
@@ -267,24 +244,34 @@ public partial class MainWindow : Window
         SdkDetailsButton.IsEnabled = SdkObservations.SelectedItem is SdkEvidence;
     }
 
-    private bool ConfirmDiscard() => !dirty || ConfirmAction("Discard changes", "Discard the unsaved settings? Credentials saved separately in the access dialog are not changed.", "Discard changes");
-    private void WindowClosing(object? sender, CancelEventArgs e)
+    private async void WindowClosing(object? sender, CancelEventArgs e)
     {
-        e.Cancel = IsWorking || !ConfirmDiscard();
-        if (busy) { OperationStatusText.Text = UpdateOperationStatusText.Text = "Wait for the current operation, or cancel it before closing."; }
-        if (!e.Cancel) { catalogRead?.Cancel(); updaterRead?.Cancel(); sourceTest?.Cancel(); }
+        if (closingAfterSave) return;
+        if (IsWorking)
+        { e.Cancel = true; OperationStatusText.Text = UpdateOperationStatusText.Text = "Wait for the current operation, or cancel it before closing."; return; }
+        if (dirty || IsSavingSettings)
+        {
+            e.Cancel = true;
+            await PersistSettingsAsync();
+            if (dirty && !ConfirmAction("Settings could not be applied", "Some settings could not be saved. Close with the last saved configuration?", "Close")) return;
+            closingAfterSave = true;
+            _ = Dispatcher.BeginInvoke(new Action(Close));
+        }
+        if (!e.Cancel || closingAfterSave) { settingsTimer.Stop(); catalogRead?.Cancel(); updaterRead?.Cancel(); sourceTest?.Cancel(); }
     }
     private async void WindowActivated(object? sender, EventArgs e)
     {
-        if (!initialized || busy || checkingExternal || snapshot?.Settings is null || catalogClosed) return;
+        if (!initialized || busy || IsSavingSettings || checkingExternal || snapshot is null || catalogClosed) return;
         checkingExternal = true;
         var captured = snapshot;
         try
         {
             if (!await SavedSettingsMatchAsync(captured) && captured == snapshot && !catalogClosed)
             {
+                if (!dirty) { await ReloadAsync(); await EnsureServerCatalogAsync(); return; }
                 externalChange = true; InvalidateCatalog();
-                StatusText.Text = "The settings file changed outside this window. Reload from disk before package operations; your editor changes are still here.";
+                settingsError = "The settings file changed in another window. Reload from disk to continue.";
+                StatusText.Text = settingsError;
                 CatalogStatusText.Text = "Settings changed on disk. Open Settings and reload.";
                 UpdateInterface();
             }

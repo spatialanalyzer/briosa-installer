@@ -31,7 +31,7 @@ internal static class Program
             ExercisePackageWorkflow(args);
             ExerciseCredentialBoundary();
             app.Shutdown();
-            Console.WriteLine("WPF smoke passed: first use, source testing/save/discard, mirror isolation, stale checks, appearance preview/save/discard/reopen and catalog preservation, native icon sizes, grouped inventory, filters, signed side-by-side install, verify/repair/remove, updates/explicit rollback, SDK summaries, persistent Activity, credential boundary, and compact layout. No native window or real SDK was used.");
+            Console.WriteLine("WPF smoke passed: first use, automatic source persistence, mirror isolation, stale checks, appearance persistence, rapid edits, close flushing, conflicts/write failures, and catalog preservation, native icon sizes, grouped inventory, filters, signed side-by-side install, verify/repair/remove, updates/explicit rollback, SDK summaries, persistent Activity, credential boundary, and compact layout. No native window or real SDK was used.");
             return 0;
         }
         catch (Exception exception) { Console.Error.WriteLine(exception); return 1; }
@@ -41,6 +41,7 @@ internal static class Program
         root.FindName(name) as T ?? throw new InvalidOperationException($"Missing control: {name}");
     private static void Click(MainWindow window, string name) => Find<Button>(window, name).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     private static void Ready(MainWindow window) => PumpUntil(() => !window.IsWorking);
+    private static void Saved(MainWindow window) => PumpUntil(() => !window.IsSavingSettings && !window.IsWorking);
     private static void Page(MainWindow window, string name) => Find<ListBox>(window, "Navigation").SelectedItem = Find<ListBoxItem>(window, name);
     private static void Load(MainWindow window)
     {
@@ -84,7 +85,7 @@ internal static class Program
         handler.HoldNext = true; Click(window, "RefreshCatalogButton"); PumpUntil(() => handler.Pending is not null);
         Page(window, "SettingsNavigation");
         Find<TextBox>(window, "ServerCatalog").Text = "https://replacement.example.com/servers/catalog.json";
-        Click(window, "SaveButton"); Ready(window);
+        Saved(window);
         Page(window, "InstallationsNavigation");
         handler.Pending!.SetResult(handler.Response());
         PumpUntil(() => handler.Requests.Count == 4 && Find<Button>(window, "RefreshCatalogButton").IsEnabled);
@@ -110,11 +111,12 @@ internal static class Program
         Click(window, "TestServerButton");
         PumpUntil(() => Find<Button>(window, "TestServerButton").IsEnabled);
         Require(Find<TextBlock>(window, "ServerTestText").Text.Contains("installation is blocked", StringComparison.Ordinal), "Unsigned source test confused browsing and install trust.");
-        Require(!File.Exists(path), "Testing wrote settings.");
-        Click(window, "SaveButton"); Ready(window);
+
+        Saved(window);
         var settings = ((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings!;
         Require(settings.InstallerCatalog == updater.Text, "The separate update source was lost.");
-        Require(Find<WrapPanel>(window, "SaveChangesBar").Visibility == Visibility.Collapsed && !Find<Button>(window, "SaveButton").IsEnabled, "Saved settings still appear dirty.");
+        Require(window.FindName("SaveButton") is null && window.FindName("DiscardButton") is null, "The settings page still requires manual Save/Discard.");
+        Page(window, "InstallationsNavigation"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
         var rows = Find<ListBox>(window, "CatalogPackages");
         Require(rows.Items.Count == 3 && rows.Items.OfType<ServerRow>().All(r => r.Package.Component == CatalogComponent.Server), "Test/save did not return the server-only catalog.");
         rows.SelectedIndex = 0;
@@ -135,17 +137,17 @@ internal static class Program
         updater.Text = "https://new-updater.example.com/briosa/catalog.json";
         handler.Pending!.SetResult(handler.Response()); PumpUntil(() => !Find<Button>(window, "CancelUpdateCheckButton").IsEnabled);
         Require(installerRows.Items.Count == 0 && rows.Items.Count == 0, "Late update results survived a source edit.");
-        Click(window, "SaveButton"); Ready(window);
+        Saved(window);
         handler.FailNext = true; var beforeFailure = handler.Requests.Count;
         Click(window, "CheckUpdatesButton"); PumpUntil(() => Find<Button>(window, "CheckUpdatesButton").IsEnabled);
         Require(handler.Requests.Count == beforeFailure + 1 && handler.Requests.Last().Contains("new-updater.example.com", StringComparison.Ordinal) && installerRows.Items.Count == 0,
             "Failed enterprise override fell back or retained stale releases.");
 
         handler.HoldNext = true; Click(window, "TestServerButton"); PumpUntil(() => handler.Pending is not null);
-        Find<TextBox>(window, "ServerCatalog").Text = "https://new-mirror.example.com/briosa/catalog.json";
+        Find<TextBox>(window, "ServerCatalog").Text = "invalid-catalog";
         handler.Pending!.SetResult(handler.Response()); PumpUntil(() => Find<Button>(window, "TestServerButton").IsEnabled);
         Require(Find<TextBlock>(window, "ServerTestText").Text.StartsWith("Not tested", StringComparison.Ordinal), "A late source test validated different editor values.");
-        Click(window, "DiscardButton"); Ready(window);
+        Saved(window); Click(window, "ReloadSettingsButton"); Ready(window);
         Require(Find<TextBox>(window, "ServerCatalog").Text == settings.ServerCatalog, "Discard did not restore saved settings.");
         Click(window, "RefreshCatalogButton"); PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
         rows.SelectedIndex = 0;
@@ -165,65 +167,88 @@ internal static class Program
         File.WriteAllText(path, SettingsCodec.Serialize(original));
         using var handler = new CatalogHandler();
         using var catalogs = new ReleaseCatalogClient(handler);
-        MainWindow Open() => new(new(path), catalogs, new PackageStore(Path.Combine(directory, "appearance-store")),
-            sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (_, _) => true);
-        var window = Open(); Load(window);
-        var rows = Find<ListBox>(window, "CatalogPackages");
+        var confirmations = 0;
+        MainWindow Open(string file) => new(new(file), catalogs, new PackageStore(Path.Combine(directory, "appearance-store")),
+            sdkDiscovery: new FakeSdkDiscovery(), confirmAction: (_, _) => { confirmations++; return false; });
+        var window = Open(path); Load(window);
         var beforeRequests = handler.Requests.Count;
         Page(window, "SettingsNavigation");
         Find<TabControl>(window, "SettingsSections").SelectedItem = Find<TabItem>(window, "AppearanceSection");
         var selector = Find<ComboBox>(window, "ThemeSelector");
-        Require(selector.SelectedIndex == 0, "Existing settings did not default to System appearance.");
+        Require(selector.SelectedIndex == 0, "Existing settings did not default to System.");
 #pragma warning disable WPF0001
-        selector.SelectedIndex = 2; PumpDispatcher();
-        Require(Application.Current.ThemeMode == ThemeMode.Dark && Find<Button>(window, "SaveButton").IsEnabled, "Dark preview did not apply or become saveable.");
-        Require(File.ReadAllText(path) == SettingsCodec.Serialize(original), "Theme preview silently saved other editor values.");
+        selector.SelectedIndex = 2;
+        Require(Application.Current.ThemeMode == ThemeMode.Dark, "Dark did not apply immediately.");
+        Saved(window);
+        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings == original with { Theme = "dark" }, "Theme did not save automatically or changed sources.");
+        Require(((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color.R < 40, "Dark background is not the requested deeper charcoal.");
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-dark.png", 1140, 800);
-        Click(window, "SaveButton"); Ready(window);
-        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings == original with { Theme = "dark" }, "Theme save lost a source or updater override.");
         Page(window, "InstallationsNavigation"); PumpDispatcher();
-        Require(rows.Items.Count == 3 && handler.Requests.Count == beforeRequests, "Theme-only save lost or reloaded the server catalog.");
+        Require(Find<ListBox>(window, "CatalogPackages").Items.Count == 3 && handler.Requests.Count == beforeRequests, "Theme-only autosave lost or reloaded the catalog.");
         window.Close();
 
-        window = Open(); Load(window);
-        Page(window, "SettingsNavigation");
+        window = Open(path); Load(window); Page(window, "SettingsNavigation");
         Find<TabControl>(window, "SettingsSections").SelectedItem = Find<TabItem>(window, "AppearanceSection");
         selector = Find<ComboBox>(window, "ThemeSelector");
-        Require(selector.SelectedIndex == 2 && Application.Current.ThemeMode == ThemeMode.Dark, "Saved Dark preference did not survive reopening.");
-        selector.SelectedIndex = 1; PumpDispatcher();
-        Require(Application.Current.ThemeMode == ThemeMode.Light, "Light preview did not apply.");
-        // System notifications must retain an explicit app override.
+        Require(selector.SelectedIndex == 2 && Application.Current.ThemeMode == ThemeMode.Dark, "Automatic theme persistence did not survive reopening.");
+        selector.SelectedIndex = 1; Saved(window);
         BrandTheme.ApplySystem(Application.Current);
-        Require(((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == Color.FromRgb(242, 242, 242), "System refresh overrode explicit Light appearance.");
+        Require(Application.Current.ThemeMode == ThemeMode.Light &&
+            ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == Color.FromRgb(242, 242, 242), "System refresh overrode explicit Light.");
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-light.png", 1140, 800);
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-compact.png", 820, 580);
-        Click(window, "DiscardButton"); Ready(window);
-        Require(selector.SelectedIndex == 2 && Application.Current.ThemeMode == ThemeMode.Dark, "Discard did not restore the saved theme.");
 
-        // A theme save during an outstanding read must not discard its source result.
+        // Rapid changes coalesce through one writer; the latest value wins.
+        selector.SelectedIndex = 2; selector.SelectedIndex = 0; selector.SelectedIndex = 1; selector.SelectedIndex = 2;
+        Saved(window);
+        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings!.Theme == "dark", "Rapid changes left an older theme on disk.");
+
         handler.HoldNext = true; Page(window, "InstallationsNavigation");
         Click(window, "RefreshCatalogButton"); PumpUntil(() => handler.Pending is not null);
-        Page(window, "SettingsNavigation"); selector.SelectedIndex = 0;
-        Click(window, "SaveButton"); Ready(window);
+        Page(window, "SettingsNavigation"); selector.SelectedIndex = 0; Saved(window);
         handler.Pending!.SetResult(handler.Response());
         PumpUntil(() => Find<Button>(window, "RefreshCatalogButton").IsEnabled);
-        Require(Find<ListBox>(window, "CatalogPackages").Items.Count == 3 && Application.Current.ThemeMode == ThemeMode.System,
-            "System choice failed or invalidated a pending source read.");
-#pragma warning restore WPF0001
-        // Concurrent external writers retain the settings-store conflict protection.
-        selector.SelectedIndex = 1;
+        Require(Find<ListBox>(window, "CatalogPackages").Items.Count == 3 && Application.Current.ThemeMode == ThemeMode.System, "Autosave invalidated a pending source read.");
+
         var external = original with { Theme = "dark", ServerCatalog = "https://external.example.com/catalog.json" };
         File.WriteAllText(path, SettingsCodec.Serialize(external));
-        Click(window, "SaveButton"); Ready(window);
-        Require(File.ReadAllText(path) == SettingsCodec.Serialize(external) && Find<Button>(window, "SaveButton").IsEnabled,
-            "Appearance save overwrote an external settings edit or hid unsaved changes.");
-        Click(window, "DiscardButton"); Ready(window);
-        Require(selector.SelectedIndex == 2, "Reload ignored an externally configured theme.");
-        window.Close();
-        BrandTheme.ApplyPreference(Application.Current, "system");
+        selector.SelectedIndex = 1; Saved(window);
+        Require(File.ReadAllText(path) == SettingsCodec.Serialize(external) &&
+            Find<WrapPanel>(window, "SettingsRecoveryBar").Visibility == Visibility.Visible, "Autosave overwrote another writer or hid its failure.");
+        Click(window, "ReloadSettingsButton"); Ready(window);
+        Require(selector.SelectedIndex == 2, "Reload ignored the external theme.");
+        using (var held = new FileStream(path + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+        {
+            selector.SelectedIndex = 1; Saved(window);
+            Require(File.ReadAllText(path) == SettingsCodec.Serialize(external) && Find<Button>(window, "RetrySettingsButton").IsEnabled, "Write failure lost settings or gave no recovery action.");
+        }
+        Click(window, "RetrySettingsButton"); Saved(window);
+        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings!.Theme == "light", "Retry did not save after the write lock was released.");
 
+        Find<TextBox>(window, "ServerCatalog").Text = "invalid";
+        Saved(window);
+        selector.SelectedIndex = 2; Saved(window);
+        var withInvalidSource = ((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings!;
+        Require(withInvalidSource.Theme == "dark" && withInvalidSource.ServerCatalog == external.ServerCatalog, "An incomplete source blocked theme persistence or replaced the valid source.");
+        Click(window, "ReloadSettingsButton"); Ready(window);
+
+        // Close before the typing delay elapses: the last edit must still persist.
+        var closed = false; window.Closed += (_, _) => closed = true;
+        Find<TextBox>(window, "ServerCatalog").Text = "https://on-close.example.com/catalog.json";
+        window.Close(); PumpUntil(() => closed);
+        Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings!.ServerCatalog == "https://on-close.example.com/catalog.json" && confirmations == 0, "Closing lost a valid edit or required a Save confirmation.");
+
+        var unconfigured = Path.Combine(directory, "first-appearance.json");
+        var requests = handler.Requests.Count;
+        window = Open(unconfigured); Load(window);
+        Find<ComboBox>(window, "ThemeSelector").SelectedIndex = 1; Saved(window); window.Close();
+        window = Open(unconfigured); Load(window);
+        Require(Find<ComboBox>(window, "ThemeSelector").SelectedIndex == 1 && handler.Requests.Count == requests, "Appearance before source setup failed to persist or contacted a source.");
+        window.Close();
+#pragma warning restore WPF0001
+        BrandTheme.ApplyPreference(Application.Current, "system");
         var icon = BitmapDecoder.Create(new Uri("pack://application:,,,/Briosa.Installer;component/Assets/AppIcon/briosa.ico"), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-        Require(new[] { 16, 20, 24, 32, 40, 48, 64, 96, 128, 256 }.All(size => icon.Frames.Any(f => f.PixelWidth == size && f.PixelHeight == size)), "The Windows icon lacks native taskbar/DPI frames.");
+        Require(new[] { 16, 20, 24, 32, 40, 48, 64, 96, 128, 256 }.All(size => icon.Frames.Any(f => f.PixelWidth == size && f.PixelHeight == size)), "Missing native icon size.");
     }
 
     private static void ExercisePackageWorkflow(string[] args)
@@ -380,21 +405,29 @@ internal static class Program
     private static void ExerciseCredentialBoundary()
     {
         var credentials = new FakeCredentials();
-        var dialog = new SourceSecurityDialog(new SourceSettings("https://mirror.example.com/catalog.json", "bearer"), credentials);
+        SourceSettings? applied = null;
+        var dialog = new SourceSecurityDialog(new SourceSettings("https://mirror.example.com/catalog.json", "bearer"), credentials,
+            value => { applied = value; return Task.FromResult<string?>(null); });
         var controls = Descendants(dialog).OfType<FrameworkElement>().ToArray();
         var secret = controls.OfType<PasswordBox>().Single(p => p.Name == "CredentialSecret");
+        Require(!controls.OfType<Button>().Any(b => b.Name == "SaveCredentialButton" || b.Content?.ToString() == "Apply to settings"), "Access settings still need manual saving.");
         secret.Password = "inert-test-token";
-        Require(credentials.Value is null, "Typing a secret saved it before an explicit action.");
-        controls.OfType<Button>().Single(b => b.Name == "SaveCredentialButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Require(credentials.Value?.Secret == "inert-test-token" && dialog.CredentialChanged && secret.Password.Length == 0, "Explicit credential save did not persist and clear the secret.");
-        Require(controls.OfType<TextBlock>().Single(t => t.Name == "CredentialStatus").Text.Contains("Discard", StringComparison.Ordinal), "Immediate credential effect is not explained.");
+        PumpUntil(() => credentials.Value?.Secret == "inert-test-token");
+        Require(dialog.CredentialChanged && credentials.Catalog == "https://mirror.example.com/catalog.json", "Automatic credential save used the wrong catalog.");
+        var mode = controls.OfType<ComboBox>().Single(c => c.Name == "AuthenticationMode");
+        mode.SelectedIndex = 3; PumpUntil(() => applied?.Authentication == "windows");
+        Require(secret.Password.Length == 0, "Changing access mode retained the typed secret.");
+        mode.SelectedIndex = 1;
+        secret.Password = "latest-inert-token";
         dialog.Close();
+        Require(credentials.Value?.Secret == "latest-inert-token" && secret.Password.Length == 0, "Closing the access dialog lost a pending credential or retained its secret.");
     }
     private sealed class FakeCredentials : ICredentialStore
     {
         public SourceCredential? Value { get; private set; }
+        public string? Catalog { get; private set; }
         public SourceCredential? Read(string catalog) => Value;
-        public void Save(string catalog, SourceCredential credential) => Value = credential;
+        public void Save(string catalog, SourceCredential credential) { Catalog = catalog; Value = credential; }
         public void Delete(string catalog) => Value = null;
     }
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

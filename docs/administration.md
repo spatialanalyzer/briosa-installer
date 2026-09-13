@@ -30,12 +30,18 @@ them. Changing a URL resets authentication and needs credentials for the new loc
 Updater overrides have independent authentication. Browser SSO and automatic token
 refresh are not implemented; obtain an approved repository credential from IT.
 
-In **Settings → Package sources**, test the editor values before saving if desired;
-testing downloads metadata only. Save is also available offline. Source edits and
-imports are staged until **Save changes**. The access dialog clearly separates
-credential storage: **Save credential now** and **Remove stored credential…** are
-immediate Credential Manager operations and are not undone by Cancel/Discard.
-Applying the dialog stages the selected authentication mode and publisher key.
+Settings apply and save automatically, including imports, authentication methods,
+publisher choices, and credentials. Text fields wait 450 ms after typing; leaving
+an input or closing the window flushes pending edits. No connection is required to
+save. **Test connection** reads metadata only and remains an explicit action.
+Invalid source input leaves the previous valid source in place, with an inline
+explanation. Theme changes still persist independently. Save failures offer Retry
+or Use saved values; a conflicting external writer is never overwritten.
+
+The access dialog saves secrets to Windows Credential Manager for the exact
+catalog. A blank secret retains the stored value; **Remove stored credential…**
+removes it after review. Approving a new publisher still requires comparing its
+fingerprint. Closing the dialog flushes pending edits; no Apply or Save action is needed.
 
 HTTPS keeps ordinary certificate validation and system proxy behavior. Cookies and
 redirects are disabled. Windows credentials for origin and proxy are enabled only
@@ -66,12 +72,13 @@ Example settings (URLs and PEM contents are placeholders):
 Omit `installerUpdates` to share the server source, authentication, and publisher.
 An optional `"appearance": { "theme": "dark" }` property selects the app theme;
 accepted values are `system` (the default), `light`, and `dark`. The GUI exposes
-this in **Settings → Appearance** with immediate preview and explicit Save/Discard.
-Scripts can use `Briosa.Installer.Cli.exe settings set --theme dark` on an existing
-configuration. Imports and exports preserve the theme, and source edits retain it.
+this in **Settings → Appearance** with immediate application and automatic persistence.
+Scripts can use `Briosa.Installer.Cli.exe settings set --theme dark`.
+Preferences can be stored before source setup by omitting `source`; package access
+remains disabled until a valid source is configured. Imports and exports preserve the theme, and source edits retain it.
 Windows contrast themes take priority; no Windows appearance preference is changed.
-Earlier review builds reject the new property; choose System to omit it before
-opening the same configuration in one of those builds.
+Earlier review builds reject newer fields and documents without a source. Use
+System and configure a source before opening the same file in those builds.
 
 Import an approved RSA 3072–8192-bit public key after comparing its SHA-256
 fingerprint through a trusted channel, using the GUI or CLI:

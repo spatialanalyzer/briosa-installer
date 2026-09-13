@@ -22,12 +22,12 @@ internal static class LayeredPlanes
         Plane(dark ? Tone(graphite, 1) : Tone(silver, -3), accentStart, accentEnd, new(width, 720));
         Plane(dark ? Tone(graphite, -3) : Tone(silver, 7), new(0, 492), new(width, 720), new(width, height), new(0, height));
 
-        Edge(cross, risingEdge, new SolidColorBrush(dark ? Color.FromArgb(38, 255, 255, 255) : Color.FromArgb(22, 0, 56, 117)));
-        Edge(new(0, 492), new(width, 720), new SolidColorBrush(Color.FromArgb(dark ? (byte)28 : (byte)210, 255, 255, 255)));
+        Edge(cross, risingEdge, new SolidColorBrush(dark ? Color.FromArgb(24, 255, 255, 255) : Color.FromArgb(22, 0, 56, 117)));
+        Edge(new(0, 492), new(width, 720), new SolidColorBrush(Color.FromArgb(dark ? (byte)18 : (byte)210, 255, 255, 255)));
         // Only the short cyan reflection fades; the plane surfaces are solid colors.
         Edge(accentStart, accentEnd, new LinearGradientBrush(
             Color.FromArgb(0, cyan.R, cyan.G, cyan.B),
-            Color.FromArgb(dark ? (byte)165 : (byte)55, cyan.R, cyan.G, cyan.B),
+            Color.FromArgb(dark ? (byte)95 : (byte)55, cyan.R, cyan.G, cyan.B),
             new Point(0, 1), new Point(1, 0)));
 
         var brush = new DrawingBrush(drawing)

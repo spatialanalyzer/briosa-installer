@@ -1,4 +1,35 @@
-# Layered Planes vector refinement
+# Design validation
+
+## Current review: automatic settings and deeper dark mode
+
+The maintainer rejected the manual Save/Discard workflow and requested substantially
+darker backgrounds. Settings now apply and persist automatically. Text fields wait
+450 ms after typing; focus loss, navigation, and closing flush pending values.
+Authentication, approved publisher choices, and credentials also apply automatically.
+Fingerprint approval and credential removal retain their deliberate review actions.
+Failed writes and invalid source input expose recovery rather than pretending to save.
+
+The dark workspace is now #1E1F21, its sidebar #1A1B1C, cards #28292B, and controls
+#2E2F31, with subtler vector edges. White text on the card color is approximately
+14.5:1 contrast. The light palette and transparent icon remain unchanged.
+
+Reviewed the actual WPF renders under `artifacts/ux-renders/`: `autosave-servers.png.dark.png`,
+`autosave-servers.png.appearance-dark.png`, `autosave-servers.png.appearance-light.png`,
+and `autosave-servers.png.appearance-compact.png`. The 1140 × 800 and 820 × 580
+views retain readable labels, all four Settings tabs, accessible controls, and
+subtle background planes. Routine Save/Discard buttons and the unsaved badge are gone.
+
+The 119 core/CLI tests and WPF workflow harness passed. Coverage includes automatic
+source persistence, rapid theme changes, reopening, flushing on close, source-free
+appearance, invalid source text with independent theme persistence, concurrent-file
+conflicts, locked-file write failure/retry, pending catalog reads, and automatic
+credential storage restricted to the selected catalog. Existing package workflows
+still pass. No real SA or native Windows appearance setting was changed.
+
+The following sections retain the earlier visual review history; the automatic
+settings flow and darker palette above supersede their Save/Discard and brightness details.
+
+## Earlier Layered Planes vector refinement
 
 Source direction: `docs/design/layered-planes-reference.png` (1983 × 793), plus
 the maintainer's request to replace the background PNGs after observing uneven

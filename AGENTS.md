@@ -49,13 +49,17 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   and cyan are accents. Render the planes with native WPF vector geometry and
   controlled fills; do not reintroduce background PNGs or bitmap caches. Disable
   decorative background artwork in high contrast.
-- Settings → Appearance owns the saved System/Light/Dark preference. Preview
-  immediately, persist through the common settings Save/Discard flow, and retain
-  Windows contrast-theme priority. Theme-only saves must not reset package catalogs.
+- Settings changes apply and persist automatically. Debounce text entry briefly,
+  flush pending edits on focus loss/navigation/close, and serialize writes through
+  the shared revision-checked store. Invalid input and save failures need clear
+  recovery feedback; never overwrite another writer or claim a failed save succeeded.
+  Appearance works before source setup and retains Windows contrast-theme priority.
+  Theme-only saves must not reset package catalogs. Use the deeper charcoal shade
+  of graphite for dark backgrounds, with subtle native vector planes.
   App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
   with white, silver-gray, and cyan-blue planes and equal left/right padding;
   do not restore the blue background tile or the rejected vertical offset.
-  preserve its documented derivation and leave original brand assets byte-exact.
+  Preserve its documented derivation and leave original brand assets byte-exact.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
 - Installations contains only gRPC server downloads and installed server packages.
@@ -68,7 +72,9 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
 - Keep the server inventory grouped by exact SA release, with contextual actions
   and details on demand. Source editing opens first in Settings; ordinary updater
   checks must never promote rollback as a recommended update. Preserve explicit
-  credential-save semantics and the shared scope control in Advanced. See the
+  credential isolation and the shared scope control in Advanced. Access methods,
+  publisher selections and credentials save automatically; retain explicit publisher
+  fingerprint approval and credential-removal review. See the
   [UX decision](docs/architecture/0004-installer-ux.md).
 - Share one package-management engine between GUI and CLI. Keep resolution,
   policy, planning, verification, installation, and diagnostics testable with fakes.

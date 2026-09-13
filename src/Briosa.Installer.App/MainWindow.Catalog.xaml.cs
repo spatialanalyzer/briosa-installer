@@ -24,7 +24,7 @@ public partial class MainWindow
     {
         if (!initialized) return;
         catalogGeneration++; catalogRead?.Cancel(); catalogSnapshot = null; catalogFailure = null;
-        CatalogStatusText.Text = dirty || externalChange ? "Save or reload settings before checking the source." : "Available releases have not been checked.";
+        CatalogStatusText.Text = dirty || externalChange ? "Finish configuring your source in Settings." : "Available releases have not been checked.";
         RebuildInventory(); UpdateInterface();
     }
     private void CancelCatalogClicked(object sender, RoutedEventArgs e) => catalogRead?.Cancel();
@@ -37,7 +37,7 @@ public partial class MainWindow
     }
     private async void RefreshCatalogClicked(object sender, RoutedEventArgs e)
     {
-        if (busy || reviewing || dirty || externalChange || catalogRead is not null || snapshot?.Settings is null) return;
+        if (busy || reviewing || dirty || externalChange || IsSavingSettings || !HasSource || catalogRead is not null || snapshot?.Settings is null) return;
         await RefreshInventoryAsync();
         await RefreshServerCatalogAsync();
     }
@@ -46,7 +46,7 @@ public partial class MainWindow
 
     private async Task RefreshServerCatalogAsync()
     {
-        if (busy || reviewing || dirty || externalChange || catalogClosed || catalogRead is not null || snapshot?.Settings is null) return;
+        if (busy || reviewing || dirty || externalChange || IsSavingSettings || !HasSource || catalogClosed || catalogRead is not null || snapshot?.Settings is null) return;
         var captured = snapshot;
         InvalidateServerCatalog(); var generation = catalogGeneration;
         using var cancellation = new CancellationTokenSource(); catalogRead = cancellation;
@@ -133,9 +133,9 @@ public partial class MainWindow
         InventoryEmpty.Visibility = Show(filtered.Count == 0);
         InventoryFilters.Visibility = Show(serverRows.Count > 0);
         EmptyActionButton.Visibility = Visibility.Visible;
-        if (snapshot?.Settings is null || dirty || externalChange)
+        if (!HasSource || dirty || externalChange)
         {
-            EmptyTitle.Text = snapshot?.Settings is null ? "Get your first Briosa server" : "Your source settings need attention";
+            EmptyTitle.Text = !HasSource ? "Get your first Briosa server" : "Your source settings need attention";
             EmptyDescription.Text = "Choose a package source in Settings. You can use your enterprise mirror or an offline catalog.";
             EmptyActionButton.Content = "Configure package source";
             emptyAction = EmptyAction.ConfigureSource;

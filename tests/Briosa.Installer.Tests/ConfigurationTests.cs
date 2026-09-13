@@ -236,6 +236,21 @@ public sealed class ConfigurationTests : IDisposable
         Assert.Equal("system", Assert.IsType<Outcome<InstallerSettings>.Success>(SettingsCodec.Parse(original)).Value.Theme);
     }
 
+    [Fact]
+    public async Task AppearanceCanPersistBeforeSetupWithoutEnablingSourceAccess()
+    {
+        var settings = new InstallerSettings(Theme: "dark");
+        Save(Load(), settings);
+        Assert.Equal(settings, Load().Settings);
+        Assert.DoesNotContain("source", File.ReadAllText(UserFile));
+        Assert.IsType<Outcome<InstallerSettings>.Failure>(SettingsCodec.Validate(settings));
+        using var catalogs = new ReleaseCatalogClient();
+        Assert.Equal(CatalogError.InvalidSource, Assert.IsType<CatalogResult<CatalogSnapshot>.Failure>(
+            await catalogs.ReadAsync(settings, CatalogComponent.Server)).Error.Code);
+        Assert.Equal(0, Cli("settings", "set", "--server-catalog", ServerOnly.ServerCatalog));
+        Assert.Equal("dark", Load().Settings!.Theme);
+    }
+
     private SettingsSnapshot Load() => Assert.IsType<Outcome<SettingsSnapshot>.Success>(store.Load(Paths)).Value;
     private SettingsSnapshot Save(SettingsSnapshot snapshot, InstallerSettings settings) =>
         Assert.IsType<Outcome<SettingsSnapshot>.Success>(store.Save(snapshot, settings)).Value;

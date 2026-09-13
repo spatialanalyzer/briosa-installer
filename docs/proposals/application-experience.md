@@ -62,8 +62,8 @@ Allow a custom repository or offline source before any network operation. A
 complete standard installer must support offline setup, including prerequisites,
 so a post-install script can supply settings before the app first runs.
 
-For a custom source, the normal interaction is catalog URL, optional connection
-test, and Save. Saving valid settings can work while the source is unavailable.
+For a custom source, enter the catalog URL and optionally test the connection.
+Valid settings save automatically, including while the source is unavailable.
 The GUI and JSON file represent the same settings; direct editing, import, and
 CLI/scripts use the same schema and resolution rules. Show the effective file
 location. Keep credential secrets in a supported secure store/provider.

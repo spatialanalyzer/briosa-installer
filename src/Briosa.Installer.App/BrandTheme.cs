@@ -77,15 +77,18 @@ public sealed class BrandTheme : IDisposable
         foreach (var key in nativeOverrides) resources.Remove(key);
         nativeOverrides.Clear();
         var white = Colors.White;
+        // A deeper graphite shade for long desktop sessions; the brand color
+        // remains the light-mode text color and the source for neutral tints.
+        var darkBase = Mix(Graphite, Colors.Black, .66); // #1E1F21
         var text = dark ? white : Graphite;
-        var background = dark ? Graphite : white;
-        var surface = dark ? Mix(Graphite, white, .04) : Silver;
-        var control = dark ? Mix(Graphite, white, .02) : white;
-        var border = dark ? Mix(Graphite, Silver, .45) : Mix(Graphite, white, .25);
+        var background = dark ? darkBase : white;
+        var surface = dark ? Mix(darkBase, white, .045) : Silver;
+        var control = dark ? Mix(darkBase, white, .07) : white;
+        var border = dark ? Mix(darkBase, Silver, .43) : Mix(Graphite, white, .25);
         var accent = dark ? Cyan : Blue;
         var onAccent = dark ? Blue : white;
-        var selected = dark ? Mix(Graphite, Cyan, .10) : Silver;
-        var navBackground = highContrast ? SystemColors.WindowColor : dark ? Graphite : Silver;
+        var selected = dark ? Mix(darkBase, Cyan, .12) : Silver;
+        var navBackground = highContrast ? SystemColors.WindowColor : dark ? Mix(darkBase, Colors.Black, .14) : Silver;
         var navText = highContrast ? SystemColors.WindowTextColor : text;
         var navSelected = highContrast ? SystemColors.HighlightColor : Cyan;
         var navSelectedText = highContrast ? SystemColors.HighlightTextColor : Blue;
@@ -93,7 +96,7 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaNavigationTextColor"] = navText;
         resources["BriosaNavigationSelectedColor"] = navSelected;
         resources["BriosaNavigationSelectedTextColor"] = navSelectedText;
-        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(Graphite, white, .12) : Mix(Silver, Graphite, .06);
+        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(darkBase, white, .10) : Mix(Silver, Graphite, .06);
         resources["BriosaNavigationBrush"] = Brush(navBackground);
         resources["BriosaNavigationTextBrush"] = Brush(navText);
         resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
@@ -101,7 +104,7 @@ public sealed class BrandTheme : IDisposable
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "white" : "color";
         resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
         // Native vector geometry is non-interactive and completely removed in high contrast.
-        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, Graphite, Silver, Cyan);
+        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, darkBase, Silver, Cyan);
         // Let WPF's high-contrast resource dictionary own all native control colors.
         if (highContrast) return;
 
@@ -120,10 +123,10 @@ public sealed class BrandTheme : IDisposable
             "CheckBoxForegroundChecked", "DataGridColumnHeaderForeground", "ExpanderHeaderForeground", "TabViewForeground", "TabViewItemForegroundSelected");
         Paint(control, "ControlFillColorDefaultBrush", "ControlFillColorInputActiveBrush", "ButtonBackground", "TextControlBackground",
             "TextControlBackgroundFocused", "ComboBoxBackground", "ComboBoxBackgroundFocused", "ComboBoxDropDownBackground");
-        Paint(dark ? Mix(Graphite, white, .12) : Silver, "ButtonBackgroundPointerOver", "ButtonBackgroundPressed", "TextControlBackgroundPointerOver",
+        Paint(dark ? Mix(darkBase, white, .12) : Silver, "ButtonBackgroundPointerOver", "ButtonBackgroundPressed", "TextControlBackgroundPointerOver",
             "ComboBoxBackgroundPointerOver", "ComboBoxBackgroundPressed", "ComboBoxDropDownBackgroundPointerOver",
             "ListBoxItemUnselectedBackgroundPointerOverThemeBrush");
-        Paint(dark ? Mix(Graphite, white, .25) : Mix(Graphite, white, .65), "ControlElevationBorderBrush");
+        Paint(dark ? Mix(darkBase, white, .18) : Mix(Graphite, white, .65), "ControlElevationBorderBrush");
         Paint(border, "ButtonBorderBrush", "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed",
             "TextControlBorderBrush", "TextControlBorderBrushPointerOver", "ComboBoxBorderBrush", "ComboBoxDropDownBorderBrush");
         Paint(accent, "AccentFillColorDefaultBrush", "AccentFillColorSecondaryBrush", "AccentFillColorTertiaryBrush", "AccentButtonBackground",

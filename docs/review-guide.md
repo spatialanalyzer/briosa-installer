@@ -22,8 +22,8 @@ expires in seven days; regenerate the demo after expiry.
 2. **Settings → Package sources:** enter an HTTPS catalog URL or browse to a local
    or network catalog. **Access and publisher…** configures authentication and the
    publisher's PEM public key; compare its fingerprint through a trusted channel.
-   **Test connection** checks the current editor values without saving them or
-   downloading packages. **Save changes** applies the settings; saving works offline.
+   Changes save automatically and work offline. **Test connection** checks the
+   current values without downloading packages.
    Installer updates share this source, credentials, and publisher unless you turn
    off **Use the same source as server packages** and configure the revealed override.
 3. **Installations:** server versions are grouped by exact SA release. Installed
@@ -40,7 +40,7 @@ expires in seven days; regenerate the demo after expiry.
    Expand **Previous versions and recovery** to deliberately choose a specific release.
    Expand **Downloaded installer versions** to verify, repair, remove, or select
    an existing installer. Both metadata and payload use the saved effective updater
-   source; save source edits before checking. An unavailable mirror has no fallback.
+   source. An unavailable mirror has no fallback.
    Launching through the permanent bootstrap lets version selection refresh that
    launcher and its bundled runtime too. If its file is protected/in use, the
    selected version remains recorded and the app reports that refresh needs retry.
@@ -55,19 +55,22 @@ expires in seven days; regenerate the demo after expiry.
 **Settings → Advanced** contains the shared package scope/location, local inventory
 refresh, interrupted-operation recovery, JSON viewing, import/export, and reload.
 Changing scope changes the inventory being viewed; it does not move packages.
-Import stages editor changes; Save applies them. An external settings-file change
-invalidates catalog results and requires reload before package operations.
+Imports apply automatically. Text fields save after a short typing pause and when
+you leave the input. Closing flushes pending edits. Invalid input stays visible with
+an explanation; failed writes offer Retry or Use saved values. External edits are
+reloaded when the window becomes active if there are no pending local changes;
+conflicting local edits are preserved for review instead of overwriting the file.
 
 **Settings → Appearance → App theme** selects System, Light, or Dark. System follows
-your Windows app mode. Changes preview immediately; **Save changes** keeps the
-choice for future launches, while **Discard changes** restores the saved theme.
+your Windows app mode. Changes apply and persist immediately for future launches,
+including before source setup.
 The choice also appears as `appearance.theme` in JSON and survives import/export.
 Windows contrast themes take priority. Changing Briosa's theme does not change Windows.
 
-Credentials have an explicit separate save boundary: **Save credential now** and
-**Remove stored credential…** change Windows Credential Manager immediately.
-Applying source access settings stages the authentication mode and publisher for
-the main Save button. Cancel/Discard does not undo an explicitly saved credential.
+Access methods, publisher choices, and typed credentials also save automatically.
+Secrets stay in Windows Credential Manager for the exact catalog; a blank secret
+keeps the stored value. Publisher fingerprint approval and **Remove stored credential…**
+remain explicit reviewed actions. Close the dialog when finished.
 
 User packages live under `%LOCALAPPDATA%\Briosa\Packages`. Machine deployment
 uses `%PROGRAMDATA%\Briosa\Packages` from an authorized administrator terminal.

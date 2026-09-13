@@ -43,7 +43,7 @@ public abstract record Outcome<T>
     public static Outcome<T> Fail(ConfigurationError code) => new Failure(new(code));
 }
 
-public sealed record InstallerSettings(string ServerCatalog, string? InstallerCatalog = null,
+public sealed record InstallerSettings(string ServerCatalog = "", string? InstallerCatalog = null,
     string ServerAuthentication = "anonymous", string InstallerAuthentication = "anonymous",
     string? ServerPublisherKey = null, string? InstallerPublisherKey = null, string Theme = "system")
 {
@@ -63,12 +63,14 @@ public static class SettingsCodec
         {
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 8 });
             var root = document.RootElement;
-            if (!HasProperties(root, ["schemaVersion", "source"], ["installerUpdates", "appearance"]))
+            if (!HasProperties(root, ["schemaVersion"], ["source", "installerUpdates", "appearance"]))
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
             var version = root.GetProperty("schemaVersion");
             if (version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out var number) || number != 1)
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.UnsupportedSchema);
-            if (!TrySource(root.GetProperty("source"), out var server))
+            SourceSettings? server = new("");
+            var hasSource = root.TryGetProperty("source", out var source);
+            if (hasSource && !TrySource(source, out server))
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
             SourceSettings? installer = null;
             if (root.TryGetProperty("installerUpdates", out var updates))
@@ -83,8 +85,9 @@ public static class SettingsCodec
                     return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
                 theme = appearance.GetProperty("theme").GetString()!;
             }
-            return Validate(new(server!.Catalog, installer?.Catalog, server.Authentication,
-                installer?.Authentication ?? "anonymous", server.PublisherKey, installer?.PublisherKey, theme));
+            var settings = new InstallerSettings(server!.Catalog, installer?.Catalog, server.Authentication,
+                installer?.Authentication ?? "anonymous", server.PublisherKey, installer?.PublisherKey, theme);
+            return hasSource ? Validate(settings) : ValidateDocument(settings);
         }
         catch (JsonException)
         {
@@ -100,13 +103,22 @@ public static class SettingsCodec
             ? new Outcome<InstallerSettings>.Success(settings)
             : Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidCatalog);
 
+    // Preferences can be saved before source setup. Package APIs still use Validate
+    // and reject an unconfigured source before doing any network or filesystem reads.
+    public static Outcome<InstallerSettings> ValidateDocument(InstallerSettings settings) =>
+        settings is { ServerCatalog: "", InstallerCatalog: null, ServerAuthentication: "anonymous",
+            InstallerAuthentication: "anonymous", ServerPublisherKey: null, InstallerPublisherKey: null }
+        ? settings.Theme is "system" or "light" or "dark" ? new Outcome<InstallerSettings>.Success(settings)
+            : Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidTheme)
+        : Validate(settings);
+
     public static string Serialize(InstallerSettings settings)
     {
         var root = new JsonObject
         {
             ["schemaVersion"] = 1,
-            ["source"] = SourceJson(settings.Source(CatalogComponent.Server)),
         };
+        if (settings.ServerCatalog.Length > 0) root["source"] = SourceJson(settings.Source(CatalogComponent.Server));
         if (settings.InstallerCatalog is not null)
             root["installerUpdates"] = new JsonObject
             {

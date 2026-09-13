@@ -25,13 +25,13 @@ package verification remain governed by the existing architecture.
 | First use | An actionable empty state opens source settings. Configured launches automatically load local inventory and the saved server catalog. Refresh reloads both. Page switching retains results; failed reads require retry. |
 | Servers | One searchable list groups available and installed versions by exact SA target. SA and status filters narrow the list. Latest means latest in the checked source, not a runtime compatibility recommendation. |
 | Actions | Selecting a server reveals Install or Verify/Repair/Remove. Details contain full hashes, provenance, and locations. Reviews name the action, version, target, source, destination, size, and verification boundary. |
-| Sources | Package sources is the first Settings section. Browse and Test work with the editor. Testing reads metadata without saving or acquiring payloads; Save remains possible offline. |
+| Sources | Package sources is the first Settings section. Browse and Test work with the editor. Testing reads metadata without acquiring payloads; settings save automatically and work offline. |
 | Updater routing | A checked sharing option hides redundant override controls. Turning it off reveals the independent updater source. Metadata and payload use that exact effective source with no fallback. |
-| Settings edits | Save/Discard appears only when needed. Import stages values. Source edits invalidate prior checks; late results cannot repopulate a changed source. External file edits require reload before package operations. |
-| Credentials | Explicit Save credential now / Remove stored credential actions immediately update Credential Manager. Applying the dialog stages authentication mode and publisher selection. Cancel/Discard does not undo separately saved credentials. |
+| Settings edits | Changes and imports save automatically. Text entry debounces for 450 ms; focus loss, navigation, and close flush pending edits. Source edits invalidate prior checks; late results cannot repopulate a changed source. Invalid input retains the last valid source. Revision conflicts never overwrite external edits; failures offer Retry/Use saved values. |
+| Credentials | Access methods, publisher choices, and complete credentials save automatically. Secrets remain in Credential Manager for the exact catalog. Publisher fingerprint approval and credential removal retain explicit review; closing flushes pending edits. |
 | Installer updates | The ordinary action offers only a newer release. Acquisition and restart are separate. Specific versions and rollback require opening recovery controls and selecting a row; none is automatically selected. |
 | Next launch | Running and selected installer versions are separate claims. Selection metadata survives reopening; launch still verifies the selected package through the existing engine. |
-| Appearance | System/Light/Dark previews immediately, uses shared settings Save/Discard, and persists across launches. Theme-only saves retain catalog results. Windows contrast themes take priority. |
+| Appearance | System/Light/Dark applies and persists immediately, including before source setup. Theme-only saves retain catalog results. Windows contrast themes take priority. |
 | Advanced | One shared scope/location control, local refresh, journal recovery, JSON, import/export, and reload. Scope selection does not move packages. |
 | SDK Setup | Summary first, evidence and details second. Inspection reads files/registry only. No COM activation, MP execution, automated registration repair, or readiness claim. |
 | Activity | Live actions and saved history use the same rows, local timestamps, outcomes, and safe package context. Details expose result codes and guidance; Needs attention filters failures/cancellations. Unreadable history is reported and preserved. |
@@ -49,8 +49,8 @@ that shadow application styles. Custom controls build on named Fluent base style
 
 The main window supports a compact 820 × 580 logical size. The 208-unit navigation
 column preserves the approved 160-unit horizontal logo and clear space. A flexible server list
-keeps selected actions visible; longer settings content scrolls above a fixed save
-area. Confirmation details scroll above fixed Cancel/action buttons. Cancel receives
+keeps selected actions visible; longer settings content scrolls above a fixed status
+area with recovery actions only when needed. Confirmation details scroll above fixed Cancel/action buttons. Cancel receives
 initial focus. Status is expressed in text, with meaningful automation names and
 explicit live-region change events for assistive tools. Secrets remain masked and
 never enter diagnostic context.

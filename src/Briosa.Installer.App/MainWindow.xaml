@@ -13,7 +13,7 @@
         <StackPanel DockPanel.Dock="Bottom" Margin="12,20,0,0">
           <TextBlock Text="Briosa Installer" FontSize="12" />
           <TextBlock x:Name="BuildVersionText" FontSize="11" Margin="0,4,0,0" />
-          <TextBlock x:Name="UnsavedNavigationText" Text="Unsaved settings" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,12,0,0" FontWeight="SemiBold" />
+          <TextBlock x:Name="UnsavedNavigationText" Text="Settings need attention" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,12,0,0" FontWeight="SemiBold" />
         </StackPanel>
         <ListBox x:Name="Navigation" SelectionChanged="NavigationChanged" SelectedIndex="0" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Installer navigation">
           <ListBoxItem x:Name="InstallationsNavigation" Content="Installations" />
@@ -179,7 +179,7 @@
                       <Label Content="Catalog _URL or file" Target="{Binding ElementName=ServerCatalog}" />
                       <DockPanel>
                         <Button Content="Browse…" Click="BrowseSourceClicked" Tag="Server" DockPanel.Dock="Right" Margin="8,0,0,0" />
-                        <TextBox x:Name="ServerCatalog" TextChanged="SourceChanged" AutomationProperties.Name="Server package catalog" />
+                        <TextBox x:Name="ServerCatalog" TextChanged="SourceChanged" LostKeyboardFocus="SettingsFocusLost" AutomationProperties.Name="Server package catalog" />
                       </DockPanel>
                       <TextBlock Text="An HTTPS URL or an absolute local / network file path." Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,12" />
                       <WrapPanel>
@@ -199,7 +199,7 @@
                         <Label Content="Update catalog URL or _file" Target="{Binding ElementName=InstallerCatalog}" />
                         <DockPanel>
                           <Button Content="Browse…" Click="BrowseSourceClicked" Tag="Installer" DockPanel.Dock="Right" Margin="8,0,0,0" />
-                          <TextBox x:Name="InstallerCatalog" TextChanged="SourceChanged" AutomationProperties.Name="Installer update catalog" />
+                          <TextBox x:Name="InstallerCatalog" TextChanged="SourceChanged" LostKeyboardFocus="SettingsFocusLost" AutomationProperties.Name="Installer update catalog" />
                         </DockPanel>
                         <WrapPanel Margin="0,12,0,0">
                           <Button x:Name="InstallerSecurityButton" Content="Access and publisher…" Click="InstallerSecurityClicked" Margin="0,0,8,8" />
@@ -280,13 +280,13 @@
                     <Label Content="App _theme" Target="{Binding ElementName=ThemeSelector}" />
                     <ComboBox x:Name="ThemeSelector" SelectedIndex="0" MaxWidth="300" HorizontalAlignment="Left" MinWidth="200"
                               SelectionChanged="ThemeChanged" AutomationProperties.Name="App theme"
-                              AutomationProperties.HelpText="System follows your Windows app mode. Light and Dark apply only to Briosa. Preview immediately, then save changes.">
+                              AutomationProperties.HelpText="System follows your Windows app mode. Light and Dark apply only to Briosa. Changes apply and save automatically.">
                       <ComboBoxItem Content="System" Tag="system" />
                       <ComboBoxItem Content="Light" Tag="light" />
                       <ComboBoxItem Content="Dark" Tag="dark" />
                     </ComboBox>
                     <TextBlock Text="System follows your Windows app mode. Light and Dark apply only to Briosa." Style="{StaticResource Muted}" Margin="0,12,0,0" />
-                    <TextBlock Text="Preview changes immediately. Save changes to keep your preference, or discard to restore the saved theme." Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <TextBlock Text="Changes apply immediately and are saved automatically." Style="{StaticResource Muted}" Margin="0,8,0,0" />
                     <TextBlock Text="Windows contrast themes take priority over this choice." Style="{StaticResource Muted}" FontSize="12" Margin="0,16,0,0" />
                   </StackPanel>
                 </Border>
@@ -331,9 +331,9 @@
           <Border Grid.Row="1" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
             <StackPanel>
               <TextBlock x:Name="StatusText" Text="Loading settings…" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-              <WrapPanel x:Name="SaveChangesBar" Visibility="Collapsed" Margin="0,10,0,0">
-                <Button x:Name="SaveButton" Content="_Save changes" Click="SaveClicked" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />
-                <Button x:Name="DiscardButton" Content="_Discard changes" Click="ReloadClicked" />
+              <WrapPanel x:Name="SettingsRecoveryBar" Visibility="Collapsed" Margin="0,10,0,0">
+                <Button x:Name="RetrySettingsButton" Content="Retry" Click="RetrySettingsClicked" Margin="0,0,8,0" />
+                <Button x:Name="ReloadSettingsButton" Content="Use saved values" Click="ReloadClicked" />
               </WrapPanel>
             </StackPanel>
           </Border>
