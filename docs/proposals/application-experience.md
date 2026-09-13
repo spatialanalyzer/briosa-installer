@@ -1,6 +1,6 @@
 # Briosa Installer application experience
 
-- Status: Draft product and interaction proposal; no installer is implemented
+- Status: Original product proposal; the implemented review experience is described in the [review guide](../review-guide.md) and [UX decision](../architecture/0004-installer-ux.md)
 - Date: 2026-09-06
 - Technical design: [Installer and SDK management](installer-and-sdk-management.md)
 - Task walkthroughs: [Administrator and engineer workflows](installer-user-workflows.md)
@@ -24,7 +24,7 @@ Use one installation engine from both the Windows GUI and a noninteractive CLI.
 The same standard installer defaults to public Briosa releases and supports
 engineer-configured enterprise mirrors and offline sources. Central deployment
 and enforced administrator policy are optional. UI framework and bootstrap
-packaging remain implementation decisions.
+packaging were subsequently selected as .NET 10/WPF and a self-contained Windows x64 distribution.
 
 ## Window and navigation
 

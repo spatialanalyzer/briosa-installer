@@ -265,6 +265,19 @@ public sealed class PackageStore
         InstallerJson.Write(Path.Combine(Root, "active-installer.json"), new ActiveInstaller(1, id));
         if (IsMachineStore && OperatingSystem.IsWindows()) WindowsStoreProtection.SealFile(Path.Combine(Root, "active-installer.json"));
     }
+    // Selection metadata is useful for UI status; launching still requires ResolveActiveInstallerAsync verification.
+    public InstalledPackage? ReadInstallerSelection()
+    {
+        SafeFiles.NoLinks(Root);
+        var pointer = Path.Combine(Root, "active-installer.json");
+        if (!File.Exists(pointer)) return null;
+        SafeFiles.NoLinks(pointer);
+        using var held = ReadLock();
+        var active = InstallerJson.Read<ActiveInstaller>(pointer);
+        if (active.SchemaVersion != 1) throw new ManagementException(ManagementError.InvalidManifest);
+        return List().SingleOrDefault(p => p.Id == active.Id && p.Receipt.Package.Component == CatalogComponent.Installer)
+            ?? throw new ManagementException(ManagementError.PackageNotFound);
+    }
     public async Task<string?> ResolveActiveInstallerAsync(CancellationToken token = default)
     {
         if (!Directory.Exists(Root)) return null;

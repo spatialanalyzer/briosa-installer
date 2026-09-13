@@ -28,14 +28,18 @@ and deletes it. Machine ACL tests use in-memory security objects.
 
 The WPF harness loads the real resources/control tree and exercises the full workflow
 with signed inert fixtures, temporary directories, and fake SDK observations.
-It does not display a native window or control another application. Pass one PNG
-output path to render that control tree. This is not interactive accessibility,
+It does not display a native window or control another application. Pass up to three
+PNG paths to render the server inventory, source settings, and compact inventory;
+a light-theme variant is also saved beside the first output. The harness exercises
+source test/save/discard, stale requests, filtered recovery, semantic update/rollback
+states, safe Activity metadata, explicit credential saves, and compact layout.
+This is not interactive accessibility,
 clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
 ## Produce a self-contained distribution
 
 ```powershell
-./eng/Publish-Installer.ps1 -Version 0.1.0-review.3 -OutputDirectory ./artifacts/review
+./eng/Publish-Installer.ps1 -Version 0.1.0-review.7 -OutputDirectory ./artifacts/review
 ```
 
 Use a new output directory/version; existing packages are immutable. The ZIP has
@@ -55,8 +59,8 @@ Production executable signing and key custody are release responsibilities.
 The companion `briosa` checkout supplies the shared catalog producer and signer:
 
 ```powershell
-./eng/New-ReviewDemo.ps1 -OutputDirectory ./artifacts/demo -BriosaRepository ../briosa -InstallerPackage ./artifacts/review/briosa-installer-0.1.0-review.3-win-x64.zip
-./artifacts/review/briosa-installer-0.1.0-review.3-win-x64/Briosa.Launcher.exe --config "$PWD/artifacts/demo/settings.json" --store "$PWD/artifacts/demo/store"
+./eng/New-ReviewDemo.ps1 -OutputDirectory ./artifacts/demo -BriosaRepository ../briosa -InstallerPackage ./artifacts/review/briosa-installer-0.1.0-review.7-win-x64.zip
+./artifacts/review/briosa-installer-0.1.0-review.7-win-x64/Briosa.Launcher.exe --config "$PWD/artifacts/demo/settings.json" --store "$PWD/artifacts/demo/store"
 ```
 
 This creates three inert server packages across two invented SA targets plus the
@@ -70,7 +74,7 @@ remove, installer activation, bootstrap refresh, preserved settings, and launche
 resolution without opening a window:
 
 ```powershell
-./eng/Test-InstallerPackage.ps1 -PackageDirectory ./artifacts/review/briosa-installer-0.1.0-review.3-win-x64 -BriosaRepository ../briosa
+./eng/Test-InstallerPackage.ps1 -PackageDirectory ./artifacts/review/briosa-installer-0.1.0-review.7-win-x64 -BriosaRepository ../briosa
 ```
 
 ## Configuration and operational behavior
@@ -88,7 +92,16 @@ version comparison, reviewed acquisition/selection/restart, and downloaded-insta
 maintenance. Each catalog view has independent results and cancellation; source
 edits invalidate both. Update labels use semantic version precedence (including
 prereleases, ignoring build metadata); older releases remain explicit rollback choices.
-The package scope is shared and editable from either page, with synchronized controls.
+One package-scope control in Settings → Advanced governs both inventories. Links
+from server installations and installer updates open that same control. Local
+inventory loads automatically; source browsing remains an explicit action.
+
+The UI uses the built-in WPF Fluent resources with the system theme, named Fluent
+base styles, and dynamic palette brushes. The inventory groups installed and
+available servers by exact SA target; details and maintenance controls appear in
+context. Settings separates Package sources, Installer updates, and Advanced.
+See the [redesign decision](architecture/0004-installer-ux.md) for interaction and
+accessibility requirements, evidence, and remaining manual validation.
 
 Settings use a shared GUI/CLI lock, content revision, flushed temporary file, and
 replacement. Coordinate external writers: this is not an OS-wide compare-and-swap

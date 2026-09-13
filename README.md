@@ -17,6 +17,8 @@ the implemented runtime contract.
 See [build and run instructions](docs/development.md), the
 [finished-app review guide](docs/review-guide.md), and the
 [package-management architecture](docs/architecture/0003-package-management.md).
+The [UX redesign decision](docs/architecture/0004-installer-ux.md) describes the
+current screens, interaction boundaries, and validation limits.
 
 ## Proposed experience
 

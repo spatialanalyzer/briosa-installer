@@ -30,6 +30,13 @@ them. Changing a URL resets authentication and needs credentials for the new loc
 Updater overrides have independent authentication. Browser SSO and automatic token
 refresh are not implemented; obtain an approved repository credential from IT.
 
+In **Settings → Package sources**, test the editor values before saving if desired;
+testing downloads metadata only. Save is also available offline. Source edits and
+imports are staged until **Save changes**. The access dialog clearly separates
+credential storage: **Save credential now** and **Remove stored credential…** are
+immediate Credential Manager operations and are not undone by Cancel/Discard.
+Applying the dialog stages the selected authentication mode and publisher key.
+
 HTTPS keeps ordinary certificate validation and system proxy behavior. Cookies and
 redirects are disabled. Windows credentials for origin and proxy are enabled only
 in Windows mode. Environments requiring token authentication plus a separately

@@ -14,32 +14,52 @@ expires in seven days; regenerate the demo after expiry.
 
 ## Review the application
 
-1. **Settings:** select the catalog file or HTTPS URL. Configure authentication
-   and import the publisher's PEM public key after comparing its SHA-256
-   fingerprint through a trusted channel. Save. Installer updates share this
-   source unless you configure their separate source, credentials, and key.
-2. **Installations / Available:** refresh, select an exact gRPC server package, inspect its
-   details, and review installation. Signature, expiry, declared size/digest,
-   archive structure, and product manifest are checked before it is committed.
-3. **Installations / Installed:** refresh to see independently installed server versions.
-   Verify files, repair an exact artifact, remove one version, or recover an
-   interrupted operation. Application teams own adoption and change coordination.
-4. **Settings / Briosa Installer updates:** check for updates, compare the listed
-   releases with the running version, and choose **Review and use selected version**.
-   This downloads and verifies the installer and selects it for the next launch;
-   restart when ready. Older releases are labeled for deliberate rollback.
+1. **Installations:** local inventory appears automatically. On first use, choose
+   **Configure package source**. With a saved source, choose **Check source** to
+   find downloads. Empty, loading, failed, and filtered views explain the next action.
+2. **Settings → Package sources:** enter an HTTPS catalog URL or browse to a local
+   or network catalog. **Access and publisher…** configures authentication and the
+   publisher's PEM public key; compare its fingerprint through a trusted channel.
+   **Test connection** checks the current editor values without saving them or
+   downloading packages. **Save changes** applies the settings; saving works offline.
+   Installer updates share this source, credentials, and publisher unless you turn
+   off **Use the same source as server packages** and configure the revealed override.
+3. **Installations:** server versions are grouped by exact SA release. Installed
+   and available versions appear together; search and SA/status filters narrow the
+   list. Select one version to reveal **Install…** or **Verify files**, **Repair…**,
+   and **Remove…**. **Details** contains provenance, hashes, and locations. The install
+   review names the version, target, source, destination, size, and verification.
+   A new version installs alongside existing versions. Application teams own adoption.
+4. **Settings → Installer updates:** **Check for updates** offers a newer version
+   when one exists in the saved source. **Download update…** reviews, verifies, and
+   selects it for the next launch; **Restart to update…** is a separate action.
+   The selected next-launch version remains visible after reopening. When the source
+   has no newer version, rollback is never promoted as the normal update action.
+   Expand **Previous versions and recovery** to deliberately choose a specific release.
    Expand **Downloaded installer versions** to verify, repair, remove, or select
-   an existing installer. **Package location** shows the destination and the scope
-   shared with server installations. Both metadata and payload use the saved
-   effective updater source; save source edits before checking.
+   an existing installer. Both metadata and payload use the saved effective updater
+   source; save source edits before checking. An unavailable mirror has no fallback.
    Launching through the permanent bootstrap lets version selection refresh that
    launcher and its bundled runtime too. If its file is protected/in use, the
    selected version remains recorded and the app reports that refresh needs retry.
-5. **SDK Setup:** inspect installed-product and registration evidence, then export
+5. **SDK Setup:** inspect the summary and installed-product/registration evidence, then export
    a sanitized IT/vendor handoff if maintenance is needed. The app does not
    activate the SDK, run MPs, or change Windows registration.
-6. **Activity:** review outcomes and export a report without source URLs, paths,
-   credentials, host/process identities, or SA job data.
+6. **Activity:** review persistent outcomes in local time, filter **Needs attention**,
+   and open details for result codes and recovery guidance. Package entries include
+   their version, exact SA target when applicable, and duration. Export a report
+   without source URLs, paths, credentials, host/process identities, or SA job data.
+
+**Settings → Advanced** contains the shared package scope/location, local inventory
+refresh, interrupted-operation recovery, JSON viewing, import/export, and reload.
+Changing scope changes the inventory being viewed; it does not move packages.
+Import stages editor changes; Save applies them. An external settings-file change
+invalidates catalog results and requires reload before package operations.
+
+Credentials have an explicit separate save boundary: **Save credential now** and
+**Remove stored credential…** change Windows Credential Manager immediately.
+Applying source access settings stages the authentication mode and publisher for
+the main Save button. Cancel/Discard does not undo an explicitly saved credential.
 
 User packages live under `%LOCALAPPDATA%\Briosa\Packages`. Machine deployment
 uses `%PROGRAMDATA%\Briosa\Packages` from an authorized administrator terminal.

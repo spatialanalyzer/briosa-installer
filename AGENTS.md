@@ -48,6 +48,11 @@ artifacts as production releases or claim vendor repair or broader SDK compatibi
   New configuration options must include equivalent GUI controls and shared
   validation/persistence; do not require hand-editing JSON for supported options.
   Schema-version metadata remains maintained by the application.
+- Keep the server inventory grouped by exact SA release, with contextual actions
+  and details on demand. Source editing opens first in Settings; ordinary updater
+  checks must never promote rollback as a recommended update. Preserve explicit
+  credential-save semantics and the shared scope control in Advanced. See the
+  [UX decision](docs/architecture/0004-installer-ux.md).
 - Share one package-management engine between GUI and CLI. Keep resolution,
   policy, planning, verification, installation, and diagnostics testable with fakes.
 - Ship one standard installer with a public release source as the default.
