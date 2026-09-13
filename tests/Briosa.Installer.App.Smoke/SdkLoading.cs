@@ -29,6 +29,10 @@ internal static partial class Program
             discovery.Pending!.SetResult(report);
             PumpUntil(() => Find<Button>(window, "RefreshSdkButton").IsEnabled);
             Require(Find<DataGrid>(window, "SdkObservations").Items.Count == 3, "SDK rows did not load automatically.");
+            Require(Find<Border>(window, "SdkRecommendation").Visibility == Visibility.Visible &&
+                Find<TextBlock>(window, "SdkRecommendationText").Text.Contains("strongly recommend", StringComparison.Ordinal) &&
+                Find<Button>(window, "ChangeSdkButton").IsEnabled,
+                "An older SDK did not produce a non-blocking recommendation on automatic load.");
 
             // Returning to the page rereads local state; an empty result must remove stale rows.
             Page(window, "ActivityNavigation"); Page(window, "SdkNavigation");
@@ -38,6 +42,9 @@ internal static partial class Program
             Require(Find<DataGrid>(window, "SdkObservations").Items.Count == 0 &&
                 Find<TextBlock>(window, "SdkSummaryTitle").Text == "Configured SDK: Not found",
                 "Returning to SDK Setup retained outdated installation or registration evidence.");
+            Require(Find<Border>(window, "SdkRecommendation").Visibility == Visibility.Collapsed &&
+                Find<TextBlock>(window, "SdkRecommendationText").Text.Length == 0,
+                "A stale SDK recommendation survived refreshed evidence.");
 
             Click(window, "RefreshSdkButton");
             PumpUntil(() => discovery.Calls == 3);

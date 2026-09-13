@@ -149,6 +149,10 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   opened through an accessible information icon in each row. Keep export on
   Activity; do not restore SDK Setup's export or bottom details buttons.
   Retain incomplete, missing, and conflicting evidence.
+  When complete local evidence identifies an older configured SDK, recommend the
+  newest installed SA release's available SDK in a non-blocking advisory. State
+  that keeping an older SDK is valid for workflows that require it. Compare full
+  numeric release versions, never recommend a downgrade, and never switch automatically.
   Load local SDK evidence automatically on each visit to SDK Setup, with a
   Refresh button above the summary at the right. Keep scans off the UI thread,
   prevent overlapping reads, and leave navigation and unrelated work responsive.

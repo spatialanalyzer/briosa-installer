@@ -33,7 +33,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         settingsTimer.Tick += async (_, _) => { settingsTimer.Stop(); await PersistSettingsAsync(); };
         liveStatuses = new[] { StatusText, CatalogStatusText, OperationStatusText, UpdateStatusText,
-            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkNextStepText, SdkRefreshStatusText, SdkMaintenanceStatusText, ActivityStatusText }
+            UpdateOperationStatusText, ServerTestText, InstallerTestText, SdkSummaryText, SdkRecommendationText, SdkNextStepText, SdkRefreshStatusText, SdkMaintenanceStatusText, ActivityStatusText }
             .Select(text => new LiveStatus(text)).ToArray();
         configuringScope = true;
         if (this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.MachineRoot, StringComparison.OrdinalIgnoreCase)) StoreScope.SelectedIndex = 1;

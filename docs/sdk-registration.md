@@ -6,6 +6,14 @@ then review the current version, selected version, and executable path. Close SA
 its SDK, and Briosa servers before proceeding. Choose **Change SDK** and approve
 Windows elevation for the installed Hexagon SDK executable.
 
+When a newer bundled SDK is found on the machine, the summary strongly recommends
+registering it for most users. This is an advisory: keeping an older SDK is valid
+when your workflow requires it. No action is blocked and registration never changes
+automatically. Refresh or a completed registration change updates the recommendation.
+Unknown or conflicting versions retain their diagnostic findings instead of a
+version recommendation; a registered SDK newer than the installed SA releases does
+not trigger a downgrade recommendation.
+
 This changes shared COM registration for new SDK sessions. It does not switch an
 existing SDK process, choose an SA application instance, or bypass Briosa's runtime
 identity checks. Other applications using the shared SDK registration may be

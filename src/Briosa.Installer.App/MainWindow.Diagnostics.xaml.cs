@@ -68,6 +68,8 @@ public partial class MainWindow
             var overview = SdkSetupPresentation.FromReport(sdkReport);
             SdkSummaryTitle.Text = overview.Title;
             SdkSummaryText.Text = overview.Summary;
+            SdkRecommendationText.Text = overview.Recommendation;
+            SdkRecommendation.Visibility = Show(overview.Recommendation.Length > 0);
             SdkNextStepText.Text = overview.Findings;
             SdkNextStepText.Visibility = Show(overview.Findings.Length > 0);
             SdkObservations.ItemsSource = overview.Installations;
@@ -80,6 +82,7 @@ public partial class MainWindow
         {
             if (catalogClosed) return;
             sdkReport = null; SdkObservations.ItemsSource = null; SdkObservations.Visibility = Visibility.Collapsed;
+            SdkRecommendationText.Text = ""; SdkRecommendation.Visibility = Visibility.Collapsed;
             SdkNextStepText.Text = ""; SdkNextStepText.Visibility = Visibility.Collapsed;
             SdkRefreshStatusText.Text = "Refresh failed";
             SdkSummaryTitle.Text = "SDK information could not be loaded";

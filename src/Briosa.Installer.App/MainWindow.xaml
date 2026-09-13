@@ -363,6 +363,12 @@
             <StackPanel>
               <TextBlock x:Name="SdkSummaryTitle" Text="Loading SDK setup…" Style="{StaticResource SectionHeading}" />
               <TextBlock x:Name="SdkSummaryText" Text="Reading installed SpatialAnalyzer releases and SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+              <Border x:Name="SdkRecommendation" Visibility="Collapsed" BorderBrush="{DynamicResource BriosaSelectionBorderBrush}" BorderThickness="3,0,0,0" Padding="12,0,0,0" Margin="0,12,0,4">
+                <StackPanel>
+                  <TextBlock Text="Newer SDK available" FontWeight="SemiBold" Foreground="{DynamicResource BriosaSectionSelectedTextBrush}" Margin="0,0,0,4" />
+                  <TextBlock x:Name="SdkRecommendationText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+              </Border>
               <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
               <TextBlock x:Name="SdkMaintenanceStatusText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />

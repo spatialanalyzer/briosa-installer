@@ -310,3 +310,28 @@ workflow checks, complete publishing, packaged CLI/launcher workflows, 63 local
 documentation links, and 13 original brand hashes passed. This validates the
 observed registration procedure, not runtime COM activation, MP readiness, a wider
 SA support matrix, enterprise rollout, Narrator, or mixed-DPI behavior.
+
+## Newer installed SDK advisory
+
+Review build 26 shows a non-blocking recommendation in SDK Setup when complete
+local evidence identifies an older configured SDK and an available bundled SDK
+for the newest installed SA release. The message strongly recommends that newer
+version for most users while explicitly allowing intentional older-SDK workflows.
+It uses the existing theme-aware blue accent, a text heading, and a polite live
+announcement. It does not open a dialog, disable actions, change registration,
+or classify the configuration as a failed operation.
+
+The comparison uses all four numeric release components. Equal versions with
+different zero padding and newer registered versions do not trigger an advisory.
+Incomplete discovery, unknown or conflicting effective versions, missing SDK
+files, and service registration retain their existing diagnostic behavior.
+Refreshed evidence updates or clears the message.
+
+The Release build, 167 core/CLI tests, expanded WPF comparison and refresh checks,
+packaged CLI/launcher workflows, 63 local documentation links, and 13 original
+brand hashes passed. Dark and compact light renders under
+`artifacts/sdk-advisory-review` retain readable advice and a scrollable installation
+table. Native packaged review confirmed automatic display of the 2026.1.0529.7
+recommendation with 2024.1.0508.5 still registered. No SDK registration mutation or
+runtime SA connection was performed for this change. Existing native accessibility
+and mixed-DPI validation limitations still apply.

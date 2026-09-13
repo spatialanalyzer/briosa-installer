@@ -16,6 +16,8 @@ public sealed record SaInstallationRow(SdkObservation Installation, IReadOnlyLis
 
 public sealed record SdkSetupPresentation(string Title, string Summary, string Findings, IReadOnlyList<SaInstallationRow> Installations)
 {
+    public string Recommendation { get; init; } = "";
+
     public static SdkSetupPresentation FromReport(SdkReport report)
     {
         var registered = report.Observations.Where(o => o.Kind == SdkReport.ConfiguredRegistration).ToArray();
@@ -46,8 +48,31 @@ public sealed record SdkSetupPresentation(string Title, string Summary, string F
         if (report.Observations.Any(o => o.Kind == "Other SDK registration"))
             findings.Add("A different underlying registration was also found.");
         if (incomplete) findings.Add("Some installation or registry locations could not be inspected.");
-        return new("Configured SDK: " + title, summary, string.Join(" ", findings), installations);
+        return new("Configured SDK: " + title, summary, string.Join(" ", findings), installations)
+        { Recommendation = RecommendNewestSdk(report, registered, installations) };
     }
+
+    private static string RecommendNewestSdk(SdkReport report, SdkObservation[] registered, SaInstallationRow[] installations)
+    {
+        // Recommend only from complete, comparable local evidence; never turn an
+        // ambiguous registration into a version choice or recommend a downgrade.
+        if (report.Observations.Any(o => o.Kind == "Discovery incomplete") ||
+            registered.Length == 0 || installations.Length == 0 ||
+            registered.Any(o => o.State is not (SdkEvidenceState.Observed or SdkEvidenceState.UnquotedPath))) return "";
+        var current = registered.Select(o => ParseRelease(o.Version)).Distinct().ToArray();
+        var installed = installations.Select(i => (Product: i.Installation, Version: ParseRelease(i.Version))).ToArray();
+        if (current.Length != 1 || current[0] is null || installed.Any(i => i.Version is null)) return "";
+        var newest = installed.MaxBy(i => i.Version);
+        if (current[0] >= newest.Version || !report.Observations.Any(o =>
+            o.Kind == "Installed SDK file" && o.State == SdkEvidenceState.Observed &&
+            ParseRelease(o.Version) == newest.Version && installed.Any(i =>
+                i.Version == newest.Version && Matches(i.Product, o)))) return "";
+        return $"For most users, we strongly recommend registering SDK {newest.Product.Version}, included with the newest installed SA release. " +
+            "Keeping an older SDK is valid when your workflow requires it. Select Change SDK… to review.";
+    }
+
+    private static Version? ParseRelease(string value) =>
+        Version.TryParse(value, out var version) && version.Revision >= 0 ? version : null;
 
     private static bool Matches(SdkObservation product, SdkObservation registration)
     {
