@@ -11,6 +11,8 @@ public static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args.FirstOrDefault() is "packages" or "credentials" or "trust" or "diagnostics" or "app" or "settings-import" or "settings-export")
+                return ManagementCommands.RunAsync(args, Console.Out, Console.Error, cancellation.Token).GetAwaiter().GetResult();
             return args.FirstOrDefault() == "catalog"
                 ? CatalogCommands.RunAsync(args[1..], Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser(), cancellationToken: cancellation.Token).GetAwaiter().GetResult()
                 : CliApplication.Run(args, Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser());
@@ -70,7 +72,16 @@ public static class CliApplication
             if (server is null) return Usage(error);
             var installer = options.ContainsKey("--same-source") ? null :
                 options.GetValueOrDefault("--installer-catalog") ?? snapshot.Settings?.InstallerCatalog;
-            var saved = store.Save(snapshot, new(server, installer));
+            var previous = snapshot.Settings ?? new(server);
+            var settings = previous with
+            {
+                ServerCatalog = server, InstallerCatalog = installer,
+                ServerAuthentication = previous.ServerCatalog == server ? previous.ServerAuthentication : "anonymous",
+                ServerPublisherKey = previous.ServerPublisherKey,
+                InstallerAuthentication = previous.InstallerCatalog == installer && installer is not null ? previous.InstallerAuthentication : "anonymous",
+                InstallerPublisherKey = installer is null ? null : previous.InstallerPublisherKey ?? previous.ServerPublisherKey,
+            };
+            var saved = store.Save(snapshot, settings);
             if (saved is Outcome<SettingsSnapshot>.Failure saveFailure) return Fail(error, saveFailure.Error);
             output.WriteLine("Settings saved. Catalog access has not been tested.");
             return 0;
@@ -90,7 +101,7 @@ public static class CliApplication
     private static int Usage(TextWriter error) { Help(error); return 2; }
 
     private static void Help(TextWriter writer) => writer.WriteLine("""
-        Briosa Installer CLI — catalog browsing development preview
+        Briosa Installer CLI
 
         settings show|validate [--config <file>]
         settings set [--config <file>] [--server-catalog <location>]
@@ -100,10 +111,26 @@ public static class CliApplication
         catalog list --component server|installer [--config <file>]
         catalog preview --component server|installer --id <package-id> [--config <file>]
 
+        packages list|verify|recover|remove|install|repair [--store <directory>]
+                 [--id <package-id>] [--component server|installer] [--config <file>]
+                 [--catalog-sha256 <reviewed-catalog-digest>] [--yes]
+        credentials set|remove --component server|installer [--config <file>]
+                    [--mode bearer|basic|windows|anonymous] [--username <name>]
+        trust import|clear --component server|installer [--config <file>]
+              [--key <public-key.pem> --fingerprint <approved-sha256>]
+        diagnostics sdk|export [--output <file>] [--config <file>]
+        app activate --id <installed-installer-id> [--store <directory>]
+                     [--bootstrap <standalone-Briosa.Launcher.exe>] --yes
+        settings-import --input <file> [--config <file>]
+        settings-export --output <file> [--config <file>]
+
         Locations are HTTPS catalog URLs or absolute Windows file/share paths.
         init creates a new file and refuses to overwrite an existing file.
         set preserves an existing updater override unless --same-source is supplied.
-        Only catalog commands contact a catalog. No command downloads packages or changes SA.
+        Install/repair require --yes and the catalog digest shown by catalog preview.
+        Credentials are read from standard input, never a command-line secret.
+        User store is the default; machine deployment uses an authorized administrator terminal.
+        No command activates or modifies SpatialAnalyzer.
         Exit codes: 0 success, 2 invalid input or file error, 3 setup required, 4 save conflict.
         Catalog commands also return 5 for catalog failures and 130 for cancellation.
         """);

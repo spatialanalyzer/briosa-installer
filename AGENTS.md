@@ -7,11 +7,12 @@ precedence where they explicitly override this guide.
 ## Purpose and current state
 
 This repository owns the independent Windows installer/manager for exact-SA-target
-Briosa distributions. It contains a .NET 10/WPF source-settings and read-only
-catalog development preview, shared core engine, CLI, and draft product design documents. The
-maintainer selected .NET 10/WPF for the first application on 2026-09-06. Do not
-describe proposed package acquisition, update application, SDK maintenance,
-compatibility rules, or illustrative targets as implemented or released.
+Briosa distributions. Its .NET 10/WPF review build includes a shared package engine,
+CLI, launcher, configurable sources/authentication, publisher verification,
+transactional package maintenance, installer selection, and read-only SDK evidence.
+The maintainer selected .NET 10/WPF on 2026-09-06 and authorized completing the app
+without pausing for each increment on 2026-09-12. Do not describe local review
+artifacts as production releases or claim vendor repair or broader SDK compatibility.
 
 ## Boundaries
 
@@ -52,14 +53,25 @@ compatibility rules, or illustrative targets as implemented or released.
 - Managed/offline deployment must cover the installer, prerequisites, metadata,
   packages, and updates. No hidden public fallback, credential leakage, or
   policy bypass through user settings or client auto-download paths.
-- Catalog structure and publisher trust are separate claims. The current preview
-  reports publisher verification as not performed and cannot install anything.
-  Keep the shared catalog contract and producer in `briosa`; do not turn declared
-  checksums into a trust decision or add an unreviewed install action.
+- Catalog structure and publisher trust are separate claims. Unsigned metadata
+  can be browsed; installation requires a pinned approved publisher key, valid
+  unexpired signature, unchanged reviewed catalog digest, and verified payload
+  and manifest. Keep the shared catalog/signature/store contract in `briosa`.
 - Catalog reads are explicit and bounded. Preserve separate updater routing,
   clear stale results when settings change, reject redirects, and never request
-  payloads during browsing. Credentials and administrator policy remain separate
-  implementation work; do not silently use Windows credentials or cookies.
+  payloads during browsing. Credential secrets belong to the exact selected
+  catalog in Windows Credential Manager. Windows credentials require the explicit
+  Windows authentication mode. Never enable cookies, public fallback, TLS bypass,
+  or automatic retries of package changes.
+- Source changes may retain the same approved publisher key for unchanged mirrors,
+  but must not inherit authentication from another catalog. Recheck settings and
+  policy before committing a downloaded package. Keep settings outside binaries.
+- Protect canonical all-users stores and administrator policy from non-admin
+  writers. Never silently repair pre-existing weak ownership or ACLs. Keep
+  arbitrary scripts/commands out of catalogs and do not execute installed servers.
+- Preserve complete old packages on failed staging. Use the store lock and
+  transaction journal for changes, detect in-use files, and recover before another
+  mutation. Do not delete paths outside the owned store or traverse reparse points.
 - Separate inert installation from runtime startup and readiness. SDK work goes
   through one owned Briosa worker; the installer must not open a second SDK client.
 - Preserve active engineering work and immutable installed artifacts. Review
@@ -83,6 +95,8 @@ issues and the organization Project are the planning source of truth.
 
 Follow [development instructions](docs/development.md): restore locked
 dependencies, build the solution, run core/CLI tests and the WPF smoke harness,
-and check links and `git diff --check`. Do not invent a supported release
-matrix, signing arrangement, enterprise authentication capability, or public
-catalog URL to fill an unresolved design question.
+and check links and `git diff --check`. Test complete distribution publishing and
+packaged CLI/launcher behavior before handing off binaries. Do not invent a
+supported SA release matrix, production signing identity, enterprise deployment
+validation, or public catalog URL. Tests use disposable keys, credentials, inert
+packages, and an explicitly owned test process; never commit a private key.

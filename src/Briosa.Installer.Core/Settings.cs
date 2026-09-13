@@ -41,10 +41,17 @@ public abstract record Outcome<T>
     public static Outcome<T> Fail(ConfigurationError code) => new Failure(new(code));
 }
 
-public sealed record InstallerSettings(string ServerCatalog, string? InstallerCatalog = null)
+public sealed record InstallerSettings(string ServerCatalog, string? InstallerCatalog = null,
+    string ServerAuthentication = "anonymous", string InstallerAuthentication = "anonymous",
+    string? ServerPublisherKey = null, string? InstallerPublisherKey = null)
 {
     public string EffectiveInstallerCatalog => InstallerCatalog ?? ServerCatalog;
+    public SourceSettings Source(CatalogComponent component) => component == CatalogComponent.Server || InstallerCatalog is null
+        ? new(ServerCatalog, ServerAuthentication, ServerPublisherKey)
+        : new(InstallerCatalog, InstallerAuthentication, InstallerPublisherKey);
 }
+
+public sealed record SourceSettings(string Catalog, string Authentication = "anonymous", string? PublisherKey = null);
 
 public static class SettingsCodec
 {
@@ -61,13 +68,14 @@ public static class SettingsCodec
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.UnsupportedSchema);
             if (!TrySource(root.GetProperty("source"), out var server))
                 return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
-            string? installer = null;
+            SourceSettings? installer = null;
             if (root.TryGetProperty("installerUpdates", out var updates))
             {
                 if (!HasProperties(updates, ["source"], []) || !TrySource(updates.GetProperty("source"), out installer))
                     return Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidProperties);
             }
-            return Validate(new(server!, installer));
+            return Validate(new(server!.Catalog, installer?.Catalog, server.Authentication,
+                installer?.Authentication ?? "anonymous", server.PublisherKey, installer?.PublisherKey));
         }
         catch (JsonException)
         {
@@ -76,7 +84,9 @@ public static class SettingsCodec
     }
 
     public static Outcome<InstallerSettings> Validate(InstallerSettings settings) =>
-        IsCatalog(settings.ServerCatalog) && (settings.InstallerCatalog is null || IsCatalog(settings.InstallerCatalog))
+        IsCatalog(settings.ServerCatalog) && (settings.InstallerCatalog is null || IsCatalog(settings.InstallerCatalog)) &&
+        ValidSecurity(settings.Source(CatalogComponent.Server)) && ValidSecurity(settings.Source(CatalogComponent.Installer)) &&
+        (settings.InstallerCatalog is not null || (settings.InstallerAuthentication == "anonymous" && settings.InstallerPublisherKey is null))
             ? new Outcome<InstallerSettings>.Success(settings)
             : Outcome<InstallerSettings>.Fail(ConfigurationError.InvalidCatalog);
 
@@ -85,12 +95,12 @@ public static class SettingsCodec
         var root = new JsonObject
         {
             ["schemaVersion"] = 1,
-            ["source"] = new JsonObject { ["catalog"] = settings.ServerCatalog },
+            ["source"] = SourceJson(settings.Source(CatalogComponent.Server)),
         };
         if (settings.InstallerCatalog is not null)
             root["installerUpdates"] = new JsonObject
             {
-                ["source"] = new JsonObject { ["catalog"] = settings.InstallerCatalog },
+                ["source"] = SourceJson(settings.Source(CatalogComponent.Installer)),
             };
         return root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
@@ -105,14 +115,39 @@ public static class SettingsCodec
         return required.All(names.Contains);
     }
 
-    private static bool TrySource(JsonElement value, out string? catalog)
+    private static JsonObject SourceJson(SourceSettings source)
+    {
+        var result = new JsonObject { ["catalog"] = source.Catalog };
+        if (source.Authentication != "anonymous") result["authentication"] = source.Authentication;
+        if (source.PublisherKey is not null) result["publisherKey"] = source.PublisherKey;
+        return result;
+    }
+
+    private static bool ValidSecurity(SourceSettings source) =>
+        source.Authentication is "anonymous" or "bearer" or "basic" or "windows" &&
+        (source.Authentication == "anonymous" || source.Catalog.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) &&
+        (source.PublisherKey is null || PublisherTrust.IsPublicKey(source.PublisherKey));
+
+    private static bool TrySource(JsonElement value, out SourceSettings? catalog)
     {
         catalog = null;
-        if (!HasProperties(value, ["catalog"], [])) return false;
+        if (!HasProperties(value, ["catalog"], ["authentication", "publisherKey"])) return false;
         var field = value.GetProperty("catalog");
         if (field.ValueKind != JsonValueKind.String) return false;
-        catalog = field.GetString();
-        return catalog is not null;
+        string authentication = "anonymous";
+        string? key = null;
+        if (value.TryGetProperty("authentication", out var auth))
+        {
+            if (auth.ValueKind != JsonValueKind.String) return false;
+            authentication = auth.GetString()!;
+        }
+        if (value.TryGetProperty("publisherKey", out var publisher))
+        {
+            if (publisher.ValueKind != JsonValueKind.String) return false;
+            key = publisher.GetString();
+        }
+        catalog = new(field.GetString()!, authentication, key);
+        return true;
     }
 
     private static bool IsCatalog(string? value)

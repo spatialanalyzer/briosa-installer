@@ -3,8 +3,10 @@
     <Project Path="src/Briosa.Installer.Core/Briosa.Installer.Core.csproj" />
     <Project Path="src/Briosa.Installer.Cli/Briosa.Installer.Cli.csproj" />
     <Project Path="src/Briosa.Installer.App/Briosa.Installer.App.csproj" />
+    <Project Path="src/Briosa.Launcher/Briosa.Launcher.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Briosa.InUseProbe/Briosa.InUseProbe.csproj" />
     <Project Path="tests/Briosa.Installer.Tests/Briosa.Installer.Tests.csproj" />
     <Project Path="tests/Briosa.Installer.App.Smoke/Briosa.Installer.App.Smoke.csproj" />
   </Folder>

@@ -22,7 +22,7 @@
       <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="10" />
-      <Setter Property="Padding" Value="24" />
+      <Setter Property="Padding" Value="18" />
       <Setter Property="Margin" Value="0,0,0,20" />
     </Style>
     <Style x:Key="SectionHeading" TargetType="TextBlock">

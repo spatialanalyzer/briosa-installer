@@ -16,8 +16,8 @@
           <TextBlock Text="INSTALLER" FontSize="11" Margin="1,4,0,0" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Margin="8,20,0,0">
-          <TextBlock Text="Development preview" FontWeight="SemiBold" />
-          <TextBlock Text="Catalog browsing preview" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12" />
+          <TextBlock Text="Briosa package manager" FontWeight="SemiBold" />
+          <TextBlock x:Name="BuildVersionText" Text="Review build" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12" />
         </StackPanel>
         <ListBox x:Name="Navigation" SelectionChanged="NavigationChanged" SelectedIndex="0"
                  Background="Transparent" BorderThickness="0" VerticalAlignment="Top"
@@ -36,10 +36,10 @@
         </ListBox>
       </DockPanel>
     </Border>
-    <Grid Grid.Column="1" Margin="36,30">
+    <Grid Grid.Column="1" Margin="30,24">
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-      <StackPanel Margin="0,0,0,22">
-        <TextBlock x:Name="PageTitle" Text="Sources" FontSize="30" FontWeight="SemiBold" />
+      <StackPanel Margin="0,0,0,16">
+        <TextBlock x:Name="PageTitle" Text="Sources" FontSize="28" FontWeight="SemiBold" />
         <TextBlock x:Name="PageDescription" Text="Choose where Briosa gets server packages and installer updates."
                    TextWrapping="Wrap" Margin="0,8,0,0" />
       </StackPanel>
@@ -55,6 +55,8 @@
                 <TextBox x:Name="ServerCatalog" TextChanged="SourceChanged" AutomationProperties.Name="Server package catalog" />
                 <TextBlock Text="HTTPS URL, C:\path\catalog.json, or \\server\share\catalog.json"
                            TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" />
+                <Button x:Name="ServerSecurityButton" Content="Authentication and publisher…" Click="ServerSecurityClicked" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                <TextBlock x:Name="ServerSecurityText" TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" />
               </StackPanel>
             </Border>
             <Border Style="{StaticResource Card}">
@@ -66,21 +68,34 @@
                 <TextBox x:Name="InstallerCatalog" TextChanged="SourceChanged" IsEnabled="False"
                          AutomationProperties.Name="Installer update catalog" />
                 <TextBlock x:Name="EffectiveSource" Text="Choose a server catalog above." TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0" />
+                <Button x:Name="InstallerSecurityButton" Content="Update authentication and publisher…" Click="InstallerSecurityClicked" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                <TextBlock x:Name="InstallerSecurityText" TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" />
               </StackPanel>
             </Border>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+            <WrapPanel Margin="0,0,0,16">
               <Button x:Name="SaveButton" Content="_Save settings" Click="SaveClicked" IsEnabled="False" Margin="0,0,10,0" />
               <Button x:Name="ReloadButton" Content="_Reload from disk" Click="ReloadClicked" Margin="0,0,10,0" />
               <Button x:Name="JsonButton" Content="View _JSON" Click="JsonClicked" />
-            </StackPanel>
+              <Button x:Name="ImportSettingsButton" Content="Import…" Click="ImportSettingsClicked" Margin="10,0,0,0" />
+              <Button x:Name="ExportSettingsButton" Content="Export…" Click="ExportSettingsClicked" Margin="10,0,0,0" />
+            </WrapPanel>
+            <TextBlock x:Name="PolicyText" TextWrapping="Wrap" Margin="0,0,0,12" />
             <TextBlock x:Name="StatusText" Text="Loading settings…" TextWrapping="Wrap" FontWeight="SemiBold"
                        AutomationProperties.LiveSetting="Polite" Margin="0,0,0,16" />
             <TextBlock Text="Settings file" FontWeight="SemiBold" Margin="0,0,0,6" />
             <TextBox x:Name="SettingsPath" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="Settings file location" />
-            <TextBlock Text="Open Installations to refresh a saved catalog and preview packages. Package installation and update application are not available yet."
+            <TextBlock Text="Open Installations to test access, review packages, and install verified releases. Tokens and passwords are held in Windows Credential Manager and are excluded from settings exports."
                        TextWrapping="Wrap" FontSize="12" Margin="0,12,0,0" />
           </StackPanel>
           <StackPanel x:Name="InstallationsPage" Visibility="Collapsed">
+            <Label Content="Installation _scope" Target="{Binding ElementName=StoreScope}" />
+            <ComboBox x:Name="StoreScope" SelectedIndex="0" SelectionChanged="StoreScopeChanged" Padding="8" Margin="0,0,0,10" AutomationProperties.Name="Installation scope">
+              <ComboBoxItem Content="Current user" /><ComboBoxItem Content="All users (requires an administrator terminal)" />
+            </ComboBox>
+            <TextBlock x:Name="StoreLocationText" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,16" />
+            <TabControl x:Name="PackageTabs">
+              <TabItem Header="Available">
+              <StackPanel Margin="0,16,0,0">
             <Border Style="{StaticResource Card}">
               <StackPanel>
                 <TextBlock Text="Available packages" Style="{StaticResource SectionHeading}" />
@@ -98,7 +113,7 @@
                 </WrapPanel>
                 <TextBlock x:Name="CatalogStatusText" Text="Save your source settings, then refresh the catalog." TextWrapping="Wrap"
                            AutomationProperties.LiveSetting="Polite" Margin="0,0,0,16" />
-                <DataGrid x:Name="CatalogPackages" AutoGenerateColumns="False" IsReadOnly="True" Height="230"
+                <DataGrid x:Name="CatalogPackages" AutoGenerateColumns="False" IsReadOnly="True" Height="180"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="34" ColumnHeaderHeight="36"
                           CanUserAddRows="False" SelectionMode="Single" SelectionUnit="FullRow" SelectionChanged="CatalogSelectionChanged"
                           AutomationProperties.Name="Available catalog packages">
@@ -109,28 +124,74 @@
                     <DataGridTextColumn Header="Declared size" Binding="{Binding SizeDisplay}" Width="*" MinWidth="105" />
                   </DataGrid.Columns>
                 </DataGrid>
-                <Button x:Name="PreviewPackageButton" Content="_Preview selected package" Click="PreviewPackageClicked"
-                        IsEnabled="False" HorizontalAlignment="Left" Margin="0,16,0,0" />
+                <WrapPanel Margin="0,16,0,0">
+                  <Button x:Name="PreviewPackageButton" Content="_Preview selected package" Click="PreviewPackageClicked" IsEnabled="False" Margin="0,0,10,0" />
+                  <Button x:Name="InstallPackageButton" Content="Review and _install…" Click="InstallPackageClicked" IsEnabled="False" />
+                </WrapPanel>
               </StackPanel>
             </Border>
             <TextBox x:Name="PackagePreviewText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                      MinHeight="100" AutomationProperties.Name="Package preview" />
-            <TextBlock Text="Publisher verification has not been performed. This preview cannot download, install, or run a package."
+            <TextBlock Text="Installation verifies the publisher signature, exact package digest, and package contents. A package installation does not start SA or establish runtime readiness."
                        TextWrapping="Wrap" Margin="0,12,0,0" />
+              </StackPanel>
+              </TabItem>
+              <TabItem Header="Installed">
+                <StackPanel Margin="0,16,0,0">
+                  <TextBlock Text="Versions remain independent. Application teams choose which server they use." TextWrapping="Wrap" Margin="0,0,0,14" />
+                  <Button Content="Refresh installed packages" Click="RefreshInstalledClicked" HorizontalAlignment="Left" Margin="0,0,0,14" />
+                  <DataGrid x:Name="InstalledPackages" AutoGenerateColumns="False" IsReadOnly="True" Height="270" CanUserAddRows="False"
+                            HeadersVisibility="Column" RowHeight="34" ColumnHeaderHeight="36" SelectionMode="Single" SelectionChanged="InstalledSelectionChanged"
+                            AutomationProperties.Name="Installed Briosa packages">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Component" Binding="{Binding Component}" Width="110" />
+                      <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="140" />
+                      <DataGridTextColumn Header="SA target" Binding="{Binding Target}" Width="*" MinWidth="170" />
+                    </DataGrid.Columns>
+                  </DataGrid>
+                  <WrapPanel Margin="0,16,0,0">
+                    <Button x:Name="VerifyInstalledButton" Content="Verify files" Click="VerifyInstalledClicked" Margin="0,0,10,10" />
+                    <Button x:Name="RepairInstalledButton" Content="Repair…" Click="RepairInstalledClicked" Margin="0,0,10,10" />
+                    <Button x:Name="RemoveInstalledButton" Content="Remove…" Click="RemoveInstalledClicked" Margin="0,0,10,10" />
+                    <Button x:Name="ActivateInstallerButton" Content="Use installer version…" Click="ActivateInstallerClicked" Margin="0,0,10,10" />
+                  </WrapPanel>
+                  <TextBox x:Name="InstalledDetailsText" IsReadOnly="True" TextWrapping="Wrap" MinHeight="90" AutomationProperties.Name="Installed package details" />
+                  <Button x:Name="RecoverStoreButton" Content="Recover interrupted operations…" Click="RecoverStoreClicked" HorizontalAlignment="Left" Margin="0,16,0,0" />
+                </StackPanel>
+              </TabItem>
+            </TabControl>
+            <ProgressBar x:Name="OperationProgress" Height="6" Margin="0,18,0,8" Minimum="0" Maximum="100" />
+            <TextBlock x:Name="OperationStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            <Button x:Name="CancelOperationButton" Content="Cancel operation" Click="CancelOperationClicked" HorizontalAlignment="Left" IsEnabled="False" Margin="0,12,0,0" />
           </StackPanel>
           <StackPanel x:Name="SdkPage" Visibility="Collapsed">
             <Border Style="{StaticResource Card}">
               <StackPanel>
-                <TextBlock Text="SDK maintenance is separate" Style="{StaticResource SectionHeading}" />
-                <TextBlock Text="SDK diagnosis and validated vendor repair procedures will be introduced in a later increment. This preview does not connect to SpatialAnalyzer or change SDK registration."
+                <TextBlock Text="SpatialAnalyzer and SDK evidence" Style="{StaticResource SectionHeading}" />
+                <TextBlock Text="Inspect installed products and Windows registration for this account. These observations do not activate the SDK or prove runtime readiness."
                            TextWrapping="Wrap" />
+                <WrapPanel Margin="0,16,0,0">
+                  <Button x:Name="InspectSdkButton" Content="Inspect SDK setup" Click="InspectSdkClicked" Margin="0,0,10,0" />
+                  <Button x:Name="ExportSdkButton" Content="Export IT/vendor handoff…" Click="ExportDiagnosticsClicked" />
+                </WrapPanel>
               </StackPanel>
             </Border>
+            <DataGrid x:Name="SdkObservations" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="280" HeadersVisibility="Column"
+                      SelectionMode="Single" SelectionChanged="SdkSelectionChanged" AutomationProperties.Name="SpatialAnalyzer registration observations">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Evidence" Binding="{Binding Kind}" Width="180" />
+                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="130" />
+                <DataGridTextColumn Header="Context" Binding="{Binding Context}" Width="*" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <TextBox x:Name="SdkDetailsText" IsReadOnly="True" TextWrapping="Wrap" MinHeight="80" Margin="0,12,0,0" AutomationProperties.Name="SDK evidence details" />
+            <TextBlock x:Name="SdkGuidanceText" TextWrapping="Wrap" Margin="0,16,0,0" />
           </StackPanel>
           <StackPanel x:Name="ActivityPage" Visibility="Collapsed">
-            <TextBlock Text="Settings activity for this app session. Catalog locations and file contents are not included."
+            <TextBlock Text="Recent package-management results. Support exports omit source URLs, paths, credentials, host and process identities, and SA job data."
                        TextWrapping="Wrap" Margin="0,0,0,20" />
             <ListBox x:Name="ActivityList" MinHeight="180" AutomationProperties.Name="Settings activity" />
+            <Button Content="Export support report…" Click="ExportDiagnosticsClicked" HorizontalAlignment="Left" Margin="0,16,0,0" />
           </StackPanel>
         </Grid>
       </ScrollViewer>

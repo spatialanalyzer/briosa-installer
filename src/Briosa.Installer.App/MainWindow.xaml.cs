@@ -14,13 +14,33 @@ public partial class MainWindow : Window
     private bool dirty;
     private bool busy;
 
-    public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null)
+    public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null, PackageStore? packageStore = null,
+        ICredentialStore? credentials = null, ISdkDiscovery? sdkDiscovery = null, Func<string, string, bool>? confirmAction = null, string? bootstrapPath = null)
     {
         this.paths = paths;
-        this.catalogClient = catalogClient ?? new ReleaseCatalogClient();
+        this.catalogClient = catalogClient ?? new ReleaseCatalogClient(credentials: credentials);
         ownsCatalogClient = catalogClient is null;
+        this.packageStore = packageStore ?? new PackageStore(credentials: credentials);
+        this.credentials = credentials ?? new WindowsCredentialStore();
+        this.sdkDiscovery = sdkDiscovery ?? new WindowsSdkDiscovery();
+        this.confirmAction = confirmAction;
+        this.bootstrapPath = bootstrapPath;
+        activity = new ActivityStore(System.IO.Path.GetDirectoryName(paths.ExplicitFile ?? paths.UserFile)!);
         InitializeComponent();
+        configuringScope = true;
+        if (this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.MachineRoot, StringComparison.OrdinalIgnoreCase)) StoreScope.SelectedIndex = 1;
+        else if (!this.packageStore.Root.TrimEnd('\\', '/').Equals(PackageStore.UserRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            customStore = this.packageStore;
+            StoreScope.Items.Add(new ComboBoxItem { Content = "Explicit package directory" });
+            StoreScope.SelectedIndex = 2;
+        }
+        configuringScope = false;
         SettingsPath.Text = paths.ExplicitFile ?? paths.UserFile;
+        BuildVersionText.Text = "Version " + (System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(MainWindow).Assembly)?.InformationalVersion.Split('+')[0] ?? "development");
+        StoreLocationText.Text = this.packageStore.Root;
+        foreach (var entry in activity.Read().Reverse()) AddActivity($"{entry.Time:u} {entry.Operation}: {entry.Outcome}");
+        UpdateManagementControls();
     }
 
     private async void WindowLoaded(object sender, RoutedEventArgs e) => await ReloadAsync();
@@ -39,13 +59,25 @@ public partial class MainWindow : Window
                 AddActivity("Settings could not be loaded.");
                 return;
             }
+            InstallerSettings? defaults = null;
+            if (snapshot!.Origin == SettingsOrigin.SetupRequired)
+            {
+                try { defaults = DistributionDefaults.Load(); }
+                catch (ManagementException) { StatusText.Text = "The distribution's public defaults are invalid. Configure an explicit source."; }
+            }
+            var editorSettings = snapshot.Settings ?? defaults;
             populating = true;
-            ServerCatalog.Text = snapshot!.Settings?.ServerCatalog ?? "";
-            InstallerCatalog.Text = snapshot.Settings?.InstallerCatalog ?? "";
-            SameSource.IsChecked = snapshot.Settings?.InstallerCatalog is null;
+            ServerCatalog.Text = editorSettings?.ServerCatalog ?? "";
+            InstallerCatalog.Text = editorSettings?.InstallerCatalog ?? "";
+            SameSource.IsChecked = editorSettings?.InstallerCatalog is null;
+            serverSecurity = editorSettings?.Source(CatalogComponent.Server);
+            installerSecurity = editorSettings?.InstallerCatalog is null ? null : editorSettings.Source(CatalogComponent.Installer);
             populating = false;
             dirty = false;
             UpdateEffectiveSource();
+            UpdateSecurityLabels();
+            try { PolicyText.Text = EnterprisePolicy.Load() is null ? "Source settings are editable. No administrator policy is configured." : "Managed by your organization: source and publisher restrictions apply."; }
+            catch (ManagementException e) { PolicyText.Text = e.Message; }
             StatusText.Text = snapshot.Origin switch
             {
                 SettingsOrigin.SetupRequired => "Choose your catalog and save to get started.",
@@ -93,6 +125,7 @@ public partial class MainWindow : Window
         {
             dirty = true;
             InvalidateCatalog();
+            UpdateSecurityLabels();
         }
     }
 
@@ -103,7 +136,12 @@ public partial class MainWindow : Window
         EffectiveSource.Text = string.IsNullOrWhiteSpace(effective) ? "Choose a catalog for installer updates." : "Effective update catalog: " + effective;
     }
 
-    private InstallerSettings CurrentSettings() => new(ServerCatalog.Text, SameSource.IsChecked == true ? null : InstallerCatalog.Text);
+    private InstallerSettings CurrentSettings()
+    {
+        var server = serverSecurity?.Catalog == ServerCatalog.Text ? serverSecurity : new SourceSettings(ServerCatalog.Text, PublisherKey: serverSecurity?.PublisherKey);
+        var updater = SameSource.IsChecked == true ? null : installerSecurity?.Catalog == InstallerCatalog.Text ? installerSecurity : new SourceSettings(InstallerCatalog.Text, PublisherKey: installerSecurity?.PublisherKey ?? serverSecurity?.PublisherKey);
+        return new(server.Catalog, updater?.Catalog, server.Authentication, updater?.Authentication ?? "anonymous", server.PublisherKey, updater?.PublisherKey);
+    }
 
     private void JsonClicked(object sender, RoutedEventArgs e)
     {
@@ -151,6 +189,7 @@ public partial class MainWindow : Window
         SameSource.IsEnabled = !value;
         UpdateEffectiveSource();
         UpdateCatalogControls();
+        UpdateManagementControls();
     }
 
     private void AddActivity(string message)

@@ -1,147 +1,99 @@
-# Build and run the development preview
+# Build, test, and package Briosa Installer
 
-The development app and CLI share source settings and read-only catalog browsing
-through one .NET library. Sources and Installations are functional; SDK setup and
-Activity describe future work. Package acquisition, installation, self-update
-execution, administrator policy, authentication, and SDK integration remain
-subsequent work.
+The WPF app, CLI, and bootstrap launcher share a .NET 10 engine. They manage source
+settings, authentication, signed catalogs, side-by-side packages, verification,
+repair, removal, recovery, installer updates, read-only SDK diagnostics, and activity.
+See the [review guide](review-guide.md) and [administration guide](administration.md).
 
-## Prerequisites and validation
+## Build and validate
 
-Use Windows and the .NET SDK pinned in `global.json`. A SpatialAnalyzer install,
-SA license, Windows App SDK runtime, and proprietary SDK files are not required.
-Run these commands from the repository root:
+Use Windows x64 and the .NET SDK pinned in `global.json`. Ordinary builds and tests
+require no SpatialAnalyzer installation, license, or proprietary SDK binaries.
+From this repository:
 
 ```powershell
 dotnet restore Briosa.Installer.slnx --locked-mode
 dotnet build Briosa.Installer.slnx -c Release --no-restore
 dotnet test tests/Briosa.Installer.Tests -c Release --no-build --no-restore
 dotnet run --project tests/Briosa.Installer.App.Smoke -c Release --no-build --no-restore
-```
-
-Core/CLI tests cover invalid sources and schemas, whole-document precedence,
-independent updater settings, explicit missing files, external edits, stale
-saves, and CLI/engine interoperability. Catalog tests cover malformed metadata,
-unsafe paths, conflicting identities, independent source routing, redirects,
-bounded streaming, cancellation, and offline reads. The WPF smoke harness loads
-the actual resources/control tree and exercises settings, catalog selection,
-package previews, and cancellation of stale results using temporary settings and
-a fake HTTP handler. It never displays a native window or controls an existing application.
-It is not a substitute for interactive keyboard, screen-reader, high-contrast,
-scaling, and supported-Windows validation before release.
-
-To render the same WPF tree for visual inspection, pass one output PNG path to
-the smoke harness. Its sources are fictitious; its settings-file label is replaced
-with a symbolic user path. It does not capture the desktop.
-
-## Start the app
-
-```powershell
 dotnet run --project src/Briosa.Installer.App -c Release --no-build --no-restore
 ```
 
-The app starts on Sources. Enter an HTTPS catalog URL or an absolute Windows
-file/share path. Installer updates share the server catalog unless you clear
-"Use the same source" and enter a separate catalog. Save persists both settings;
-Reload loads the file again; View JSON displays the current editor values for
-copying. Editing settings makes no connection check or background network request.
+Tests cover configuration conflicts, independent updater routing, credential
+isolation, signatures/expiry, malformed inputs, archive containment, integrity
+failures, side-by-side installation, repair, recovery, installer selection,
+bootstrap refresh, and in-use removal. The process test starts and stops only its
+own small fixture. A Credential Manager test round-trips one unique inert credential
+and deletes it. Machine ACL tests use in-memory security objects.
 
-After saving, open Installations and select Server packages or Installer releases.
-Refresh catalog explicitly reads the effective source; select a row and choose
-Preview selected package to inspect its exact identity and declared payload
-location, size, and digest. The preview also records the catalog content digest.
-It does not download that payload or verify the publisher. Installer releases
-have an independent version and no SA target; browsing them does not apply a
-self-update. Changing sources, component, or settings clears old results.
+The WPF harness loads the real resources/control tree and exercises the full workflow
+with signed inert fixtures, temporary directories, and fake SDK observations.
+It does not display a native window or control another application. Pass one PNG
+output path to render that control tree. This is not interactive accessibility,
+clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
-For an immediately runnable offline demonstration, use the
-[example walkthrough](../examples/README.md). All example releases are invented
-fixtures with no payloads and imply no supported SA releases.
-
-The user settings file is `%LOCALAPPDATA%\Briosa\Installer\settings.json`.
-Saving optional machine defaults creates a user settings file; it does not edit
-`%PROGRAMDATA%\Briosa\Installer\settings.json`. These are defaults, not enforced
-administrator policy. If the selected file is invalid, repair it externally and
-reload; the GUI will not silently replace it.
-
-The public release catalog is not published yet, so the development preview
-requires an explicit location. Do not substitute a guessed GitHub endpoint.
-The released product must restore the agreed public default and first-use source
-selection once its actual catalog contract and hosting exist.
-
-## Use the CLI
+## Produce a self-contained distribution
 
 ```powershell
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings set --server-catalog https://artifacts.example.com/artifactory/briosa-servers/catalog.json
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings set --installer-catalog https://artifacts.example.com/artifactory/briosa-installer/catalog.json
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings show
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings validate
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings set --same-source
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- catalog list --component server
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- catalog list --component installer
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- catalog preview --component server --id <catalog-package-id>
+./eng/Publish-Installer.ps1 -Version 0.1.0-review.3 -OutputDirectory ./artifacts/review
 ```
 
-The URLs are illustrative. `settings set` preserves an existing update override
-unless `--same-source` is explicitly supplied. `show` emits the selected JSON
-document; `validate` checks configuration syntax and does not prove access.
-Replace `<catalog-package-id>` with an ID returned by `catalog list`. Catalog
-commands explicitly read the selected catalog and emit JSON. Preview performs
-a fresh read and does not retrieve package or provenance payloads. JSON reports
-`publisherVerification: "notPerformed"`; a preview always has `canInstall: false`.
+Use a new output directory/version; existing packages are immutable. The ZIP has
+one product directory containing the WPF app, CLI, launcher, bundled runtime,
+licenses, documentation, checksums, and manifest. It requires no network bootstrap
+or separately installed .NET. Adjacent provenance matches the embedded manifest.
+Package assembly does not contact SA or publish a release.
 
-All commands accept `--config <file>`. An explicitly selected missing file fails
-instead of falling back. To intentionally create one, use:
+When production hosting and its approved key exist, supply `-PublicSettingsFile`
+with a valid settings document containing the actual HTTPS public catalog and
+publisher public key. These values seed first-use source editing. Engineers can
+reconfigure the normal installer without an enterprise-customized build.
+Production executable signing and key custody are release responsibilities.
+
+## Offline review demo
+
+The companion `briosa` checkout supplies the shared catalog producer and signer:
 
 ```powershell
-dotnet run --project src/Briosa.Installer.Cli -c Release --no-build -- settings init --config "$env:TEMP\briosa-preview-settings.json" --server-catalog https://artifacts.example.com/artifactory/briosa-servers/catalog.json
-dotnet run --project src/Briosa.Installer.App -c Release --no-build -- --config "$env:TEMP\briosa-preview-settings.json"
+./eng/New-ReviewDemo.ps1 -OutputDirectory ./artifacts/demo -BriosaRepository ../briosa -InstallerPackage ./artifacts/review/briosa-installer-0.1.0-review.3-win-x64.zip
+./artifacts/review/briosa-installer-0.1.0-review.3-win-x64/Briosa.Launcher.exe --config "$PWD/artifacts/demo/settings.json" --store "$PWD/artifacts/demo/store"
 ```
 
-`init` refuses to overwrite an existing file. Exit codes are 0 (success), 2
-(invalid arguments/configuration or file error), 3 (setup required), and 4
-(save conflict), 5 (catalog error), and 130 (catalog read cancelled). Ctrl+C
-cancels CLI catalog reads. No raw configuration values appear in failure messages.
+This creates three inert server packages across two invented SA targets plus the
+real locally built installer. A temporary RSA key signs the local catalog; its
+private key is deleted. The demo expires after seven days: generate a new directory
+after expiry. Never launch the inert server files or treat demo versions as supported
+SA releases. The older files in `examples/` demonstrate unsigned metadata only.
 
-## Catalog access boundaries
+Validate the packaged CLI, signed catalog interoperability, install/verify/repair/
+remove, installer activation, bootstrap refresh, preserved settings, and launcher
+resolution without opening a window:
 
-Only an explicit Refresh catalog or CLI catalog command reads a source. The
-reader accepts HTTPS and configured absolute Windows file/share paths, caps
-metadata at 1 MiB and 1,000 packages, and bounds a read to 30 seconds including
-the response body. Cancel returns control without keeping late results. A blocked
-operating-system file/share open can outlive that caller wait; no payload or
-machine mutation is scheduled when it eventually completes.
+```powershell
+./eng/Test-InstallerPackage.ps1 -PackageDirectory ./artifacts/review/briosa-installer-0.1.0-review.3-win-x64 -BriosaRepository ../briosa
+```
 
-HTTP redirects, encoded responses, malformed catalogs, and conflicting identities
-are rejected. Failures never switch to another source. Each refresh reads afresh;
-there is no cross-source cache. HTTPS uses ordinary certificate validation and
-system proxy behavior. HTTP sends no automatic Windows credentials or cookies
-and has no authentication provider: 401/403 responses produce a controlled
-diagnostic. Authenticated Artifactory/proxy support still needs implementation and
-testing; configuring a mirror alone does not claim that capability.
-Windows handles access to configured file shares using the current user's normal
-filesystem context; the app does not implement a separate share sign-in flow.
+## Configuration and operational behavior
 
-Artifact references are relative children of the selected catalog's directory,
-so an unchanged catalog can be copied with its payload layout to another mirror.
-They are declarations until verified acquisition exists. The implementation
-rejects traversal, absolute URLs, and ambiguous Windows path segments. It does
-not treat lexical containment as proof of a filesystem junction's destination.
+Settings use a shared GUI/CLI lock, content revision, flushed temporary file, and
+replacement. Coordinate external writers: this is not an OS-wide compare-and-swap
+primitive against arbitrary programs. An explicit missing/invalid configuration
+fails closed. The [administration guide](administration.md) describes precedence.
 
-## Save behavior and current boundaries
+Refresh explicitly reads the selected source. Install/repair read it again and
+require the reviewed digest. Catalog reads are bounded to 30 seconds including
+response bodies; acquisition has a 30-minute deadline and size limits. Cancel
+stops before commit where possible. A blocked OS file/share open can outlive
+cooperative cancellation; no alternate source is contacted and the transaction
+must finish or release its store lock before another mutation. Directory commit
+itself completes or is recovered.
 
-The writer uses a shared GUI/CLI lock, a content revision, a flushed temporary
-file, and replacement within the same directory. A stale save returns a conflict.
-Direct external edits are checked by content rather than timestamps. This is
-not an OS-wide compare-and-swap guarantee against arbitrary programs replacing
-the file in the interval between the final check and replacement. Coordinate
-unrelated writers; the GUI prompts before discarding unsaved edits.
+The CLI's `--help` lists all commands. JSON commands emit one JSON document.
+Exit codes: 0 success; 2 invalid settings/catalog arguments or file error;
+3 setup required; 4 settings save conflict; 5 catalog failure; 6 management failure;
+130 cancellation. Package changes require `--yes`; acquisition also requires
+`--catalog-sha256` from the reviewed catalog. Secrets use standard input or a hidden
+prompt, never command-line arguments.
 
-A `.lock` sidecar remains beside the settings file; no process holds it when
-idle. A failed write cleans up its temporary file where access permits. There is
-no persistent activity log, client registry, or project inventory.
-
-This is a framework-dependent development build, not the final offline delivery
-artifact. Packaging, signing, authentication, source policy, verified payload
-acquisition, installation recovery, and self-update all need their own
-reviewed implementation and tests.
+See [the package-management decision](architecture/0003-package-management.md)
+for security boundaries, transaction semantics, and remaining release validation.

@@ -9,7 +9,7 @@ public enum CatalogError
 {
     InvalidSource, InvalidDocument, UnsupportedSchema, InvalidPackage, DuplicatePackage,
     UnsafeReference, ConflictingReference, TooLarge, SourceUnavailable, AuthenticationRequired,
-    AccessDenied, NotFound, RedirectRejected, UnsupportedEncoding, TimedOut, Cancelled, PackageNotFound,
+    AccessDenied, NotFound, RedirectRejected, UnsupportedEncoding, TimedOut, Cancelled, PackageNotFound, VerificationFailed, Expired, PolicyDenied,
 }
 
 public sealed record CatalogFailure(CatalogError Code)
@@ -24,8 +24,11 @@ public sealed record CatalogFailure(CatalogError Code)
         CatalogError.UnsafeReference => "A catalog reference leaves the supported mirror layout or uses an unsafe path.",
         CatalogError.ConflictingReference => "The catalog declares different sizes or hashes for the same artifact path.",
         CatalogError.TooLarge => "The catalog exceeds the 1 MiB or 1,000-package limit.",
-        CatalogError.AuthenticationRequired => "The source requires authentication. Authenticated feeds are not supported in this preview.",
+        CatalogError.AuthenticationRequired => "The source requires a valid credential. Configure authentication in Sources.",
+        CatalogError.VerificationFailed => "Publisher verification failed. Check the approved public key and catalog signature.",
+        CatalogError.Expired => "The signed catalog is expired or not yet valid. Obtain a current catalog from your source.",
         CatalogError.AccessDenied => "Access to the selected catalog was denied.",
+        CatalogError.PolicyDenied => ManagementException.MessageFor(ManagementError.PolicyDenied),
         CatalogError.NotFound => "The selected catalog was not found.",
         CatalogError.RedirectRejected => "The source redirected the catalog request. Configure the final permitted catalog URL.",
         CatalogError.UnsupportedEncoding => "The catalog response uses an unsupported content encoding.",
@@ -58,12 +61,17 @@ public sealed record CatalogPackage(string Id, CatalogComponent Component, strin
     };
 }
 
-public sealed record CatalogSnapshot(string Source, string ContentSha256, CatalogComponent Component, IReadOnlyList<CatalogPackage> Packages);
+public sealed record CatalogSnapshot(string Source, string ContentSha256, CatalogComponent Component, IReadOnlyList<CatalogPackage> Packages)
+{
+    public PublisherProof? Publisher { get; init; }
+    public string PublisherVerification => Publisher is null ? "notPerformed" : "verified";
+}
 public sealed record PackagePreview(string CatalogSource, string CatalogSha256, CatalogPackage Package,
     string ArtifactLocation, string? ProvenanceLocation)
 {
-    public string PublisherVerification => "notPerformed";
-    public bool CanInstall => false;
+    public PublisherProof? Publisher { get; init; }
+    public string PublisherVerification => Publisher is null ? "notPerformed" : "verified";
+    public bool CanInstall => Publisher is not null;
 }
 
 public static class ReleaseCatalogCodec
@@ -150,7 +158,7 @@ public static class ReleaseCatalogCodec
         if (SettingsCodec.Validate(new(catalog.Source)) is Outcome<InstallerSettings>.Failure)
             return CatalogResult<PackagePreview>.Fail(CatalogError.InvalidSource);
         return new CatalogResult<PackagePreview>.Success(new(catalog.Source, catalog.ContentSha256, package,
-            Resolve(catalog.Source, package.Artifact.Path), package.Provenance is null ? null : Resolve(catalog.Source, package.Provenance.Path)));
+            Resolve(catalog.Source, package.Artifact.Path), package.Provenance is null ? null : Resolve(catalog.Source, package.Provenance.Path)) { Publisher = catalog.Publisher });
     }
 
     private static string Resolve(string source, string reference) => source.StartsWith("https://", StringComparison.OrdinalIgnoreCase)

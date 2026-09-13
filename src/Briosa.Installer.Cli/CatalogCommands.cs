@@ -41,7 +41,7 @@ public static class CatalogCommands
                 display = ((CatalogResult<PackagePreview>.Success)preview).Value;
             }
             else display = new { component = componentName, catalogSource = catalog.Source, catalogSha256 = catalog.ContentSha256,
-                publisherVerification = "notPerformed", packages = catalog.Packages };
+                publisherVerification = catalog.PublisherVerification, publisher = catalog.Publisher, packages = catalog.Packages };
             output.WriteLine(JsonSerializer.Serialize(display, new JsonSerializerOptions
             {
                 WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -65,7 +65,7 @@ public static class CatalogCommands
     {
         writer.WriteLine("catalog list --component server|installer [--config <file>]");
         writer.WriteLine("catalog preview --component server|installer --id <package-id> [--config <file>]");
-        writer.WriteLine("Reads metadata only; publisher verification, downloads, and installation are not performed.");
+        writer.WriteLine("Reads catalog metadata and verifies it when a publisher key is configured. Package payloads are not downloaded.");
         return 2;
     }
 }

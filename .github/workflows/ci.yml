@@ -33,5 +33,16 @@ jobs:
         run: dotnet build Briosa.Installer.slnx -c Release --no-restore
       - name: Test core and CLI
         run: dotnet test tests/Briosa.Installer.Tests -c Release --no-build --no-restore
-      - name: Exercise WPF configuration and catalog browsing
+      - name: Exercise complete WPF package workflows with fixtures
         run: dotnet run --project tests/Briosa.Installer.App.Smoke -c Release --no-build --no-restore
+      - name: Publish complete offline distribution
+        shell: pwsh
+        run: ./eng/Publish-Installer.ps1 -Version 0.1.0-ci -OutputDirectory ./artifacts/ci-distribution
+      - name: Check packaged CLI and launcher without opening the app
+        shell: pwsh
+        run: |
+          $package = './artifacts/ci-distribution/briosa-installer-0.1.0-ci-win-x64'
+          & "$package/Briosa.Installer.Cli.exe" --help
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged CLI failed.' }
+          $launcher = Start-Process -FilePath "$package/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
+          if ($launcher.ExitCode -ne 0) { throw 'Packaged launcher check failed.' }

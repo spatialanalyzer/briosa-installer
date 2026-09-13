@@ -3,16 +3,20 @@
 One Windows management application for installing and maintaining Briosa
 distributions for the exact SpatialAnalyzer releases your projects use.
 
-**Status: catalog-browsing development preview.** The .NET 10/WPF application and
-CLI share source settings, read catalogs from HTTPS or local/share paths, and
-preview server packages and installer releases through their configured sources.
-Catalog entries are unverified metadata; the app does not acquire payloads,
-install packages, apply updates, or interact with SpatialAnalyzer. There is no
-released installer. The broader features below remain proposals.
+**Status: functional review build.** The .NET 10/WPF app and CLI configure sources
+and authentication, verify signed catalogs and payloads, install exact products
+side by side, verify/repair/remove packages, recover interrupted operations, and
+select installer updates independently of server versions. SDK setup provides
+read-only evidence and a sanitized handoff. A complete Windows x64 distribution
+includes the .NET runtime.
+
+No production release, public catalog, or production signing identity is being
+claimed. Automated vendor SDK repair and broader SDK compatibility remain outside
+the implemented runtime contract.
 
 See [build and run instructions](docs/development.md), the
-[offline example walkthrough](examples/README.md), and the
-[catalog implementation boundary](docs/architecture/0002-release-catalog-browsing.md).
+[finished-app review guide](docs/review-guide.md), and the
+[package-management architecture](docs/architecture/0003-package-management.md).
 
 ## Proposed experience
 
@@ -99,10 +103,12 @@ tracked in GitHub issues and the
 Start design discussion in
 [organization Discussions](https://github.com/orgs/spatialanalyzer/discussions).
 
-The first implementation uses .NET 10 and WPF, with a shared engine and CLI.
-Windows packaging, signing, enterprise authentication, and the public catalog
-remain implementation decisions. The development build requires .NET 10;
-complete offline deployment remains a release requirement.
+The implementation uses .NET 10/WPF with a shared engine, CLI, and version-selecting
+launcher. Packaging includes the runtime. Bearer, Basic, and explicitly selected
+Windows authentication are implemented; source configuration and credentials are
+independent of publisher identity. Production key custody, Authenticode signing,
+public catalog hosting, and deployment validation remain release work. See
+[enterprise administration](docs/administration.md).
 
 ## License and product relationship
 

@@ -3,6 +3,8 @@
 - Date: 2026-09-08
 - Status: Implemented development preview; no install authorization or released feed.
 - Builds on: [WPF and source settings](0001-wpf-and-source-settings.md).
+- Subsequent implementation: [package management](0003-package-management.md).
+  The statements below describe the earlier read-only checkpoint.
 - Product direction: [Community Discussion #8](https://github.com/orgs/spatialanalyzer/discussions/8).
 
 ## Shared contract and composition

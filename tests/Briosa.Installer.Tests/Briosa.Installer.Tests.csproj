@@ -10,9 +10,15 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" />
     <ProjectReference Include="../../src/Briosa.Installer.Core/Briosa.Installer.Core.csproj" />
     <ProjectReference Include="../../src/Briosa.Installer.Cli/Briosa.Installer.Cli.csproj" />
+    <ProjectReference Include="../Briosa.InUseProbe/Briosa.InUseProbe.csproj" ReferenceOutputAssembly="false" />
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../examples/catalog.json" Link="Fixtures/catalog.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../Fixtures/SignedFeed.cs" Link="Fixtures/SignedFeed.cs" />
   </ItemGroup>
+  <Target Name="CopyInUseProbe" AfterTargets="Build">
+    <ItemGroup><ProbeFiles Include="../Briosa.InUseProbe/bin/$(Configuration)/net10.0/*" /></ItemGroup>
+    <Copy SourceFiles="@(ProbeFiles)" DestinationFolder="$(OutDir)InUseProbe" />
+  </Target>
 </Project>

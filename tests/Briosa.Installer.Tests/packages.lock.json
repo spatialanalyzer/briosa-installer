@@ -96,12 +96,13 @@
       "briosa.installer.cli": {
         "type": "Project",
         "dependencies": {
-          "Briosa.Installer.Core": "[1.0.0, )"
+          "Briosa.Installer.Core": "[0.1.0-dev, )"
         }
       },
       "briosa.installer.core": {
         "type": "Project"
       }
-    }
+    },
+    "net10.0/win-x64": {}
   }
 }

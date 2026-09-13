@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../examples/catalog.json" Link="Fixtures/catalog.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../Fixtures/SignedFeed.cs" Link="Fixtures/SignedFeed.cs" />
   </ItemGroup>
 </Project>

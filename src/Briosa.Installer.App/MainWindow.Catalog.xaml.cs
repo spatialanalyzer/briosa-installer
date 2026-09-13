@@ -40,6 +40,7 @@ public partial class MainWindow
         RefreshCatalogButton.IsEnabled = !busy && !dirty && catalogRead is null && snapshot?.Settings is not null;
         CancelCatalogButton.IsEnabled = catalogRead is not null;
         PreviewPackageButton.IsEnabled = !busy && !dirty && catalogRead is null && catalogSnapshot is not null && CatalogPackages.SelectedItem is CatalogPackage;
+        UpdateManagementControls();
     }
 
     private async Task<bool> SavedSettingsMatchAsync(SettingsSnapshot captured)
@@ -91,7 +92,7 @@ public partial class MainWindow
             CatalogPackages.ItemsSource = catalogSnapshot.Packages;
             var count = catalogSnapshot.Packages.Count;
             CatalogStatusText.Text = count == 0 ? "No packages for this component are listed in the selected catalog." :
-                $"{count} package{(count == 1 ? "" : "s")} listed. Publisher verification has not been performed.";
+                $"{count} package{(count == 1 ? "" : "s")} listed. " + (catalogSnapshot.Publisher is null ? "Import an approved publisher key in Sources to enable installation." : "Publisher signature verified.");
             AddActivity("Catalog refreshed.");
         }
         finally
@@ -136,7 +137,9 @@ public partial class MainWindow
             Declared package SHA-256: {package.Artifact.Sha256}
             Provenance: {preview.ProvenanceLocation ?? "Not declared"}
 
-            Publisher verification: not performed. No package will be installed.
+            Publisher verification: {(preview.Publisher is null ? "Not verified" : "Verified")}
+            Publisher fingerprint: {preview.Publisher?.Fingerprint ?? "Import an approved publisher key in Sources before installation."}
+            Payload hashes will be checked during installation. Previewing does not change this machine.
             """;
         AddActivity("Package preview opened.");
     }
