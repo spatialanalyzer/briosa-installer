@@ -56,3 +56,6 @@ jobs:
           ./eng/Test-Setup.ps1 -SetupPath $previous -UpgradeSetupPath $setup -PackageDirectory $package -TestIdentity
           $uninstaller = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup-signing-preparation -TestIdentity -Mode prepare-signing
           if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $uninstaller)) { throw 'Uninstaller signing handoff failed.' }
+          ./eng/Write-SigningFileList.ps1 -FilePath $uninstaller -OutputPath artifacts/test-signing.txt
+          $entry = (Get-Content artifacts/test-signing.txt -Raw).Trim()
+          if ([IO.Path]::IsPathRooted($entry) -or (Resolve-Path -LiteralPath (Join-Path "$PWD/artifacts" $entry)).Path -cne $uninstaller) { throw 'Signing file-list coordinates differ.' }
