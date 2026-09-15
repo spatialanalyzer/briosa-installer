@@ -24,13 +24,13 @@ unchanged internal copy. Its own installation must work offline, including its
 prerequisites. A customized enterprise build is unnecessary.
 
 On first launch, public Briosa releases are selected by default. Before any
-catalog or update request, you can open Sources and choose a custom repository.
+catalog or update request, you can open Settings and choose a custom repository.
 Enter the enterprise Briosa catalog URL, test access when available, and save.
 Use the supported authentication method if required. A settings file supplied
 before first launch can make this step noninteractive.
 
 The GUI, direct file editing, import, and post-install/CLI scripts all use the
-same versioned settings. In Sources, installer updates default to "Use the same
+same versioned settings. In Settings, installer updates default to "Use the same
 source" as server packages. If your organization uses another remote for the
 installer, supply that separate update catalog. It supplies both update metadata
 and the installer download. A failed explicit update source does not fall back
@@ -88,7 +88,7 @@ not automatically change shared registration.
 
 | Change | Installer action | Application team's responsibility |
 | --- | --- | --- |
-| Management-app update | Check the configured update catalog, verify its installer payload, and apply the reviewed update/restart while preserving settings and server packages. | Follow applicable software-management policy. |
+| Management-app update | In Settings, check the configured update catalog, compare with the running version, and review the installer download/selection/restart while preserving settings and server packages. | Follow applicable software-management policy. |
 | Server maintenance version | Install another immutable version alongside the existing one. | Test and deliberately adopt the desired runtime through application configuration/dependencies. |
 | Another SA target | Show whether a matching server product is available and install it separately. | Choose matching client dependencies and coordinate SA deployment. |
 | Damaged/previous package | Restore that exact artifact from the configured source when permitted. | Manage application rollback and its data/recovery implications. |

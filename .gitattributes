@@ -8,3 +8,12 @@ LICENSE text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.ps1 text eol=lf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.xaml text eol=lf
+*.props text eol=lf
+*.slnx text eol=lf
+
+# Preserve verified upstream brand assets byte-for-byte, including license text.
+src/Briosa.Installer.App/Assets/Brand/** -text -whitespace
+src/Briosa.Installer.App/Assets/Brand/provenance.json text eol=lf whitespace

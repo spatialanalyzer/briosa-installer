@@ -1,6 +1,6 @@
 # Briosa Installer application experience
 
-- Status: Draft product and interaction proposal; no installer is implemented
+- Status: Original product proposal; the implemented review experience is described in the [review guide](../review-guide.md) and [UX decision](../architecture/0004-installer-ux.md)
 - Date: 2026-09-06
 - Technical design: [Installer and SDK management](installer-and-sdk-management.md)
 - Task walkthroughs: [Administrator and engineer workflows](installer-user-workflows.md)
@@ -24,7 +24,7 @@ Use one installation engine from both the Windows GUI and a noninteractive CLI.
 The same standard installer defaults to public Briosa releases and supports
 engineer-configured enterprise mirrors and offline sources. Central deployment
 and enforced administrator policy are optional. UI framework and bootstrap
-packaging remain implementation decisions.
+packaging were subsequently selected as .NET 10/WPF and a self-contained Windows x64 distribution.
 
 ## Window and navigation
 
@@ -37,10 +37,19 @@ The four views are:
 
 | View | Main content | Actions |
 | --- | --- | --- |
-| Sources | Server-package catalog and installer-update catalog, shared by default; editable settings; authentication and refresh state. | Configure public, enterprise, or offline sources; test access; save/import/export settings. |
 | Installations | Exact SA releases, available server packages, installed versions, and package status. | Review installation/update, inspect details, repair files, remove a specific version. |
-| SDK setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
+| SDK Setup | Effective registered SDK candidate, installed alternatives, product compatibility, and maintenance requirements. | Inspect evidence, preview maintenance, obtain a sanitized handoff, explicitly validate a runtime environment. |
 | Activity | Package/source/maintenance operations and their outcomes. | Inspect results and sanitized support information. |
+| Settings | All user-configurable settings, plus the running installer version and available installer releases. | Edit/save/import/export source and trust settings; check for installer updates, review download/selection/restart, and maintain downloaded installers. |
+
+Keep this navigation order and open on Installations. Capitalize the app name as
+Briosa. Every supported user-configurable value in `settings.json` must have a
+GUI equivalent under Settings; file editing is optional. Schema-version metadata
+is maintained by the application.
+
+Installations contains only gRPC server downloads and installed servers. Installer
+self-updates and rollback belong in Settings, alongside their update-source
+configuration. A mixed source catalog must not mix these product types in the UI.
 
 Show the active source in the window chrome. Display "Managed by your
 organization" only when actual policy applies; ordinary source controls are
@@ -53,8 +62,8 @@ Allow a custom repository or offline source before any network operation. A
 complete standard installer must support offline setup, including prerequisites,
 so a post-install script can supply settings before the app first runs.
 
-For a custom source, the normal interaction is catalog URL, optional connection
-test, and Save. Saving valid settings can work while the source is unavailable.
+For a custom source, enter the catalog URL and optionally test the connection.
+Valid settings save automatically, including while the source is unavailable.
 The GUI and JSON file represent the same settings; direct editing, import, and
 CLI/scripts use the same schema and resolution rules. Show the effective file
 location. Keep credential secrets in a supported secure store/provider.

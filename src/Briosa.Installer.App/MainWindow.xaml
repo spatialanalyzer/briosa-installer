@@ -1,0 +1,504 @@
+<Window x:Class="Briosa.Installer.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Briosa Installer" Style="{StaticResource {x:Type Window}}" Width="1140" Height="800" MinWidth="820" MinHeight="580" WindowStartupLocation="CenterScreen" Loaded="WindowLoaded" Closing="WindowClosing" Activated="WindowActivated" SizeChanged="WindowSizeChanged">
+  <Grid Background="{DynamicResource ApplicationBackgroundBrush}">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition x:Name="NavigationColumn" Width="208" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <Border Background="{DynamicResource BriosaNavigationBrush}" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,0,1,0" TextElement.Foreground="{DynamicResource BriosaNavigationTextBrush}">
+      <DockPanel Margin="16,26,16,20">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,26">
+          <Image x:Name="AppBrand" Source="{DynamicResource BriosaLogo}" Width="160" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.Name="Briosa" />
+          <TextBlock Text="Installer" FontWeight="Normal" Margin="12,6,0,0" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="12,20,0,0">
+          <TextBlock Text="Briosa Installer" FontSize="12" />
+          <TextBlock x:Name="BuildVersionText" FontSize="11" Margin="0,4,0,0" />
+          <TextBlock x:Name="UnsavedNavigationText" Text="Settings need attention" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,12,0,0" FontWeight="SemiBold" />
+        </StackPanel>
+        <ListBox x:Name="Navigation" SelectionChanged="NavigationChanged" SelectedIndex="0" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Installer navigation">
+          <!-- Keep local brushes on the live element: style-scoped Freezables
+               can retain the theme from their first resource lookup. -->
+          <ListBox.Resources>
+            <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
+            <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationSelectedHoverColor}" />
+            <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedTextColor}" />
+            <SolidColorBrush x:Key="ListBoxItemUnselectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationHoverColor}" />
+          </ListBox.Resources>
+          <ListBoxItem x:Name="InstallationsNavigation" Content="Installations" />
+          <ListBoxItem x:Name="SdkNavigation" Content="SDK Setup" />
+          <ListBoxItem x:Name="ActivityNavigation" Content="Activity" />
+          <ListBoxItem x:Name="SettingsNavigation" Content="Settings" />
+        </ListBox>
+      </DockPanel>
+    </Border>
+    <Border x:Name="WorkspaceBackdrop" Grid.Column="1" Background="{DynamicResource BriosaWorkspaceBrush}" IsHitTestVisible="False" Focusable="False" />
+    <Grid x:Name="PageHost" Grid.Column="1" Margin="28,24">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock x:Name="PageTitle" Text="Installations" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource BriosaHeadingBrush}" />
+        <TextBlock x:Name="PageDescription" Text="Briosa gRPC servers for your SpatialAnalyzer releases." Style="{StaticResource Muted}" Margin="0,4,0,0" />
+      </StackPanel>
+      <Grid Grid.Row="1">
+        <Grid x:Name="InstallationsPage">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <DockPanel Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+              <Button x:Name="RefreshCatalogButton" Content="_Refresh" Click="RefreshCatalogClicked" ToolTip="Reload available servers and installed versions" Margin="8,0,0,0" />
+              <Button x:Name="CancelCatalogButton" Content="Cancel" Click="CancelCatalogClicked" Visibility="Collapsed" Margin="8,0,0,0" />
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center">
+              <Button x:Name="SourceSummaryButton" Click="ConfigureSourceClicked" HorizontalAlignment="Left" Padding="0,2" MinHeight="24" Background="Transparent" BorderThickness="0" Content="Configure package source" AutomationProperties.Name="Package source settings" />
+              <TextBlock x:Name="CatalogStatusText" Text="Loading local inventory…" FontSize="12" Style="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" Margin="0,4,0,0" />
+            </StackPanel>
+          </DockPanel>
+          <Grid x:Name="InventoryFilters" Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="1.2*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Margin="0,0,8,0">
+              <TextBox x:Name="ServerSearch" TextChanged="InventoryFilterChanged" AutomationProperties.Name="Search server versions or SA releases" ToolTip="Search server versions or SA releases" />
+              <TextBlock Text="Search servers or SA…" IsHitTestVisible="False" Margin="12,0,12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding Text, ElementName=ServerSearch}" Value="">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+            </Grid>
+            <ComboBox x:Name="TargetFilter" Grid.Column="1" SelectionChanged="InventoryFilterChanged" AutomationProperties.Name="SpatialAnalyzer release" Margin="0,0,8,0" />
+            <ComboBox x:Name="InventoryFilter" Grid.Column="2" Width="140" SelectedIndex="0" SelectionChanged="InventoryFilterChanged" AutomationProperties.Name="Server status filter">
+              <ComboBoxItem Content="All servers" />
+              <ComboBoxItem Content="Installed" />
+              <ComboBoxItem Content="Available" />
+            </ComboBox>
+          </Grid>
+          <Grid Grid.Row="2">
+            <ListBox x:Name="CatalogPackages" SelectionChanged="CatalogSelectionChanged" AutomationProperties.Name="Briosa servers by SpatialAnalyzer release" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
+              <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                  <Setter Property="Padding" Value="12,10" />
+                  <Setter Property="MinHeight" Value="42" />
+                  <Setter Property="BorderThickness" Value="3,0,0,0" />
+                  <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                      <Setter Property="BorderBrush" Value="{DynamicResource BriosaSelectionBorderBrush}" />
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </ListBox.ItemContainerStyle>
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="145" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Version}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,14,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.GroupStyle>
+                <GroupStyle>
+                  <GroupStyle.ContainerStyle>
+                    <Style TargetType="GroupItem">
+                      <Setter Property="Template">
+                        <Setter.Value>
+                          <ControlTemplate TargetType="GroupItem">
+                            <Expander IsExpanded="True" Margin="0,4,0,14">
+                              <Expander.Header>
+                                <TextBlock Text="{Binding Name, StringFormat=SpatialAnalyzer {0}}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5" />
+                              </Expander.Header>
+                              <ItemsPresenter Margin="0,6,0,0" />
+                            </Expander>
+                          </ControlTemplate>
+                        </Setter.Value>
+                      </Setter>
+                    </Style>
+                  </GroupStyle.ContainerStyle>
+                </GroupStyle>
+              </ListBox.GroupStyle>
+            </ListBox>
+            <Border x:Name="InventoryEmpty" Background="Transparent" Padding="24">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="430">
+                <TextBlock x:Name="EmptyTitle" Text="Get your first Briosa server" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock x:Name="EmptyDescription" TextWrapping="Wrap" TextAlignment="Center" Margin="0,10,0,18" />
+                <Button x:Name="EmptyActionButton" Content="Configure package source" Click="EmptyActionClicked" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" />
+              </StackPanel>
+            </Border>
+          </Grid>
+          <Border x:Name="ServerSelectionPanel" Grid.Row="3" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0" Visibility="Collapsed">
+            <StackPanel>
+              <TextBlock x:Name="SelectedServerText" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <DockPanel Margin="0,8,0,0">
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                  <Button x:Name="InstallPackageButton" Content="_Install…" Click="InstallPackageClicked" Style="{StaticResource PrimaryButton}" />
+                  <Button x:Name="VerifyInstalledButton" Content="_Verify files" Click="VerifyInstalledClicked" Visibility="Collapsed" />
+                  <Button x:Name="RepairInstalledButton" Content="Repair…" Click="RepairInstalledClicked" Visibility="Collapsed" Margin="8,0,0,0" />
+                  <Button x:Name="RemoveInstalledButton" Content="Remove…" Click="RemoveInstalledClicked" Visibility="Collapsed" Margin="8,0,0,0" />
+                </WrapPanel>
+                <Button x:Name="ServerDetailsButton" Content="Details" Click="ServerDetailsClicked" HorizontalAlignment="Left" Margin="0,0,8,0" />
+              </DockPanel>
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <ProgressBar x:Name="OperationProgress" Height="4" Minimum="0" Maximum="100" Visibility="Collapsed" />
+            <DockPanel Margin="0,5,0,0">
+              <Button x:Name="CancelOperationButton" Content="Cancel" Click="CancelOperationClicked" DockPanel.Dock="Right" Visibility="Collapsed" Margin="8,0,0,0" />
+              <TextBlock x:Name="OperationStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" FontSize="12" />
+            </DockPanel>
+            <DockPanel Margin="0,4,0,0">
+              <Button x:Name="ScopeSummaryButton" Content="Current user · Change location" Click="OpenStorageClicked" Padding="0,2" MinHeight="24" Background="Transparent" BorderThickness="0" HorizontalAlignment="Left" FontSize="12" />
+              <Button x:Name="RecoverStoreButton" Content="Recover interrupted operation…" Click="RecoverStoreClicked" Visibility="Collapsed" HorizontalAlignment="Right" FontSize="12" />
+            </DockPanel>
+          </StackPanel>
+        </Grid>
+        <Grid x:Name="SettingsPage" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <TabControl x:Name="SettingsSections" ItemContainerStyle="{StaticResource SettingsSection}" Background="Transparent" BorderThickness="0" AutomationProperties.Name="Settings sections">
+            <TabItem x:Name="SourcesSection" Header="Package sources">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,12,0">
+                <StackPanel>
+                  <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                      <TextBlock Text="Server packages" Style="{StaticResource SectionHeading}" />
+                      <TextBlock Text="Use the public source, your enterprise mirror, or an offline catalog." Style="{StaticResource Muted}" Margin="0,0,0,16" />
+                      <Label Content="Catalog _URL or file" Target="{Binding ElementName=ServerCatalog}" />
+                      <DockPanel>
+                        <Button Content="Browse…" Click="BrowseSourceClicked" Tag="Server" DockPanel.Dock="Right" Margin="8,0,0,0" />
+                        <TextBox x:Name="ServerCatalog" TextChanged="SourceChanged" LostKeyboardFocus="SettingsFocusLost" AutomationProperties.Name="Server package catalog" />
+                      </DockPanel>
+                      <TextBlock Text="An HTTPS URL or an absolute local / network file path." Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,12" />
+                      <WrapPanel>
+                        <Button x:Name="ServerSecurityButton" Content="Access and publisher…" Click="ServerSecurityClicked" Margin="0,0,8,8" />
+                        <Button x:Name="TestServerButton" Content="_Test connection" Click="TestSourceClicked" Tag="Server" Margin="0,0,8,8" />
+                      </WrapPanel>
+                      <TextBlock x:Name="ServerSecurityText" Style="{StaticResource Muted}" FontSize="12" />
+                      <TextBlock x:Name="ServerTestText" Text="Not tested. Testing reads metadata only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,10,0,0" />
+                    </StackPanel>
+                  </Border>
+                  <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                      <TextBlock Text="Installer update source" Style="{StaticResource SectionHeading}" />
+                      <CheckBox x:Name="SameSource" Content="Use the _same source as server packages" IsChecked="True" Checked="SourceChanged" Unchecked="SourceChanged" Margin="0,4,0,10" />
+                      <TextBlock x:Name="EffectiveSource" Style="{StaticResource Muted}" FontSize="12" />
+                      <StackPanel x:Name="InstallerSourceOverride" Visibility="Collapsed" Margin="0,12,0,0">
+                        <Label Content="Update catalog URL or _file" Target="{Binding ElementName=InstallerCatalog}" />
+                        <DockPanel>
+                          <Button Content="Browse…" Click="BrowseSourceClicked" Tag="Installer" DockPanel.Dock="Right" Margin="8,0,0,0" />
+                          <TextBox x:Name="InstallerCatalog" TextChanged="SourceChanged" LostKeyboardFocus="SettingsFocusLost" AutomationProperties.Name="Installer update catalog" />
+                        </DockPanel>
+                        <WrapPanel Margin="0,12,0,0">
+                          <Button x:Name="InstallerSecurityButton" Content="Access and publisher…" Click="InstallerSecurityClicked" Margin="0,0,8,8" />
+                          <Button x:Name="TestInstallerButton" Content="Test connection" Click="TestSourceClicked" Tag="Installer" Margin="0,0,8,8" />
+                        </WrapPanel>
+                        <TextBlock x:Name="InstallerSecurityText" Style="{StaticResource Muted}" FontSize="12" />
+                        <TextBlock x:Name="InstallerTestText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,10,0,0" />
+                      </StackPanel>
+                      <TextBlock Text="Both the update catalog and its downloads use this source." Style="{StaticResource Muted}" FontSize="12" Margin="0,10,0,0" />
+                    </StackPanel>
+                  </Border>
+                  <Button x:Name="CancelSourceTestButton" Content="Cancel connection test" Click="CancelSourceTestClicked" HorizontalAlignment="Left" Visibility="Collapsed" Margin="0,0,0,12" />
+                  <TextBlock x:Name="PolicyText" TextWrapping="Wrap" Margin="0,0,0,12" Visibility="Collapsed" />
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="UpdatesSection" Header="Installer updates">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,12,0">
+                <StackPanel>
+                  <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                      <TextBlock Text="Briosa Installer" Style="{StaticResource SectionHeading}" />
+                      <TextBlock x:Name="CurrentInstallerVersionText" FontWeight="SemiBold" />
+                      <TextBlock x:Name="UpdateSourceText" Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,0" />
+                      <TextBlock x:Name="UpdateStatusText" Text="Check your saved source for a newer version." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,16,0,0" />
+                      <TextBlock x:Name="UpdateCheckedText" Style="{StaticResource Muted}" FontSize="12" Margin="0,5,0,0" />
+                      <WrapPanel Margin="0,14,0,0">
+                        <Button x:Name="CheckUpdatesButton" Content="Check for _updates" Click="CheckUpdatesClicked" Margin="0,0,8,8" />
+                        <Button x:Name="CancelUpdateCheckButton" Content="Cancel check" Click="CancelUpdateCheckClicked" Visibility="Collapsed" Margin="0,0,8,8" />
+                        <Button x:Name="InstallUpdateButton" Content="Download update…" Click="InstallUpdateClicked" Style="{StaticResource PrimaryButton}" Visibility="Collapsed" Margin="0,0,8,8" />
+                        <Button x:Name="RestartInstallerButton" Content="Restart to update…" Click="RestartInstallerClicked" Style="{StaticResource PrimaryButton}" Visibility="Collapsed" Margin="0,0,8,8" />
+                      </WrapPanel>
+                      <ProgressBar x:Name="UpdateProgress" Height="4" Minimum="0" Maximum="100" Visibility="Collapsed" Margin="0,6,0,8" />
+                      <TextBlock x:Name="UpdateOperationStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                      <Button x:Name="CancelUpdateOperationButton" Content="Cancel operation" Click="CancelOperationClicked" Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                    </StackPanel>
+                  </Border>
+                  <Expander x:Name="PreviousInstallerReleases" Header="Previous versions and recovery" Margin="0,0,0,16">
+                    <StackPanel Margin="0,12,0,0">
+                      <TextBlock Text="Choose a specific release from this source. Returning to an older version requires an explicit review." Style="{StaticResource Muted}" Margin="0,0,0,10" />
+                      <DataGrid x:Name="InstallerReleases" Height="160" SelectionChanged="InstallerReleaseSelectionChanged" AutomationProperties.Name="Installer recovery releases">
+                        <DataGrid.Columns>
+                          <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="140" />
+                          <DataGridTextColumn Header="Compared to running version" Binding="{Binding Relationship}" Width="*" />
+                        </DataGrid.Columns>
+                      </DataGrid>
+                      <Button x:Name="UseReleaseButton" Content="Review selected version…" Click="UseReleaseClicked" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                    </StackPanel>
+                  </Expander>
+                  <Expander x:Name="DownloadedInstallers" Header="Downloaded installer versions" Margin="0,0,0,16">
+                    <StackPanel Margin="0,12,0,0">
+                      <TextBlock x:Name="DownloadedEmptyText" Text="No installer versions have been downloaded to this location." Style="{StaticResource Muted}" Margin="0,0,0,10" />
+                      <DataGrid x:Name="InstalledInstallerVersions" Height="150" SelectionChanged="InstalledSelectionChanged" AutomationProperties.Name="Downloaded installer versions">
+                        <DataGrid.Columns>
+                          <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="*" />
+                        </DataGrid.Columns>
+                      </DataGrid>
+                      <WrapPanel Margin="0,10,0,0">
+                        <Button x:Name="ActivateInstallerButton" Content="Use version…" Click="ActivateInstallerClicked" Margin="0,0,8,8" />
+                        <Button x:Name="VerifyInstallerButton" Content="Verify files" Click="VerifyInstalledClicked" Margin="0,0,8,8" />
+                        <Button x:Name="RepairInstallerButton" Content="Repair…" Click="RepairInstalledClicked" Margin="0,0,8,8" />
+                        <Button x:Name="RemoveInstallerButton" Content="Remove…" Click="RemoveInstalledClicked" Margin="0,0,8,8" />
+                        <Button x:Name="InstallerDetailsButton" Content="Details" Click="InstallerDetailsClicked" Margin="0,0,8,8" />
+                      </WrapPanel>
+                    </StackPanel>
+                  </Expander>
+                  <TextBlock x:Name="InstallerStoreLocationText" Style="{StaticResource Muted}" FontSize="12" />
+                  <Button Content="Change shared package location…" Click="OpenStorageClicked" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="AppearanceSection" Header="Appearance">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,12,0">
+                <Border Style="{StaticResource Card}" VerticalAlignment="Top">
+                  <StackPanel>
+                    <TextBlock Text="Appearance" Style="{StaticResource SectionHeading}" />
+                    <TextBlock Text="Choose how Briosa looks on this device." Style="{StaticResource Muted}" Margin="0,0,0,16" />
+                    <Label Content="App _theme" Target="{Binding ElementName=ThemeSelector}" />
+                    <ComboBox x:Name="ThemeSelector" SelectedIndex="0" MaxWidth="300" HorizontalAlignment="Left" MinWidth="200"
+                              SelectionChanged="ThemeChanged" AutomationProperties.Name="App theme"
+                              AutomationProperties.HelpText="System follows your Windows app mode. Light and Dark apply only to Briosa. Changes apply and save automatically.">
+                      <ComboBoxItem Content="System" Tag="system" />
+                      <ComboBoxItem Content="Light" Tag="light" />
+                      <ComboBoxItem Content="Dark" Tag="dark" />
+                    </ComboBox>
+                    <TextBlock Text="System follows your Windows app mode. Light and Dark apply only to Briosa." Style="{StaticResource Muted}" Margin="0,12,0,0" />
+                    <TextBlock Text="Changes apply immediately and are saved automatically." Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <TextBlock Text="Windows contrast themes take priority over this choice." Style="{StaticResource Muted}" FontSize="12" Margin="0,16,0,0" />
+                  </StackPanel>
+                </Border>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="AdvancedSection" Header="Advanced">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,12,0">
+                <StackPanel>
+                  <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                      <TextBlock Text="Package location" Style="{StaticResource SectionHeading}" />
+                      <TextBlock Text="This location is shared by server installations and downloaded installer versions. Changing it changes the inventory you are viewing; it does not move existing packages." Style="{StaticResource Muted}" Margin="0,0,0,14" />
+                      <Label Content="Installation _scope" Target="{Binding ElementName=StoreScope}" />
+                      <ComboBox x:Name="StoreScope" SelectedIndex="0" SelectionChanged="StoreScopeChanged" AutomationProperties.Name="Shared package scope">
+                        <ComboBoxItem Content="Current user" />
+                        <ComboBoxItem Content="All users — requires an administrator terminal" />
+                      </ComboBox>
+                      <TextBlock x:Name="StoreLocationText" TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0" />
+                      <WrapPanel Margin="0,14,0,0">
+                        <Button x:Name="RefreshInstallerVersionsButton" Content="Refresh local inventory" Click="RefreshInstalledClicked" Margin="0,0,8,8" />
+                        <Button x:Name="RecoverInstallerStoreButton" Content="Recover interrupted operations…" Click="RecoverStoreClicked" Margin="0,0,8,8" />
+                      </WrapPanel>
+                    </StackPanel>
+                  </Border>
+                  <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                      <TextBlock Text="Configuration file" Style="{StaticResource SectionHeading}" />
+                      <TextBox x:Name="SettingsPath" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="Settings file location" />
+                      <TextBlock Text="JSON and GUI edits use the same settings. Exports omit tokens and passwords." Style="{StaticResource Muted}" Margin="0,10,0,14" />
+                      <WrapPanel>
+                        <Button x:Name="JsonButton" Content="View _JSON" Click="JsonClicked" Margin="0,0,8,8" />
+                        <Button x:Name="ImportSettingsButton" Content="Import…" Click="ImportSettingsClicked" Margin="0,0,8,8" />
+                        <Button x:Name="ExportSettingsButton" Content="Export…" Click="ExportSettingsClicked" Margin="0,0,8,8" />
+                        <Button x:Name="ReloadButton" Content="_Reload from disk" Click="ReloadClicked" Margin="0,0,8,8" />
+                      </WrapPanel>
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+          </TabControl>
+          <Border Grid.Row="1" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+            <StackPanel>
+              <TextBlock x:Name="StatusText" Text="Loading settings…" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+              <WrapPanel x:Name="SettingsRecoveryBar" Visibility="Collapsed" Margin="0,10,0,0">
+                <Button x:Name="RetrySettingsButton" Content="Retry" Click="RetrySettingsClicked" Margin="0,0,8,0" />
+                <Button x:Name="ReloadSettingsButton" Content="Use saved values" Click="ReloadClicked" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+        </Grid>
+        <Grid x:Name="SdkPage" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <DockPanel Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+              <Button x:Name="ChangeSdkButton" Content="Change SDK…" Click="ChangeSdkClicked" Margin="0,0,8,0" ToolTip="Choose an installed SA release and review its SDK registration change" />
+              <Button x:Name="RefreshSdkButton" Content="_Refresh" Click="RefreshSdkClicked" ToolTip="Reload installed SpatialAnalyzer releases and SDK registration" />
+            </StackPanel>
+            <TextBlock x:Name="SdkRefreshStatusText" Text="Loading SDK information…" Style="{StaticResource Muted}" FontSize="12" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+          </DockPanel>
+          <Border Grid.Row="1" Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock x:Name="SdkSummaryTitle" Text="Loading SDK setup…" Style="{StaticResource SectionHeading}" />
+              <TextBlock x:Name="SdkSummaryText" Text="Reading installed SpatialAnalyzer releases and SDK registration. Inspection is read-only." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+              <Border x:Name="SdkRecommendation" Visibility="Collapsed" BorderBrush="{DynamicResource BriosaWarningBrush}" BorderThickness="3,0,0,0" Padding="12,0,0,0" Margin="0,12,0,4">
+                <StackPanel>
+                  <TextBlock Text="SDK registration warning" FontWeight="SemiBold" Foreground="{DynamicResource BriosaWarningBrush}" Margin="0,0,0,4" />
+                  <TextBlock x:Name="SdkRecommendationText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+              </Border>
+              <TextBlock x:Name="SdkNextStepText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
+              <TextBlock x:Name="SdkMaintenanceStatusText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
+              <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
+            </StackPanel>
+          </Border>
+          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
+            <DataGrid.Resources>
+              <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="4,6,8,6" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+              </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="SA version" Binding="{Binding Version}" Width="145" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTemplateColumn Header="SDK" Width="112">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,6,8,6" ToolTip="{Binding RegistrationHint}">
+                      <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRegistered}" Value="False">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </StackPanel.Style>
+                      <Grid Width="12" Height="12" Margin="0,0,6,0" IsHitTestVisible="False">
+                        <Path Data="M1.5,6 L4.5,9 L10.5,3" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                      </Grid>
+                      <TextBlock Text="Registered" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Installation path" Binding="{Binding Location}" Width="*" ElementStyle="{StaticResource SdkEvidenceCell}" />
+              <DataGridTemplateColumn Width="88" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Click="ShowSaInstallationClicked" Width="36" Height="36" MinWidth="0" Padding="0" Margin="0,0,4,0"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
+                            IsEnabled="{Binding IsEnabled, ElementName=RefreshSdkButton}"
+                            ToolTip="Show installation in File Explorer"
+                            AutomationProperties.Name="{Binding Version, StringFormat=Show SpatialAnalyzer {0} in File Explorer}"
+                            AutomationProperties.HelpText="{Binding Location}">
+                      <Grid Width="18" Height="18" IsHitTestVisible="False">
+                        <Path Data="M2,6 L2,4.5 Q2,3.5 3,3.5 L7,3.5 L9,5.5 L15,5.5 Q16,5.5 16,6.5 L16,13.5 Q16,14.5 15,14.5 L3,14.5 Q2,14.5 2,13.5 Z M2,7 L16,7"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                      </Grid>
+                    </Button>
+                    <Button Click="SdkDetailsClicked" Width="36" Height="36" MinWidth="0" Padding="0"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGridCell}}"
+                            IsEnabled="{Binding IsEnabled, ElementName=RefreshSdkButton}"
+                            ToolTip="Installation and SDK details"
+                            AutomationProperties.Name="{Binding Version, StringFormat=Installation and SDK details for SpatialAnalyzer {0}}"
+                            AutomationProperties.HelpText="{Binding Location}">
+                      <Grid Width="18" Height="18" IsHitTestVisible="False">
+                        <Ellipse Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Margin="1" />
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4.5,0,0" />
+                        <Path Data="M9,8.5 L9,13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                      </Grid>
+                    </Button>
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+        <Grid x:Name="ActivityPage" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <DockPanel Margin="0,0,0,14">
+            <Button Content="Refresh history" Click="RefreshActivityClicked" DockPanel.Dock="Right" Margin="8,0,0,0" />
+            <ComboBox x:Name="ActivityFilter" Width="190" HorizontalAlignment="Left" SelectedIndex="0" SelectionChanged="ActivityFilterChanged" AutomationProperties.Name="Activity filter">
+              <ComboBoxItem Content="All activity" />
+              <ComboBoxItem Content="Needs attention" />
+            </ComboBox>
+          </DockPanel>
+          <Grid Grid.Row="1">
+            <ListBox x:Name="ActivityList" BorderThickness="0" HorizontalContentAlignment="Stretch" SelectionChanged="ActivitySelectionChanged" AutomationProperties.Name="Installer activity">
+              <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                  <Setter Property="Padding" Value="10,12" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+              </ListBox.ItemContainerStyle>
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel>
+                    <DockPanel>
+                      <TextBlock Text="{Binding Outcome}" DockPanel.Dock="Right" Margin="12,0,0,0" FontSize="12" />
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding Context}" FontSize="12" Margin="0,4,0,0">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding Context}" Value="">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="{Binding Time}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock x:Name="ActivityEmptyText" Text="No activity yet." Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" />
+          </Grid>
+          <StackPanel Grid.Row="2" Margin="0,12,0,0">
+            <TextBlock x:Name="ActivityStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,0,0,8" />
+            <WrapPanel>
+              <Button x:Name="ActivityDetailsButton" Content="View details" Click="ActivityDetailsClicked" IsEnabled="False" Margin="0,0,8,0" />
+              <Button Content="Export support report…" Click="ExportDiagnosticsClicked" />
+            </WrapPanel>
+            <TextBlock Text="Support exports omit credentials, source URLs, paths, and SA job data." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
+          </StackPanel>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

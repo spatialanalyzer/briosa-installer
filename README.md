@@ -3,9 +3,26 @@
 One Windows management application for installing and maintaining Briosa
 distributions for the exact SpatialAnalyzer releases your projects use.
 
-**Status: design and repository setup.** This repository does not yet contain an
-installer implementation, downloadable application, or released CLI. The features
-below are proposals, not current product capabilities.
+**Status: functional review build.** The .NET 10/WPF app and CLI configure sources
+and authentication, verify signed catalogs and payloads, install exact products
+side by side, verify/repair/remove packages, recover interrupted operations, and
+select installer updates independently of server versions. SDK Setup discovers
+installed SA releases and can change their shared SDK registration through a
+reviewed Hexagon registration procedure. A complete Windows x64 distribution
+includes the .NET runtime.
+
+No production release, public catalog, or production signing identity is being
+claimed. Broader vendor installation repair and SDK compatibility remain outside
+the implemented runtime contract. See [SDK registration](docs/sdk-registration.md)
+for the supported procedure, prerequisites, and recovery guidance.
+
+See [build and run instructions](docs/development.md), the
+[finished-app review guide](docs/review-guide.md), and the
+[package-management architecture](docs/architecture/0003-package-management.md).
+The [UX redesign decision](docs/architecture/0004-installer-ux.md) describes the
+current screens, interaction boundaries, and validation limits.
+The app incorporates [Briosa brand v1](docs/branding.md), including the approved
+wordmark, palette, icons, and bundled Inter font.
 
 ## Proposed experience
 
@@ -92,9 +109,12 @@ tracked in GitHub issues and the
 Start design discussion in
 [organization Discussions](https://github.com/orgs/spatialanalyzer/discussions).
 
-There is no build or test command yet. Implementation should establish a shared
-installer engine with a noninteractive CLI and Windows GUI; the UI framework,
-packaging technology, and signing arrangement remain open decisions.
+The implementation uses .NET 10/WPF with a shared engine, CLI, and version-selecting
+launcher. Packaging includes the runtime. Bearer, Basic, and explicitly selected
+Windows authentication are implemented; source configuration and credentials are
+independent of publisher identity. Production key custody, Authenticode signing,
+public catalog hosting, and deployment validation remain release work. See
+[enterprise administration](docs/administration.md).
 
 ## License and product relationship
 

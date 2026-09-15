@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Restore locked dependencies
+        run: dotnet restore Briosa.Installer.slnx --locked-mode
+      - name: Build
+        run: dotnet build Briosa.Installer.slnx -c Release --no-restore
+      - name: Test core and CLI
+        run: dotnet test tests/Briosa.Installer.Tests -c Release --no-build --no-restore
+      - name: Exercise complete WPF package workflows with fixtures
+        run: dotnet run --project tests/Briosa.Installer.App.Smoke -c Release --no-build --no-restore
+      - name: Publish complete offline distribution
+        shell: pwsh
+        run: ./eng/Publish-Installer.ps1 -Version 0.1.0-ci -OutputDirectory ./artifacts/ci-distribution
+      - name: Check packaged CLI and launcher without opening the app
+        shell: pwsh
+        run: |
+          $package = './artifacts/ci-distribution/briosa-installer-0.1.0-ci-win-x64'
+          & "$package/Briosa.Installer.Cli.exe" --help
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged CLI failed.' }
+          $launcher = Start-Process -FilePath "$package/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
+          if ($launcher.ExitCode -ne 0) { throw 'Packaged launcher check failed.' }

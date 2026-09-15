@@ -1,0 +1,7 @@
+<Project>
+  <!-- Honor SelectionTextBrush and draw the highlight behind the glyphs.
+       Set this before WPF starts, in both the app and its control-tree harness. -->
+  <ItemGroup Condition="'$(UseWPF)' == 'true'">
+    <RuntimeHostConfigurationOption Include="Switch.System.Windows.Controls.Text.UseAdornerForTextboxSelectionRendering" Value="false" />
+  </ItemGroup>
+</Project>

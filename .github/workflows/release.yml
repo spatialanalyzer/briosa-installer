@@ -1,0 +1,139 @@
+name: Release signed installer
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Installer semantic version without v; dispatch produces artifacts only
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check out reviewed shared signing tools and public trust root
+        uses: actions/checkout@v6
+        with:
+          repository: spatialanalyzer/briosa
+          ref: 5da65c9100c829bea81675144184e1bd48d46eea
+          path: .support/briosa
+          persist-credentials: false
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          $version = if ($env:GITHUB_EVENT_NAME -eq 'push') { $env:GITHUB_REF_NAME.Substring(1) } else { $env:DISPATCH_VERSION }
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') { throw 'Invalid installer semantic version.' }
+          "value=$version" >> $env:GITHUB_OUTPUT
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Restore, build, and test
+        shell: pwsh
+        run: |
+          dotnet restore Briosa.Installer.slnx --locked-mode
+          if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
+          dotnet build Briosa.Installer.slnx -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
+          dotnet test tests/Briosa.Installer.Tests -c Release --no-build --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
+          dotnet run --project tests/Briosa.Installer.App.Smoke -c Release --no-build --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'WPF smoke failed.' }
+      - name: Build and verify complete offline distribution
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          ./eng/Publish-Installer.ps1 -Version $env:PACKAGE_VERSION -OutputDirectory "$PWD/artifacts/unsigned" -PublicSettingsFile "$PWD/.support/briosa/eng/signing/public-source.json"
+          ./eng/Test-InstallerPackage.ps1 -PackageDirectory "$PWD/artifacts/unsigned/briosa-installer-$env:PACKAGE_VERSION-win-x64" -BriosaRepository "$PWD/.support/briosa"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-installer
+          path: |
+            artifacts/unsigned/*.zip
+            artifacts/unsigned/*.sha256
+            artifacts/unsigned/*.provenance.json
+          if-no-files-found: error
+  sign:
+    needs: package
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-2025
+    timeout-minutes: 20
+    environment: release-signing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: spatialanalyzer/briosa
+          ref: 5da65c9100c829bea81675144184e1bd48d46eea
+          path: .support/briosa
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: unsigned-installer
+          path: artifacts/unsigned
+      - name: Sign the installer, CLI, launcher, and shortcut script
+        id: sign
+        uses: ./.support/briosa/.github/actions/sign-package
+        with:
+          package-path: artifacts/unsigned/briosa-installer-${{ needs.package.outputs.version }}-win-x64.zip
+          staging-directory: artifacts/signing
+          output-directory: artifacts/signed
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Verify final archive and packaged entry points
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          $name = "briosa-installer-$env:PACKAGE_VERSION-win-x64"
+          ./.support/briosa/eng/Prepare-SignedPackage.ps1 -PackagePath "artifacts/signed/$name.zip" -OutputDirectory artifacts/final-verification
+          Import-Module ./.support/briosa/eng/ReleasePackageSigning.psm1
+          Assert-ReleaseSignatures "artifacts/final-verification/$name" 'David Lucas'
+          & "./artifacts/final-verification/$name/Briosa.Installer.Cli.exe" --help
+          if ($LASTEXITCODE -ne 0) { throw 'Signed CLI failed.' }
+          $launcher = Start-Process -FilePath "./artifacts/final-verification/$name/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
+          if ($launcher.ExitCode -ne 0) { throw 'Signed launcher failed.' }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: signed-installer
+          path: artifacts/signed/*
+          if-no-files-found: error
+  publish:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: [package, sign]
+    runs-on: windows-2025
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: signed-installer
+          path: artifacts/release
+      - name: Publish signed installer release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          $files = @(Get-ChildItem artifacts/release -File | ForEach-Object FullName)
+          if ($files.Count -ne 3) { throw 'Expected signed ZIP, checksum, and provenance.' }
+          $arguments = @('release','create',$env:GITHUB_REF_NAME,'--verify-tag','--generate-notes','--title',"Briosa Installer $env:PACKAGE_VERSION")
+          if ($env:PACKAGE_VERSION.Contains('-')) { $arguments += '--prerelease' }
+          gh @arguments @files
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
