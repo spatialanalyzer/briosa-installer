@@ -32,6 +32,9 @@ if ($Mode -eq 'prepare-signing') {
         $log | Write-Host
         throw 'The compiler did not produce exactly one uninstaller awaiting a signature.'
     }
+    # Inno deliberately fails this first pass after writing the unsigned uninstaller.
+    # We validated that expected outcome; do not leak its exit status to CI's wrapper.
+    $global:LASTEXITCODE = 0
     Write-Output $uninstaller[0].FullName
     return
 }

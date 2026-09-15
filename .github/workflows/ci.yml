@@ -54,3 +54,5 @@ jobs:
           $setup = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup -TestIdentity
           $previous = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup-previous -TestIdentity -TestVersion 0.0.0-setup-test
           ./eng/Test-Setup.ps1 -SetupPath $previous -UpgradeSetupPath $setup -PackageDirectory $package -TestIdentity
+          $uninstaller = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup-signing-preparation -TestIdentity -Mode prepare-signing
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $uninstaller)) { throw 'Uninstaller signing handoff failed.' }
