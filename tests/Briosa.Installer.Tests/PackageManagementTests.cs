@@ -10,6 +10,28 @@ namespace Briosa.Installer.Tests;
 public sealed class PackageManagementTests
 {
     [Fact]
+    public async Task ControlCenterRequiresTheVerifiedServerPayload()
+    {
+        using var fixture = new SignedFeed();
+        var withDesktop = fixture.AddServer("0.3.0", extraEntry: "Briosa.ControlCenter.exe");
+        var legacy = fixture.AddServer("0.2.0");
+        var installer = fixture.AddInstaller("0.3.0");
+        fixture.Publish();
+        var store = new PackageStore(fixture.StorePath);
+        var installed = await store.InstallAsync(fixture.Settings, CatalogComponent.Server, withDesktop.Id, fixture.Hash);
+        var old = await store.InstallAsync(fixture.Settings, CatalogComponent.Server, legacy.Id, fixture.Hash);
+        var manager = await store.InstallAsync(fixture.Settings, CatalogComponent.Installer, installer.Id, fixture.Hash);
+        Assert.True(installed.HasControlCenter);
+        Assert.False(old.HasControlCenter);
+        Assert.False(manager.HasControlCenter);
+        var executable = Path.Combine(installed.Directory, "payload", "Briosa.ControlCenter.exe");
+        Assert.Equal(executable, await store.ResolveControlCenterAsync(installed.Id));
+        Assert.Equal(ManagementError.InvalidInput, (await Assert.ThrowsAsync<ManagementException>(() => store.ResolveControlCenterAsync(old.Id))).Code);
+        Assert.Equal(ManagementError.InvalidInput, (await Assert.ThrowsAsync<ManagementException>(() => store.ResolveControlCenterAsync(manager.Id))).Code);
+        File.WriteAllText(executable, "tampered fixture; never executed");
+        Assert.Equal(ManagementError.IntegrityFailure, (await Assert.ThrowsAsync<ManagementException>(() => store.ResolveControlCenterAsync(installed.Id))).Code);
+    }
+    [Fact]
     public async Task DoesNotRemoveAPackageContainingARunningOwnedTestProcess()
     {
         using var fixture = new SignedFeed();

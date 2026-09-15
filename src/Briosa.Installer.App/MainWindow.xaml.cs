@@ -230,6 +230,8 @@ public partial class MainWindow : Window
         VerifyInstalledButton.Visibility = RepairInstalledButton.Visibility = RemoveInstalledButton.Visibility = Show(row?.Installed is not null);
         VerifyInstalledButton.IsEnabled = RemoveInstalledButton.IsEnabled = editable && row?.Installed is not null;
         RepairInstalledButton.IsEnabled = editable && configured && row?.Installed is not null;
+        OpenControlCenterButton.Visibility = Show(row?.Installed?.HasControlCenter == true);
+        OpenControlCenterButton.IsEnabled = editable && row?.Installed?.HasControlCenter == true;
         ServerDetailsButton.IsEnabled = editable && row is not null;
         var installer = InstalledInstallerVersions.SelectedItem as DownloadedInstaller;
         ActivateInstallerButton.IsEnabled = VerifyInstallerButton.IsEnabled = RemoveInstallerButton.IsEnabled = InstallerDetailsButton.IsEnabled = editable && installer is not null;

@@ -12,6 +12,8 @@ public sealed record InstalledPackage(PackageReceipt Receipt, string Directory)
     public string Version => Receipt.Package.Version;
     public string Target => Receipt.Package.TargetDisplay;
     public string Component => Receipt.Package.ComponentName;
+    public bool HasControlCenter => Receipt.Package.Component == CatalogComponent.Server &&
+        Receipt.Files.ContainsKey("Briosa.ControlCenter.exe");
 }
 public sealed record PackageProgress(string Phase, long Bytes = 0, long Total = 0);
 public sealed record RecoveryJournal(string Id, string Operation);
@@ -77,6 +79,17 @@ public sealed class PackageStore
     {
         using var held = ReadLock();
         await VerifyUnlockedAsync(id, token).ConfigureAwait(false);
+    }
+
+    public async Task<string> ResolveControlCenterAsync(string id, CancellationToken token = default)
+    {
+        using var held = ReadLock();
+        RequireRecovered();
+        var product = List().SingleOrDefault(p => p.Id == id) ?? throw new ManagementException(ManagementError.PackageNotFound);
+        if (!product.HasControlCenter) throw new ManagementException(ManagementError.InvalidInput);
+        EnterprisePolicy.Load()?.ValidateInstalled(product.Receipt.Publisher.Fingerprint, Root);
+        await VerifyUnlockedAsync(id, token).ConfigureAwait(false);
+        return SafeFiles.Child(product.Directory, "payload/Briosa.ControlCenter.exe");
     }
     private IDisposable ReadLock()
     {
