@@ -22,6 +22,11 @@ keyboard navigation, and cancellation. This was the unsigned local candidate;
 Azure signature verification and production-identity setup tests run in the
 release workflow before publishing. Local evidence is under
 `artifacts/setup-candidate-2` and the retained `Briosa.Setup.Tests` temporary logs.
+Native packaged-app review also verified both first-use choices, keyboard access
+to the public-source button, and successful explicit loading of the signed public
+server catalog with its bundled publisher. The review used an isolated settings
+file and package directory. Installer CI passed on GitHub-hosted Windows, including
+the complete setup lifecycle and version-upgrade fixture.
 
 Real Artifactory/proxy validation, a standard-user managed rollout, native
 high-contrast/Narrator, and mixed-monitor DPI acceptance remain unverified. Existing

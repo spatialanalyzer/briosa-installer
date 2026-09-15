@@ -21,7 +21,7 @@ are inert text and the SA identifiers are invented; do not launch those server f
 The optional installer package is this real application. The fixture signature
 expires in seven days; regenerate the demo after expiry.
 
-## Review the application
+## Use the application
 
 1. **Installations:** local inventory and available servers load automatically
    from the saved source. **Refresh** reloads both. On an unconfigured first use,
@@ -110,8 +110,8 @@ File shares use the caller's normal Windows filesystem identity.
 
 Initial bootstrap trust applies to the complete downloaded distribution itself.
 The publisher signature used for subsequent catalog/package operations is separate
-from Windows executable code signing. This local review artifact is not represented
-as a publicly signed production release. Official setup, uninstaller, and first-party
+from Windows executable code signing. Local development builds are unsigned.
+Official setup, uninstaller, and first-party
 executables carry timestamped signatures with Windows publisher **David Lucas**.
 
 The [administration guide](administration.md) covers mirror layout, authentication,
