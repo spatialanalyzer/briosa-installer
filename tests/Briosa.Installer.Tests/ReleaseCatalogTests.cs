@@ -163,11 +163,15 @@ public sealed class ReleaseCatalogTests
     [Fact]
     public async Task TimeoutCoversAStalledBodyAfterHeaders()
     {
-        using var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new StalledStream()) }));
-        using var client = new ReleaseCatalogClient(handler, TimeSpan.FromMilliseconds(150));
+        var body = new StalledStream();
+        using var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(body) }));
+        // Allow policy/HTTP initialization on loaded CI hosts before exercising the
+        // body deadline. A 150 ms budget could expire before the handler was reached.
+        using var client = new ReleaseCatalogClient(handler, TimeSpan.FromSeconds(5));
         var result = await client.ReadAsync(Sources, CatalogComponent.Server);
         Assert.Equal(CatalogError.TimedOut, Assert.IsType<CatalogResult<CatalogSnapshot>.Failure>(result).Error.Code);
         Assert.Single(handler.Requests);
+        Assert.True(body.ReadStarted, "The deadline must cover reading the response body after headers.");
     }
 
     [Fact]
@@ -231,6 +235,7 @@ public sealed class ReleaseCatalogTests
 
     private sealed class StalledStream : Stream
     {
+        public bool ReadStarted { get; private set; }
         public override bool CanRead => true;
         public override bool CanSeek => false;
         public override bool CanWrite => false;
@@ -238,6 +243,7 @@ public sealed class ReleaseCatalogTests
         public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
+            ReadStarted = true;
             await Task.Delay(Timeout.Infinite, cancellationToken);
             return 0;
         }
