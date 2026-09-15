@@ -110,6 +110,7 @@ public partial class MainWindow
             {
                 "Package.Install" => $"Server {package?.Version} installed for SA {package?.TargetDisplay}. Existing versions are preserved.",
                 "Package.Verify" => $"Briosa {package?.ComponentName} {package?.Version}: files verified against the installed receipt.",
+                "ControlCenter.Open" => "Control Center was requested. Use its Start server action when ready.",
                 "Package.Repair" => $"Briosa {package?.ComponentName} {package?.Version} repaired and verified.",
                 "Package.Remove" => $"Briosa {package?.ComponentName} {package?.Version} removed. Other versions are unchanged.",
                 "Package.Recover" => "Interrupted package operations recovered.",
@@ -127,7 +128,7 @@ public partial class MainWindow
         }
         catch (OperationCanceledException)
         { status.Text = "Operation cancelled. Existing complete packages were preserved."; RecordActivity(code, "Cancelled", package, timer.ElapsedMilliseconds); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or ArgumentException or NotSupportedException or System.Security.Cryptography.CryptographicException)
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or ArgumentException or NotSupportedException or System.Security.Cryptography.CryptographicException or System.ComponentModel.Win32Exception)
         {
             status.Text = "The operation could not complete. Check access and package integrity. If an interrupted operation is reported, use Recover in Settings → Advanced.";
             RecordActivity(code, "Failed", package, timer.ElapsedMilliseconds);
@@ -178,6 +179,23 @@ public partial class MainWindow
     {
         if (SelectedInstalledPackage(sender) is { } package)
             await RunOperationAsync("Package.Verify", token => packageStore.VerifyAsync(package.Id, token), IsInstallerAction(sender), package.Receipt.Package);
+    }
+    private async void OpenControlCenterClicked(object sender, RoutedEventArgs e)
+    {
+        if (busy || SelectedInstalledPackage(sender) is not { HasControlCenter: true } package) return;
+        await RunOperationAsync("ControlCenter.Open", async token =>
+        {
+            var executable = await packageStore.ResolveControlCenterAsync(package.Id, token);
+            token.ThrowIfCancellationRequested();
+            if (catalogClosed) return;
+            var start = new ProcessStartInfo(executable)
+            {
+                WorkingDirectory = Path.GetDirectoryName(executable)!, UseShellExecute = false,
+                CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden
+            };
+            start.ArgumentList.Add("--show");
+            using var process = Process.Start(start) ?? throw new IOException("Control Center could not be opened.");
+        }, package: package.Receipt.Package);
     }
     private async void RepairInstalledClicked(object sender, RoutedEventArgs e)
     {

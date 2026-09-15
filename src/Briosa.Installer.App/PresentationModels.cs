@@ -41,6 +41,7 @@ public sealed record ActivityView(ActivityEntry Entry)
         "Installer.Activate" => "Selected installer version",
         "Package.Install" => "Installed server",
         "Package.Verify" => "Verified package files",
+        "ControlCenter.Open" => "Opened Control Center",
         "Package.Repair" => "Repaired package",
         "Package.Remove" => "Removed package",
         "Package.Recover" => "Recovered interrupted operations",

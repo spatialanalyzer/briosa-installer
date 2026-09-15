@@ -158,6 +158,8 @@
                 </WrapPanel>
                 <Button x:Name="ServerDetailsButton" Content="Details" Click="ServerDetailsClicked" HorizontalAlignment="Left" Margin="0,0,8,0" />
               </DockPanel>
+              <Button x:Name="OpenControlCenterButton" Content="Open Control Center" Click="OpenControlCenterClicked" HorizontalAlignment="Left" Margin="0,8,0,0" Visibility="Collapsed"
+                      ToolTip="Verify this package and open its desktop controls. Starting the server is a separate action." />
             </StackPanel>
           </Border>
           <StackPanel Grid.Row="4" Margin="0,10,0,0">
