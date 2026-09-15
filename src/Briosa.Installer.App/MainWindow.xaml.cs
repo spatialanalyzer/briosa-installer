@@ -14,14 +14,17 @@ public partial class MainWindow : Window
     private InstallerSettings? editorBaseline;
     private bool initialized, populating, dirty, busy, reviewing, externalChange, checkingExternal;
     private bool startupComplete;
+    private readonly Func<InstallerSettings?> loadDistributionDefaults;
+    private InstallerSettings? publicDefaults;
     private readonly LiveStatus[] liveStatuses;
     public bool IsWorking => busy || reviewing;
 
     public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null, PackageStore? packageStore = null,
         ICredentialStore? credentials = null, ISdkDiscovery? sdkDiscovery = null, Func<string, string, bool>? confirmAction = null, string? bootstrapPath = null,
-        ISdkRegistrationService? sdkRegistration = null)
+        ISdkRegistrationService? sdkRegistration = null, Func<InstallerSettings?>? distributionDefaults = null)
     {
         this.paths = paths;
+        loadDistributionDefaults = distributionDefaults ?? (() => DistributionDefaults.Load());
         this.credentials = credentials ?? new WindowsCredentialStore();
         this.catalogClient = catalogClient ?? new ReleaseCatalogClient(credentials: this.credentials);
         ownsCatalogClient = catalogClient is null;
@@ -79,13 +82,13 @@ public partial class MainWindow : Window
                 StatusText.Text = failure.Error.Message; CatalogStatusText.Text = "Settings need attention. Open package source settings.";
                 RecordActivity("Settings.Load", failure.Error.Code.ToString()); return;
             }
-            InstallerSettings? defaults = null;
-            if (snapshot!.Origin == SettingsOrigin.SetupRequired)
+            publicDefaults = null;
+            if (snapshot!.Settings is not { ServerCatalog.Length: > 0 })
             {
-                try { defaults = DistributionDefaults.Load(); }
+                try { publicDefaults = loadDistributionDefaults(); }
                 catch (ManagementException) { StatusText.Text = "Public defaults could not be read. Enter an explicit catalog."; }
             }
-            PopulateEditor(snapshot.Settings ?? defaults);
+            PopulateEditor(snapshot.Settings);
             dirty = false;
             try
             {
@@ -95,11 +98,10 @@ public partial class MainWindow : Window
             catch (ManagementException e) { PolicyText.Text = e.Message; PolicyText.Visibility = Visibility.Visible; }
             StatusText.Text = snapshot.Origin switch
             {
-                SettingsOrigin.SetupRequired => defaults is null ? "Enter a catalog to get started. Changes are saved automatically." : "The default source is ready. Enter your enterprise mirror to change it.",
+                SettingsOrigin.SetupRequired => "Choose the Briosa public source or configure your organization's source to get started.",
                 SettingsOrigin.MachineDefaults => "Using your organization's defaults. Changes are saved to your personal settings file.",
                 _ => "Settings are saved automatically.",
             };
-            if (defaults is not null) ScheduleSettings();
         }
         finally { populating = false; SetBusy(false); RebuildInventory(); }
     }
@@ -202,6 +204,8 @@ public partial class MainWindow : Window
     {
         if (!initialized) return;
         var editable = !busy && !reviewing;
+        UsePublicSourceButton.Visibility = UsePublicSourceSettingsButton.Visibility = Show(publicDefaults is not null && !HasSource);
+        UsePublicSourceButton.IsEnabled = UsePublicSourceSettingsButton.IsEnabled = editable && !IsSavingSettings;
         var configured = HasSource && !dirty && !externalChange && !IsSavingSettings;
         SettingsRecoveryBar.Visibility = Show(settingsError is not null);
         UnsavedNavigationText.Visibility = Show(settingsError is not null);

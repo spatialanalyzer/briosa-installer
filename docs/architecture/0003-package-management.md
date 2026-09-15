@@ -43,7 +43,8 @@ controls; production key custody is not provisioned by this review build.
 
 The engineer compares imported key fingerprints through an approved channel.
 Release packaging can supply the real public catalog and key in `public-source.json`.
-That file only seeds first-use source editing; saving settings remains explicit.
+That file supplies the explicit **Use Briosa public source** first-use choice.
+It does not select the source when the app opens or when appearance is saved.
 Installations automatically reads the saved server source. Missing or invalid user configuration never silently
 selects the public source for a request.
 
@@ -130,8 +131,8 @@ fixtures and fake SDK evidence. A Windows Credential Manager fixture is created,
 read, and deleted without accessing other credentials. ACL rules are tested in
 memory; this does not claim clean-machine or enterprise rollout validation.
 
-Before production publication, provision the approved signing identity/public feed,
-apply Windows executable code signing, and validate the intended clean Windows,
+The approved signing identity/public feed and Windows signing workflow are now
+configured. Before a rollout, validate the intended clean Windows,
 proxy/Artifactory, administrative deployment, accessibility, and support environments.
 No real Artifactory account, licensed SA session, or machine-wide store was used
 during the local implementation tests.

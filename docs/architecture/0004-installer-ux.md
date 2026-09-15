@@ -69,7 +69,8 @@ readable source/update states, selection, confirmation focus, SDK evidence, and
 Activity. These checks do not establish full Narrator compatibility, every DPI/text
 scale, Windows high-contrast behavior, clean-machine deployment, or an enterprise's
 real Artifactory/proxy/SSO configuration. Those remain release validation tasks.
-The review package has no production public catalog or signing identity.
+Official release packaging now includes the public catalog and publisher identity;
+local review packages remain unsigned. See [Windows setup](0005-windows-setup.md).
 
 The older application proposal retains prospective SDK maintenance and compatibility
 ideas. It is not evidence that those behaviors exist in this review build.

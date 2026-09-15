@@ -6,9 +6,11 @@ namespace Briosa.Installer.App;
 public partial class App : Application
 {
     private BrandTheme? brandTheme;
+    private Mutex? setupMutex;
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        setupMutex = new Mutex(false, @"Local\BriosaInstallerApplication");
         brandTheme = new BrandTheme(this);
         try
         {
@@ -34,6 +36,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         brandTheme?.Dispose();
+        setupMutex?.Dispose();
         base.OnExit(e);
     }
 }

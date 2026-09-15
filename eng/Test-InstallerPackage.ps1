@@ -1,11 +1,13 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$PackageDirectory,
-    [Parameter(Mandatory)][string]$BriosaRepository
+    [Parameter(Mandatory)][string]$BriosaRepository,
+    [string]$PackageArchive
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $package = (Resolve-Path -LiteralPath $PackageDirectory).Path
+if (-not $PackageArchive) { $PackageArchive = "$package.zip" }
 $testRoot = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) 'Briosa.Packaged.Tests'))
 $caseRoot = [IO.Path]::GetFullPath((Join-Path $testRoot ([Guid]::NewGuid().ToString('N'))))
 $null = New-Item -ItemType Directory -Path $caseRoot -Force
@@ -34,7 +36,7 @@ try {
         Check (Test-Path -LiteralPath (Join-Path $package $notice) -PathType Leaf) "Packaged license or provenance is missing: $notice"
     }
     $demo = Join-Path $caseRoot 'demo'
-    & (Join-Path $PSScriptRoot 'New-ReviewDemo.ps1') -OutputDirectory $demo -BriosaRepository $BriosaRepository -InstallerPackage "$package.zip"
+    & (Join-Path $PSScriptRoot 'New-ReviewDemo.ps1') -OutputDirectory $demo -BriosaRepository $BriosaRepository -InstallerPackage $PackageArchive
     $config = Join-Path $demo 'settings.json'
     $store = Join-Path $demo 'store'
     $initialSettingsHash = (Get-FileHash -LiteralPath $config).Hash

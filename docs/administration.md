@@ -99,7 +99,9 @@ Precedence is explicit `--config`, then
 `%LOCALAPPDATA%\Briosa\Installer\settings.json`, then optional
 `%PROGRAMDATA%\Briosa\Installer\settings.json` defaults. Whole documents do not merge.
 Saving machine defaults through the ordinary GUI creates user settings. Distribution
-public defaults seed the editor only when no selected configuration exists.
+public defaults are offered through **Use Briosa public source** only when no
+source is selected. Opening the app, changing appearance, or navigating does not
+select those defaults or make a public request.
 
 ## Optional machine policy
 
@@ -166,7 +168,21 @@ version selection remains committed and the error calls for an authorized retry.
 Settings and server packages stay separate. Omit `--bootstrap` only when deliberately
 managing that executable separately.
 
-Keep the initial distribution in a permanent directory. The optional
+The standard setup EXE installs for the current Windows user, creates a Start
+menu shortcut, and appears in Windows Installed apps. Setup is complete offline;
+`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` supports unattended deployment to that
+user, with `/DIR="<directory>"` for a managed location. Close Briosa Installer
+before running setup or uninstall. No SA or SDK processes are stopped.
+The first setup release does not offer an all-users application installation;
+administrator CLI deployment to the protected server package store remains supported.
+
+Uninstall through Installed apps retains settings, credentials, and managed
+packages. Remove unwanted packages using the app/CLI first. Setup upgrades clear
+only an older selected installer so the newly installed version can start; newer
+selections are preserved. The Installed apps version identifies the setup package;
+the app displays the actual running version, including downloaded updates.
+
+For portable ZIP deployment, keep the complete distribution in a permanent directory. The optional
 `Install-DesktopShortcut.ps1` creates a user Start menu entry. For machine/custom
 stores or explicit settings, include the corresponding arguments in your managed
 shortcut. Remove versions through the app; deleting the standalone folder/shortcut

@@ -1,9 +1,18 @@
-# Briosa Installer review build
+# Using Briosa Installer
 
-This Windows x64 distribution contains the .NET runtime. Extract its complete
-directory to a permanent location and open `Briosa.Launcher.exe`. No separate
-.NET installation, SpatialAnalyzer installation, or network bootstrap is needed.
-Optionally run `Install-DesktopShortcut.ps1` to create a Start menu entry.
+Download the Windows setup EXE from [Install Briosa](https://briosa.dev/install),
+open it, and follow the setup wizard. Setup installs for your Windows account,
+adds **Briosa Installer** to Start, and registers an uninstaller in Windows
+**Settings → Apps → Installed apps**. The complete .NET runtime is included.
+No SpatialAnalyzer installation or network bootstrap is needed to open the app.
+
+The optional ZIP is for portable/managed deployment: extract its complete directory
+to a permanent location and open `Briosa.Launcher.exe`. The optional
+`Install-DesktopShortcut.ps1` creates a Start menu entry for that portable copy.
+
+Uninstall removes the application and shortcut while retaining settings,
+credentials, and managed packages. Remove unwanted packages through the app first.
+Setup upgrades preserve these data and any selected installer newer than setup.
 
 For repository review, `eng/New-ReviewDemo.ps1` generates a signed local feed and
 settings file. Launch with `--config <demo>/settings.json --store <demo>/store`.
@@ -16,7 +25,9 @@ expires in seven days; regenerate the demo after expiry.
 
 1. **Installations:** local inventory and available servers load automatically
    from the saved source. **Refresh** reloads both. On an unconfigured first use,
-   choose **Configure package source**. Empty, loading, failed, and filtered views
+   choose **Use Briosa public source** or **Configure package source** for an
+   enterprise/offline source. No public request occurs before that choice.
+   Empty, loading, failed, and filtered views
    explain the next action. A failed source keeps installed versions visible;
    use **Try again** or **Refresh** when the source is available.
 2. **Settings → Package sources:** enter an HTTPS catalog URL or browse to a local
@@ -80,10 +91,9 @@ uses `%PROGRAMDATA%\Briosa\Packages` from an authorized administrator terminal.
 The GUI does not silently elevate. Settings live separately under
 `%LOCALAPPDATA%\Briosa\Installer`, with an optional explicit `--config` file.
 
-The public production catalog and signing identity are release infrastructure,
-and are not provisioned by this local review build. Use the included review
-walkthrough's generated local feed or an approved internal signed catalog. This
-does not declare invented demo SA versions to be supported products.
+Official packages include the public source and approved publisher key. An unchanged
+enterprise mirror uses the same key. Demo versions remain inert fixtures and are
+never a supported SA release matrix.
 
 ## Scripted use
 
@@ -101,7 +111,8 @@ File shares use the caller's normal Windows filesystem identity.
 Initial bootstrap trust applies to the complete downloaded distribution itself.
 The publisher signature used for subsequent catalog/package operations is separate
 from Windows executable code signing. This local review artifact is not represented
-as a publicly signed production release.
+as a publicly signed production release. Official setup, uninstaller, and first-party
+executables carry timestamped signatures with Windows publisher **David Lucas**.
 
 The [administration guide](administration.md) covers mirror layout, authentication,
 optional policy, and machine deployment. The repository

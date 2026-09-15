@@ -265,6 +265,28 @@ public sealed class PackageStore
         InstallerJson.Write(Path.Combine(Root, "active-installer.json"), new ActiveInstaller(1, id));
         if (IsMachineStore && OperatingSystem.IsWindows()) WindowsStoreProtection.SealFile(Path.Combine(Root, "active-installer.json"));
     }
+    // A completed conventional setup may supersede an older selection. Newer
+    // selections and all immutable products stay intact; later explicit rollback
+    // remains possible through ActivateInstallerAsync.
+    public bool PreferBundledInstaller(string version)
+    {
+        if (!ReleaseVersion.IsValid(version)) throw new ManagementException(ManagementError.InvalidInput);
+        SafeFiles.NoLinks(Root);
+        if (!Directory.Exists(Root)) return false;
+        using var held = Lock();
+        RequireRecovered();
+        var pointer = SafeFiles.Child(Root, "active-installer.json");
+        SafeFiles.NoLinks(pointer);
+        if (!File.Exists(pointer)) return false;
+        var selected = InstallerJson.Read<ActiveInstaller>(pointer);
+        if (selected.SchemaVersion != 1) throw new ManagementException(ManagementError.InvalidManifest);
+        var package = List().SingleOrDefault(p => p.Id == selected.Id && p.Receipt.Package.Component == CatalogComponent.Installer)
+            ?? throw new ManagementException(ManagementError.PackageNotFound);
+        EnterprisePolicy.Load()?.ValidateInstalled(package.Receipt.Publisher.Fingerprint, Root);
+        if (ReleaseVersion.Compare(package.Version, version) >= 0) return false;
+        File.Delete(pointer);
+        return true;
+    }
     // Selection metadata is useful for UI status; launching still requires ResolveActiveInstallerAsync verification.
     public InstalledPackage? ReadInstallerSelection()
     {
