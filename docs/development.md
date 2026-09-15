@@ -57,7 +57,11 @@ When production hosting and its approved key exist, supply `-PublicSettingsFile`
 with a valid settings document containing the actual HTTPS public catalog and
 publisher public key. These values seed first-use source editing. Engineers can
 reconfigure the normal installer without an enterprise-customized build.
-Production executable signing and key custody are release responsibilities.
+Production release workflows now use the reviewed public defaults and timestamp
+first-party code with Azure Artifact Signing before rebuilding package hashes.
+See the [release-signing runbook](https://github.com/spatialanalyzer/briosa/blob/main/docs/maintainers/release-signing.md)
+for identity configuration, manual validation, pinned tooling, and key maintenance.
+Ordinary CI and the local command above remain unsigned and need no Azure access.
 
 ## Offline review demo
 
