@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: 1e612fe39085805a54fc0784d3f59ba259c89ade
+          ref: be5f50b4bc5c6a3043908fde46af37d6d7b29bb1
           path: .support/briosa
           persist-credentials: false
       - name: Resolve version
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: 1e612fe39085805a54fc0784d3f59ba259c89ade
+          ref: be5f50b4bc5c6a3043908fde46af37d6d7b29bb1
           path: .support/briosa
           persist-credentials: false
       - uses: actions/download-artifact@v8
