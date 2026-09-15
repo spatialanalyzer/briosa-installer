@@ -53,15 +53,36 @@ licenses, documentation, checksums, and manifest. It requires no network bootstr
 or separately installed .NET. Adjacent provenance matches the embedded manifest.
 Package assembly does not contact SA or publish a release.
 
-When production hosting and its approved key exist, supply `-PublicSettingsFile`
+Supply `-PublicSettingsFile`
 with a valid settings document containing the actual HTTPS public catalog and
-publisher public key. These values seed first-use source editing. Engineers can
+publisher public key. These values back the explicit first-use public-source choice. Engineers can
 reconfigure the normal installer without an enterprise-customized build.
 Production release workflows now use the reviewed public defaults and timestamp
 first-party code with Azure Artifact Signing before rebuilding package hashes.
 See the [release-signing runbook](https://github.com/spatialanalyzer/briosa/blob/main/docs/maintainers/release-signing.md)
 for identity configuration, manual validation, pinned tooling, and key maintenance.
 Ordinary CI and the local command above remain unsigned and need no Azure access.
+
+## Build conventional Windows setup
+
+The setup wraps the complete distribution above. It installs per-user and adds
+the launcher shortcut and Windows Installed apps uninstaller:
+
+```powershell
+./eng/Install-SetupCompiler.ps1
+./eng/Build-Setup.ps1 -PackageDirectory ./artifacts/review/briosa-installer-0.1.0-review.7-win-x64 -OutputDirectory ./artifacts/setup -TestIdentity
+./eng/Test-Setup.ps1 -SetupPath ./artifacts/setup/briosa-installer-0.1.0-review.7-win-x64-setup.exe -PackageDirectory ./artifacts/review/briosa-installer-0.1.0-review.7-win-x64 -TestIdentity
+```
+
+Local tests use a separate product/shortcut identity and temporary store. Production
+identity installation tests run only on disposable CI accounts. Release workflows
+sign the uninstaller, embed it in setup, sign setup, and run the same lifecycle test
+with signature verification. They also exercise the complete final signed ZIP.
+CI additionally installs an older setup-version fixture containing the same app
+payload, upgrades it, verifies replacement of a damaged app file, and rejects a
+subsequent setup downgrade. The fixture version override is restricted to unsigned
+test identities; it cannot label a production setup with a different package version.
+See [setup design](architecture/0005-windows-setup.md) for ownership and update rules.
 
 ## Offline review demo
 

@@ -26,6 +26,7 @@ internal static partial class Program
             using var brandTheme = new BrandTheme(app);
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             ExerciseSources(directory);
+            ExercisePublicSourceChoice(directory);
             ExerciseAutomaticCatalogLoading();
             ExerciseAppearance(directory, args);
             ExerciseSdkInstallationOverview();

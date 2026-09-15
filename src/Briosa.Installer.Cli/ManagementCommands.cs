@@ -19,7 +19,7 @@ public static class ManagementCommands
                 "credentials" => ["--config", "--component", "--mode", "--username"],
                 "trust" => ["--config", "--component", "--key", "--fingerprint"],
                 "diagnostics" => ["--config", "--output"],
-                "app" => ["--store", "--id", "--yes", "--bootstrap"],
+                "app" => ["--store", "--id", "--yes", "--bootstrap", "--version"],
                 "settings-import" => ["--config", "--input"],
                 "settings-export" => ["--config", "--output"],
                 _ => throw new ManagementException(ManagementError.InvalidInput),
@@ -72,6 +72,13 @@ public static class ManagementCommands
             }
             else if (group == "app")
             {
+                if (action == "prefer-bundled")
+                {
+                    if (options.Keys.Any(key => key is not ("--store" or "--version" or "--yes"))) throw new ManagementException(ManagementError.InvalidInput);
+                    Confirm();
+                    output.WriteLine(packages.PreferBundledInstaller(Required("--version")) ? "Older installer selection cleared. Start the installed launcher." : "Existing installer selection preserved.");
+                    return 0;
+                }
                 if (action != "activate") throw new ManagementException(ManagementError.InvalidInput);
                 Confirm(); await packages.ActivateInstallerAsync(Required("--id"), token);
                 if (options.TryGetValue("--bootstrap", out var bootstrap)) await BootstrapUpdater.RefreshAsync(packages, Required("--id"), bootstrap, token);

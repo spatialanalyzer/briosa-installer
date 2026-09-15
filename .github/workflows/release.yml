@@ -67,7 +67,7 @@ jobs:
     needs: package
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-2025
-    timeout-minutes: 20
+    timeout-minutes: 35
     environment: release-signing
     permissions:
       contents: read
@@ -107,6 +107,65 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Signed CLI failed.' }
           $launcher = Start-Process -FilePath "./artifacts/final-verification/$name/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
           if ($launcher.ExitCode -ne 0) { throw 'Signed launcher failed.' }
+          ./eng/Test-InstallerPackage.ps1 -PackageDirectory "artifacts/final-verification/$name" -PackageArchive "artifacts/signed/$name.zip" -BriosaRepository "$PWD/.support/briosa"
+      - name: Install pinned setup compiler
+        shell: pwsh
+        run: ./eng/Install-SetupCompiler.ps1
+      - name: Prepare the uninstaller for signing
+        id: setup
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          $uninstaller = ./eng/Build-Setup.ps1 -PackageDirectory "artifacts/final-verification/briosa-installer-$env:PACKAGE_VERSION-win-x64" -OutputDirectory artifacts/setup -Mode prepare-signing
+          [IO.File]::WriteAllText("$PWD/artifacts/uninstaller-signing.txt", "$uninstaller`n")
+          $config = Get-Content .support/briosa/eng/signing/azure.json -Raw | ConvertFrom-Json
+          "endpoint=$($config.endpoint)" >> $env:GITHUB_OUTPUT
+          "account=$($config.account)" >> $env:GITHUB_OUTPUT
+          "profile=$($config.certificateProfile)" >> $env:GITHUB_OUTPUT
+      - name: Sign the uninstaller
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82
+        with:
+          endpoint: ${{ steps.setup.outputs.endpoint }}
+          signing-account-name: ${{ steps.setup.outputs.account }}
+          certificate-profile-name: ${{ steps.setup.outputs.profile }}
+          files-catalog: artifacts/uninstaller-signing.txt
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Briosa Installer
+          description-url: https://briosa.dev
+          exclude-environment-credential: true
+          cache-dependencies: false
+      - name: Compile setup with the signed uninstaller
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          $setup = ./eng/Build-Setup.ps1 -PackageDirectory "artifacts/final-verification/briosa-installer-$env:PACKAGE_VERSION-win-x64" -OutputDirectory artifacts/setup -Mode signed
+          [IO.File]::WriteAllText("$PWD/artifacts/setup-signing.txt", "$setup`n")
+      - name: Sign the setup executable
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82
+        with:
+          endpoint: ${{ steps.setup.outputs.endpoint }}
+          signing-account-name: ${{ steps.setup.outputs.account }}
+          certificate-profile-name: ${{ steps.setup.outputs.profile }}
+          files-catalog: artifacts/setup-signing.txt
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Briosa Installer Setup
+          description-url: https://briosa.dev/install
+          exclude-environment-credential: true
+          cache-dependencies: false
+      - name: Test signed setup and finalize release files
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          $setup = "artifacts/setup/briosa-installer-$env:PACKAGE_VERSION-win-x64-setup.exe"
+          ./eng/Test-Setup.ps1 -SetupPath $setup -PackageDirectory "artifacts/final-verification/briosa-installer-$env:PACKAGE_VERSION-win-x64" -RequireSignatures
+          ./eng/Complete-Setup.ps1 -SetupPath $setup -OutputDirectory artifacts/signed
       - uses: actions/upload-artifact@v7
         with:
           name: signed-installer
@@ -132,7 +191,7 @@ jobs:
           PACKAGE_VERSION: ${{ needs.package.outputs.version }}
         run: |
           $files = @(Get-ChildItem artifacts/release -File | ForEach-Object FullName)
-          if ($files.Count -ne 3) { throw 'Expected signed ZIP, checksum, and provenance.' }
+          if ($files.Count -ne 5) { throw 'Expected signed setup and checksum, plus signed ZIP, checksum, and provenance.' }
           $arguments = @('release','create',$env:GITHUB_REF_NAME,'--verify-tag','--generate-notes','--title',"Briosa Installer $env:PACKAGE_VERSION")
           if ($env:PACKAGE_VERSION.Contains('-')) { $arguments += '--prerelease' }
           gh @arguments @files

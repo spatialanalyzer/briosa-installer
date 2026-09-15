@@ -3,16 +3,19 @@
 One Windows management application for installing and maintaining Briosa
 distributions for the exact SpatialAnalyzer releases your projects use.
 
-**Status: functional review build.** The .NET 10/WPF app and CLI configure sources
+The .NET 10/WPF app and CLI configure sources
 and authentication, verify signed catalogs and payloads, install exact products
 side by side, verify/repair/remove packages, recover interrupted operations, and
 select installer updates independently of server versions. SDK Setup discovers
 installed SA releases and can change their shared SDK registration through a
 reviewed Hexagon registration procedure. A complete Windows x64 distribution
-includes the .NET runtime.
+includes the .NET runtime. The conventional setup EXE creates a Start menu entry
+and Windows Installed apps uninstaller. See [installation instructions](https://briosa.dev/install)
+and [published releases](https://github.com/spatialanalyzer/briosa-installer/releases)
+for release availability; ordinary local builds are unsigned.
 
-No production release, public catalog, or production signing identity is being
-claimed. Broader vendor installation repair and SDK compatibility remain outside
+Official release workflows use Azure Artifact Signing and the public catalog at
+`https://briosa.dev/downloads/catalog.json`. Broader vendor installation repair and SDK compatibility remain outside
 the implemented runtime contract. See [SDK registration](docs/sdk-registration.md)
 for the supported procedure, prerequisites, and recovery guidance.
 
@@ -113,7 +116,8 @@ The implementation uses .NET 10/WPF with a shared engine, CLI, and version-selec
 launcher. Packaging includes the runtime. Bearer, Basic, and explicitly selected
 Windows authentication are implemented; source configuration and credentials are
 independent of publisher identity. Production key custody, Authenticode signing,
-public catalog hosting, and deployment validation remain release work. See
+and public catalog hosting are configured. Real enterprise and workstation
+acceptance remain environment-specific. See
 [enterprise administration](docs/administration.md).
 
 ## License and product relationship

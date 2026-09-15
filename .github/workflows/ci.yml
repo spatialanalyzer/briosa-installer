@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
       DOTNET_NOLOGO: 'true'
@@ -46,3 +46,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Packaged CLI failed.' }
           $launcher = Start-Process -FilePath "$package/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
           if ($launcher.ExitCode -ne 0) { throw 'Packaged launcher check failed.' }
+      - name: Build and exercise conventional setup with an isolated identity
+        shell: pwsh
+        run: |
+          ./eng/Install-SetupCompiler.ps1
+          $package = './artifacts/ci-distribution/briosa-installer-0.1.0-ci-win-x64'
+          $setup = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup -TestIdentity
+          $previous = ./eng/Build-Setup.ps1 -PackageDirectory $package -OutputDirectory artifacts/setup-previous -TestIdentity -TestVersion 0.0.0-setup-test
+          ./eng/Test-Setup.ps1 -SetupPath $previous -UpgradeSetupPath $setup -PackageDirectory $package -TestIdentity

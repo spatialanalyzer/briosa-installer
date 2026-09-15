@@ -141,7 +141,8 @@
               <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="430">
                 <TextBlock x:Name="EmptyTitle" Text="Get your first Briosa server" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" />
                 <TextBlock x:Name="EmptyDescription" TextWrapping="Wrap" TextAlignment="Center" Margin="0,10,0,18" />
-                <Button x:Name="EmptyActionButton" Content="Configure package source" Click="EmptyActionClicked" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" />
+                <Button x:Name="UsePublicSourceButton" Content="Use Briosa public source" Click="UsePublicSourceClicked" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" Margin="0,0,0,10" Visibility="Collapsed" />
+                <Button x:Name="EmptyActionButton" Content="Configure package source" Click="EmptyActionClicked" HorizontalAlignment="Center" />
               </StackPanel>
             </Border>
           </Grid>
@@ -184,6 +185,7 @@
                     <StackPanel>
                       <TextBlock Text="Server packages" Style="{StaticResource SectionHeading}" />
                       <TextBlock Text="Use the public source, your enterprise mirror, or an offline catalog." Style="{StaticResource Muted}" Margin="0,0,0,16" />
+                      <Button x:Name="UsePublicSourceSettingsButton" Content="Use Briosa public source" Click="UsePublicSourceClicked" HorizontalAlignment="Left" Margin="0,0,0,12" Visibility="Collapsed" />
                       <Label Content="Catalog _URL or file" Target="{Binding ElementName=ServerCatalog}" />
                       <DockPanel>
                         <Button Content="Browse…" Click="BrowseSourceClicked" Tag="Server" DockPanel.Dock="Right" Margin="8,0,0,0" />

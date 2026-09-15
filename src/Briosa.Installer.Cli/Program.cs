@@ -124,6 +124,7 @@ public static class CliApplication
         trust import|clear --component server|installer [--config <file>]
               [--key <public-key.pem> --fingerprint <approved-sha256>]
         diagnostics sdk|export [--output <file>] [--config <file>]
+        app prefer-bundled --version <setup-version> [--store <directory>] --yes
         app activate --id <installed-installer-id> [--store <directory>]
                      [--bootstrap <standalone-Briosa.Launcher.exe>] --yes
         settings-import --input <file> [--config <file>]

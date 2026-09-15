@@ -14,6 +14,17 @@ public partial class MainWindow
     private InstallerSettings? testedServerSettings;
     private CatalogSnapshot? testedServerCatalog;
 
+    private async void UsePublicSourceClicked(object sender, RoutedEventArgs e)
+    {
+        if (busy || reviewing || IsSavingSettings || publicDefaults is null || HasSource) return;
+        var baseline = editorBaseline;
+        PopulateEditor(publicDefaults with { Theme = CurrentSettings().Theme });
+        editorBaseline = baseline;
+        InvalidateCatalog(); InvalidateSourceTests();
+        ScheduleSettings();
+        await PersistSettingsAsync();
+    }
+
     private static bool SameSources(InstallerSettings? left, InstallerSettings? right) => left is not null && right is not null &&
         left.Source(CatalogComponent.Server) == right.Source(CatalogComponent.Server) &&
         left.Source(CatalogComponent.Installer) == right.Source(CatalogComponent.Installer);

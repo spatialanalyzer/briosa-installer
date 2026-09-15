@@ -1,5 +1,12 @@
 # Third-party notices
 
+## Windows setup
+
+The conventional setup executable and uninstaller are built with unmodified
+[Inno Setup 7.1.0](https://jrsoftware.org/).
+Copyright (C) 1997–2026 Jordan Russell; portions Copyright (C) 2000–2026 Martijn Laan.
+The Inno Setup notices and About information remain intact in the setup engine.
+
 ## Briosa identity
 
 The logo, icon, and palette are copied from

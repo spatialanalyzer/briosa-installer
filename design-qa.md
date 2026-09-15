@@ -1,5 +1,33 @@
 # Design validation
 
+## Conventional setup and first-use source choice — 2026-09-15
+
+The release candidate adds a conventional per-user Windows setup wizard and an
+explicit public-source choice. First-use WPF checks exercise opening, appearance
+changes, navigation, closing/reopening, public selection, and enterprise selection
+using the real distribution-default loader and isolated request recording.
+No public request or source save occurs before selection.
+
+Local validation passed: locked Release build, 169 core/CLI tests, WPF workflows
+and both contrast palettes, complete offline publishing, final packaged
+install/verify/repair/remove/update/launcher workflows, and local documentation
+links. The setup lifecycle test verifies HKCU Installed apps registration, the
+launcher shortcut, exact installed payload hashes, CLI/launcher behavior,
+reinstall, upgrade with file replacement, downgrade rejection, running-application
+protection for setup and uninstall, and preservation of unowned data. Test products
+use a distinct identity and isolated package store.
+
+Native setup review inspected the welcome, license, destination, and ready pages,
+keyboard navigation, and cancellation. This was the unsigned local candidate;
+Azure signature verification and production-identity setup tests run in the
+release workflow before publishing. Local evidence is under
+`artifacts/setup-candidate-2` and the retained `Briosa.Setup.Tests` temporary logs.
+
+Real Artifactory/proxy validation, a standard-user managed rollout, native
+high-contrast/Narrator, and mixed-monitor DPI acceptance remain unverified. Existing
+fixture and native-review evidence does not establish those broader claims.
+No SA activation or vendor registration changes occurred for this work.
+
 ## Current review: theme-aware interaction colors
 
 Scope: selection, text highlighting, focus and interaction states in the existing
