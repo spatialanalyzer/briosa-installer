@@ -84,6 +84,11 @@ jobs:
         with:
           name: unsigned-installer
           path: artifacts/unsigned
+      # The shared signing checkout has its own older SDK pin. Signing tools
+      # execute from this repository, so provision its global.json SDK as well.
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
       - name: Sign the installer, CLI, launcher, and shortcut script
         id: sign
         uses: ./.support/briosa/.github/actions/sign-package
