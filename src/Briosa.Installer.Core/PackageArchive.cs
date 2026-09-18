@@ -76,12 +76,13 @@ public static class PackageArchive
             throw new ManagementException(ManagementError.InvalidManifest);
         if (package.Component == CatalogComponent.Server)
         {
-            if (!root.TryGetProperty("schemaVersion", out var schema) || schema.ValueKind != JsonValueKind.Number || !schema.TryGetInt32(out var version) || version != 2 ||
+            if (!root.TryGetProperty("schemaVersion", out var schema) || schema.ValueKind != JsonValueKind.Number || !schema.TryGetInt32(out var version) || version is not (2 or 3) ||
                 Text("spatialAnalyzerTarget") != package.SpatialAnalyzerTarget || Text("protocolPackage") != "briosa" ||
                 !root.TryGetProperty("spatialAnalyzerBundled", out var bundled) || bundled.ValueKind != JsonValueKind.False ||
                 !hashes.ContainsKey("Briosa.Server.exe") || !hashes.ContainsKey("Briosa.Worker.exe") || provenancePath is null ||
                 !File.ReadAllBytes(provenancePath).AsSpan().SequenceEqual(File.ReadAllBytes(manifestPath)))
                 throw new ManagementException(ManagementError.InvalidManifest);
+            if (version == 3) InstallationRegistration.ValidateCompatibility(root);
         }
         else if (Text("component") != "installer" || !hashes.ContainsKey("Briosa.Installer.exe") || !hashes.ContainsKey("Briosa.Installer.Cli.exe") || !hashes.ContainsKey("Briosa.Launcher.exe") ||
             !root.TryGetProperty("schemaVersion", out var installerSchema) || installerSchema.ValueKind != JsonValueKind.Number || !installerSchema.TryGetInt32(out var installerVersion) || installerVersion != 1 ||

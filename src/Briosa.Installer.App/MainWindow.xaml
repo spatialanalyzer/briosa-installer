@@ -319,6 +319,8 @@
                       <TextBlock x:Name="StoreLocationText" TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0" />
                       <WrapPanel Margin="0,14,0,0">
                         <Button x:Name="RefreshInstallerVersionsButton" Content="Refresh local inventory" Click="RefreshInstalledClicked" Margin="0,0,8,8" />
+                        <Button x:Name="RegisterInstallationsButton" Content="Register existing installations" Click="RegisterInstallationsClicked" Margin="0,0,8,8"
+                                ToolTip="Make committed products in this location discoverable by Briosa clients." />
                         <Button x:Name="RecoverInstallerStoreButton" Content="Recover interrupted operations…" Click="RecoverStoreClicked" Margin="0,0,8,8" />
                       </WrapPanel>
                     </StackPanel>

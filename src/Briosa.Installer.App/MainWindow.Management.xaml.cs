@@ -10,6 +10,7 @@ namespace Briosa.Installer.App;
 public partial class MainWindow
 {
     private PackageStore packageStore;
+    private readonly IInstallationRegistry? installationRegistry;
     private readonly ICredentialStore credentials;
     private readonly ISdkDiscovery sdkDiscovery;
     private readonly ActivityStore activity;
@@ -36,7 +37,8 @@ public partial class MainWindow
     {
         if (!initialized || busy || configuringScope) return;
         packageStore = StoreScope.SelectedIndex == 2 && customStore is not null ? customStore :
-            new PackageStore(StoreScope.SelectedIndex == 1 ? PackageStore.MachineRoot : PackageStore.UserRoot, credentials);
+            new PackageStore(StoreScope.SelectedIndex == 1 ? PackageStore.MachineRoot : PackageStore.UserRoot, credentials,
+                installationRegistry: installationRegistry);
         pendingInstallerVersion = null; installedPackages = [];
         UpdateScopeLabels(); OperationStatusText.Text = UpdateOperationStatusText.Text = "";
         await RefreshInventoryAsync();
@@ -114,6 +116,7 @@ public partial class MainWindow
                 "Package.Repair" => $"Briosa {package?.ComponentName} {package?.Version} repaired and verified.",
                 "Package.Remove" => $"Briosa {package?.ComponentName} {package?.Version} removed. Other versions are unchanged.",
                 "Package.Recover" => "Interrupted package operations recovered.",
+                "Package.Register" => "Server installations in this location are registered for client discovery.",
                 _ => "Completed.",
             }) + (inventoryFailure is null ? "" : "\n" + inventoryFailure);
             RecoverStoreButton.Visibility = Visibility.Collapsed;
@@ -235,6 +238,16 @@ public partial class MainWindow
         await RunOperationAsync("Package.Recover", _ => { packageStore.Recover(); return Task.CompletedTask; }, IsInstallerAction(sender));
     }
     private void CancelOperationClicked(object sender, RoutedEventArgs e) => operation?.Cancel();
+
+    private async void RegisterInstallationsClicked(object sender, RoutedEventArgs e)
+    {
+        if (busy) return;
+        await RunOperationAsync("Package.Register", _ =>
+        {
+            packageStore.RegisterInstallations();
+            return Task.CompletedTask;
+        }, false);
+    }
 
     private async void ActivateInstallerClicked(object sender, RoutedEventArgs e)
     {

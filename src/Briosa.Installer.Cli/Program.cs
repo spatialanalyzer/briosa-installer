@@ -14,7 +14,8 @@ public static class Program
             if (args.FirstOrDefault() == "sdk")
                 return SdkCommands.RunAsync(args[1..], Console.Out, Console.Error).GetAwaiter().GetResult();
             if (args.FirstOrDefault() is "packages" or "credentials" or "trust" or "diagnostics" or "app" or "settings-import" or "settings-export")
-                return ManagementCommands.RunAsync(args, Console.Out, Console.Error, cancellation.Token).GetAwaiter().GetResult();
+                return ManagementCommands.RunAsync(args, Console.Out, Console.Error, cancellation.Token,
+                    new WindowsInstallationRegistry()).GetAwaiter().GetResult();
             return args.FirstOrDefault() == "catalog"
                 ? CatalogCommands.RunAsync(args[1..], Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser(), cancellationToken: cancellation.Token).GetAwaiter().GetResult()
                 : CliApplication.Run(args, Console.Out, Console.Error, ConfigurationPaths.ForCurrentUser());
@@ -114,7 +115,7 @@ public static class CliApplication
         catalog list --component server|installer [--config <file>]
         catalog preview --component server|installer --id <package-id> [--config <file>]
 
-        packages list|verify|recover|remove|install|repair [--store <directory>]
+        packages list|verify|recover|register|remove|install|repair [--store <directory>]
         sdk plan --installation <SA-directory>
         sdk use --installation <SA-directory> --review-sha256 <reviewed-plan-hash> --yes
                  [--id <package-id>] [--component server|installer] [--config <file>]

@@ -21,14 +21,16 @@ public partial class MainWindow : Window
 
     public MainWindow(ConfigurationPaths paths, ReleaseCatalogClient? catalogClient = null, PackageStore? packageStore = null,
         ICredentialStore? credentials = null, ISdkDiscovery? sdkDiscovery = null, Func<string, string, bool>? confirmAction = null, string? bootstrapPath = null,
-        ISdkRegistrationService? sdkRegistration = null, Func<InstallerSettings?>? distributionDefaults = null)
+        ISdkRegistrationService? sdkRegistration = null, Func<InstallerSettings?>? distributionDefaults = null,
+        IInstallationRegistry? installationRegistry = null)
     {
         this.paths = paths;
         loadDistributionDefaults = distributionDefaults ?? (() => DistributionDefaults.Load());
         this.credentials = credentials ?? new WindowsCredentialStore();
         this.catalogClient = catalogClient ?? new ReleaseCatalogClient(credentials: this.credentials);
         ownsCatalogClient = catalogClient is null;
-        this.packageStore = packageStore ?? new PackageStore(credentials: this.credentials);
+        this.installationRegistry = installationRegistry;
+        this.packageStore = packageStore ?? new PackageStore(credentials: this.credentials, installationRegistry: installationRegistry);
         this.sdkDiscovery = sdkDiscovery ?? new WindowsSdkDiscovery();
         this.sdkRegistration = sdkRegistration ?? new SdkRegistrationService();
         this.confirmAction = confirmAction; this.bootstrapPath = bootstrapPath;
@@ -250,6 +252,7 @@ public partial class MainWindow : Window
         OperationProgress.Visibility = Show(operation is not null && !installerOperation);
         UpdateProgress.Visibility = Show(operation is not null && installerOperation);
         RecoverStoreButton.IsEnabled = RecoverInstallerStoreButton.IsEnabled = editable;
+        RegisterInstallationsButton.IsEnabled = editable;
         RefreshSdkButton.IsEnabled = editable && startupComplete && !sdkReading;
         // Keep the read-only evidence readable/selectable during maintenance.
         // Only actions need disabling; the native disabled DataGrid paints a white surface.

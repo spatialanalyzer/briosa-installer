@@ -25,8 +25,10 @@ public sealed class PackageStore
     public string Root { get; }
     private readonly ICredentialStore? credentials;
     private readonly HttpMessageHandler? handler;
-    public PackageStore(string? root = null, ICredentialStore? credentials = null, HttpMessageHandler? handler = null)
-    { Root = Path.GetFullPath(root ?? UserRoot); this.credentials = credentials; this.handler = handler; }
+    private readonly IInstallationRegistry? installationRegistry;
+    public PackageStore(string? root = null, ICredentialStore? credentials = null, HttpMessageHandler? handler = null,
+        IInstallationRegistry? installationRegistry = null)
+    { Root = Path.GetFullPath(root ?? UserRoot); this.credentials = credentials; this.handler = handler; this.installationRegistry = installationRegistry; }
     private string Products => SafeFiles.Child(Root, "products");
     private string Transactions => SafeFiles.Child(Root, "transactions");
     private bool IsMachineStore => Root.TrimEnd('\\', '/').Equals(MachineRoot, StringComparison.OrdinalIgnoreCase);
@@ -208,7 +210,10 @@ public sealed class PackageStore
                 throw;
             }
             progress?.Report(new("Package installed"));
-            return new(receipt, destination);
+            var installed = new InstalledPackage(receipt, destination);
+            if (package.Component == CatalogComponent.Server)
+                installationRegistry?.Write(IsMachineStore, InstallationRegistration.From(installed));
+            return installed;
         }
         catch (OperationCanceledException) { throw new ManagementException(token.IsCancellationRequested ? ManagementError.Cancelled : ManagementError.TimedOut); }
         finally
@@ -235,6 +240,7 @@ public sealed class PackageStore
             using (SafeFiles.LockFiles(destination)) { }
             try { Directory.Move(destination, Path.Combine(transaction, "old")); }
             catch (IOException) { throw new ManagementException(ManagementError.InUse); }
+            installationRegistry?.Remove(IsMachineStore, InstallationRegistration.IdFor(destination));
             SafeFiles.DeleteTree(Transactions, transaction);
         }
         catch
@@ -265,6 +271,28 @@ public sealed class PackageStore
                 Directory.Move(old, destination);
             }
             SafeFiles.DeleteTree(Transactions, transaction);
+        }
+        ReconcileRegistrations();
+    }
+    public void RegisterInstallations()
+    {
+        EnterprisePolicy.Load()?.ValidateScope(Root);
+        using var held = Lock();
+        RequireRecovered();
+        ReconcileRegistrations();
+    }
+    private void ReconcileRegistrations()
+    {
+        if (installationRegistry is null) return;
+        var installed = List().Where(p => p.Receipt.Package.Component == CatalogComponent.Server)
+            .Select(InstallationRegistration.From).ToArray();
+        foreach (var registration in installed) installationRegistry.Write(IsMachineStore, registration);
+        foreach (var registration in installationRegistry.Read(IsMachineStore))
+        {
+            var parent = Path.GetDirectoryName(Path.GetFullPath(registration.ProductDirectory));
+            if (string.Equals(parent, Path.GetFullPath(Products), StringComparison.OrdinalIgnoreCase) &&
+                !installed.Any(p => p.InstallationId == registration.InstallationId))
+                installationRegistry.Remove(IsMachineStore, registration.InstallationId);
         }
     }
     public async Task ActivateInstallerAsync(string id, CancellationToken token = default)
