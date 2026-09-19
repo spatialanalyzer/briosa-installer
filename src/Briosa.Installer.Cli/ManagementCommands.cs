@@ -5,7 +5,8 @@ namespace Briosa.Installer.Cli;
 
 public static class ManagementCommands
 {
-    public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error, CancellationToken token = default)
+    public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error, CancellationToken token = default,
+        IInstallationRegistry? installationRegistry = null)
     {
         try
         {
@@ -49,7 +50,7 @@ public static class ManagementCommands
             InstallerSettings Settings() => Load().Settings ?? throw new ManagementException(ManagementError.InvalidInput);
             void Save(SettingsSnapshot snapshot, InstallerSettings value)
             { if (new SettingsStore().Save(snapshot, value) is Outcome<SettingsSnapshot>.Failure) throw new ManagementException(ManagementError.InvalidInput); }
-            var packages = new PackageStore(options.GetValueOrDefault("--store"));
+            var packages = new PackageStore(options.GetValueOrDefault("--store"), installationRegistry: installationRegistry);
             var activity = new ActivityStore(Path.GetDirectoryName(paths.ExplicitFile ?? paths.UserFile)!);
             if (group == "packages")
             {
@@ -58,6 +59,7 @@ public static class ManagementCommands
                     case "list": output.WriteLine(JsonSerializer.Serialize(packages.List(), InstallerJson.Options)); return 0;
                     case "verify": await packages.VerifyAsync(Required("--id"), token); break;
                     case "recover": Confirm(); packages.Recover(); break;
+                    case "register": Confirm(); packages.RegisterInstallations(); break;
                     case "remove": Confirm(); packages.Remove(Required("--id")); break;
                     case "install": case "repair":
                         Confirm();

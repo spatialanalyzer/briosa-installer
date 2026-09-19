@@ -25,7 +25,9 @@ public partial class App : Application
             var paths = ConfigurationPaths.ForCurrentUser(config);
             if (new SettingsStore().Load(paths) is Outcome<SettingsSnapshot>.Success { Value.Settings: { } settings })
                 BrandTheme.ApplyPreference(this, settings.Theme);
-            new MainWindow(paths, packageStore: new PackageStore(store), bootstrapPath: bootstrap).Show();
+            var registrations = new WindowsInstallationRegistry();
+            new MainWindow(paths, packageStore: new PackageStore(store, installationRegistry: registrations),
+                bootstrapPath: bootstrap, installationRegistry: registrations).Show();
         }
         catch (Exception exception) when (exception is ArgumentException or NotSupportedException or System.IO.IOException or UnauthorizedAccessException)
         {

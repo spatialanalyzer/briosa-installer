@@ -9,6 +9,7 @@ public enum ManagementError
     LimitExceeded, UntrustedPublisher, InvalidSignature, ExpiredCatalog, CatalogRollback,
     IntegrityFailure, UnsafeArchive, InvalidManifest, PackageNotFound, AlreadyInstalled,
     StoreBusy, InUse, Cancelled, TimedOut, PolicyDenied, RecoveryRequired, UnsupportedPlatform, BootstrapUpdateFailed,
+    RegistrationIncomplete,
 }
 
 public sealed class ManagementException(ManagementError code) : Exception(MessageFor(code))
@@ -31,6 +32,7 @@ public sealed class ManagementException(ManagementError code) : Exception(Messag
         ManagementError.StoreBusy => "Another package operation is using this store. Wait for it to finish and retry.",
         ManagementError.InUse => "Package files are in use. Stop the owning application normally, then retry.",
         ManagementError.RecoveryRequired => "An interrupted operation needs recovery. Run Recover before changing this store.",
+        ManagementError.RegistrationIncomplete => "Package files were committed, but installation registration is incomplete. Run Recover or Register installations to reconcile discovery.",
         ManagementError.PolicyDenied => "Administrator policy does not permit this source, publisher, or operation.",
         ManagementError.LimitExceeded => "The download exceeds its declared size or the supported package limit.",
         ManagementError.Cancelled => "The operation was cancelled. Existing complete packages were preserved.",

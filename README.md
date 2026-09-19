@@ -27,6 +27,10 @@ current screens, interaction boundaries, and validation limits.
 The app incorporates [Briosa brand v1](docs/branding.md), including the approved
 wordmark, palette, icons, and bundled Inter font.
 
+Server products are registered individually for client discovery. See
+[installation registration](docs/architecture/0007-installation-registration.md)
+for existing-store rescan, custom locations, and recovery behavior.
+
 ## Proposed experience
 
 Install the standard management application once. It defaults to the Briosa
