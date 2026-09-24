@@ -43,6 +43,22 @@ clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
 ## Produce a self-contained distribution
 
+To validate real server packages from a companion Briosa checkout without starting
+the server or SDK, supply a directory containing their ZIPs, checksums, and adjacent
+provenance files:
+
+```powershell
+./eng/Test-ServerPackages.ps1 -ArtifactDirectory ../briosa/artifacts/packages -BriosaRepository ../briosa
+```
+
+The harness creates a disposable publisher key, signed local catalog, settings, and
+private store. It checks schema-3 admission, receipts, coexistence, verification,
+exact-package repair, and removal for at least two server products. Pass `-CliPath`
+to exercise the CLI from an extracted self-contained installer distribution. This
+also covers protocol-only server updates such as the MP argument naming migration.
+The installer needs no application upgrade for this migration and does not alter
+consuming applications' client dependencies.
+
 ```powershell
 ./eng/Publish-Installer.ps1 -Version 0.1.0-review.7 -OutputDirectory ./artifacts/review
 ```
