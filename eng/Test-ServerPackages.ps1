@@ -2,6 +2,7 @@
 param(
     [Parameter(Mandatory)][string]$ArtifactDirectory,
     [Parameter(Mandatory)][string]$BriosaRepository,
+    [ValidateRange(1, 4294967295)][uint32]$ExpectedCompatibilityMajor = 1,
     [string]$CliPath = "src/Briosa.Installer.Cli/bin/Release/net10.0/Briosa.Installer.Cli.exe"
 )
 Set-StrictMode -Version Latest
@@ -34,7 +35,7 @@ try {
     foreach ($file in $provenance) {
         $manifest = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
         Check ($manifest.schemaVersion -eq 3) 'Expected a compatibility-aware server manifest.'
-        Check ($manifest.compatibility.major -eq 1) 'Expected the existing behavioral contract major.'
+        Check ($manifest.compatibility.major -eq $ExpectedCompatibilityMajor) 'Server package has an unexpected behavioral contract major.'
         $archive = Join-Path $artifacts "$($manifest.artifactName).zip"
         Check (Test-Path -LiteralPath $archive -PathType Leaf) 'Server ZIP is missing.'
         Copy-Item -LiteralPath $file.FullName -Destination $feed
@@ -66,7 +67,7 @@ try {
     $null = Invoke-Cli -Arguments @('packages', 'repair', '--component', 'server', '--id', $first,
         '--catalog-sha256', $inventory.catalogSha256, '--config', $config, '--store', $store, '--yes')
     $null = Invoke-Cli -Arguments @('packages', 'verify', '--id', $first, '--store', $store, '--config', $config)
-    Write-Host "Verified $($installed.Count) real server packages: signed catalog, schema-3 manifests, receipts, side-by-side install, verification, and exact-package repair. No server or SDK was launched."
+    Write-Host "Verified $($installed.Count) real server packages at compatibility major ${ExpectedCompatibilityMajor}: signed catalog, schema-3 manifests, receipts, side-by-side install, verification, and exact-package repair. No server or SDK was launched."
 }
 finally {
     # Only products installed by this invocation are removed from its private store.
