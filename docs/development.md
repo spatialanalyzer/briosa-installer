@@ -59,6 +59,25 @@ also covers protocol-only server updates such as the MP argument naming migratio
 The installer needs no application upgrade for this migration and does not alter
 consuming applications' client dependencies.
 
+For a compatibility-major-2 runtime candidate, pass `-ExpectedCompatibilityMajor 2`.
+The default remains 1 for existing release validation. This assertion checks the
+supplied package set; the installer does not negotiate the server's gRPC contract.
+Schema-3 validation accepts a positive compatibility major and preserves the
+manifest unchanged. Language clients select a compatible runtime through Briosa's
+[shared behavioral contract](https://github.com/spatialanalyzer/briosa/blob/main/docs/architecture/client-library-behavioral-contract.md).
+Inert installation does not establish SDK readiness or compatibility with an
+application's existing client dependency.
+
+Local validation on 2026-09-25 passed against unpublished `0.9.0-dev.2` server
+packages from Briosa commit `82b6ce51cb199a4e04ef3c142af4b27a8c34d1e4`
+(compatibility major 2, revision 0), for both SA `2024.1.0508.5` and
+`2026.1.0529.7`. A disposable signed catalog and private store exercised receipts,
+coexistence, verification, and exact-package repair. Test installation records
+were removed during cleanup; no server or SDK was launched and SDK registration
+was unchanged. The locked Release build, all 178 core/CLI tests, and the hidden
+WPF smoke harness also passed. These results validate installer handling of the
+candidate manifests, not a published release or licensed SA compatibility.
+
 ```powershell
 ./eng/Publish-Installer.ps1 -Version 0.1.0-review.7 -OutputDirectory ./artifacts/review
 ```
