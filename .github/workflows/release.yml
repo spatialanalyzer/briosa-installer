@@ -13,16 +13,22 @@ permissions:
 jobs:
   package:
     runs-on: windows-2025
-    timeout-minutes: 25
+    timeout-minutes: 35
     outputs:
       version: ${{ steps.version.outputs.value }}
     steps:
       - uses: actions/checkout@v6
+      - name: Require Briosa support pins reachable from Briosa main
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./eng/Test-BriosaSupportPins.ps1
+      # Tree-identical to the reviewed signing-tool commit be5f50b, squash-merged to main as spatialanalyzer/briosa#174.
       - name: Check out reviewed shared signing tools and public trust root
         uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: be5f50b4bc5c6a3043908fde46af37d6d7b29bb1
+          ref: c19f64d3b048ba33727e0db1ffa8f5806ed6c072
           path: .support/briosa
           persist-credentials: false
       - name: Resolve version
@@ -55,6 +61,23 @@ jobs:
         run: |
           ./eng/Publish-Installer.ps1 -Version $env:PACKAGE_VERSION -OutputDirectory "$PWD/artifacts/unsigned" -PublicSettingsFile "$PWD/.support/briosa/eng/signing/public-source.json"
           ./eng/Test-InstallerPackage.ps1 -PackageDirectory "$PWD/artifacts/unsigned/briosa-installer-$env:PACKAGE_VERSION-win-x64" -BriosaRepository "$PWD/.support/briosa"
+      # Catalog tools must be the Briosa revision that built eng/server-package-candidates.json.
+      - name: Check out the Briosa revision that built the server package candidates
+        uses: actions/checkout@v6
+        with:
+          repository: spatialanalyzer/briosa
+          ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
+          path: .support/briosa-candidates
+          persist-credentials: false
+          sparse-checkout: |
+            eng
+            schemas
+      - name: Validate real server packages for both SA targets with the packaged CLI
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+        run: ./eng/Test-ServerPackageCandidates.ps1 -BriosaRepository "$PWD/.support/briosa-candidates" -ArtifactDirectory "$PWD/artifacts/server-candidates" -CliPath "$PWD/artifacts/unsigned/briosa-installer-$env:PACKAGE_VERSION-win-x64/Briosa.Installer.Cli.exe"
       - uses: actions/upload-artifact@v7
         with:
           name: unsigned-installer
@@ -74,10 +97,11 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
+      # Same reviewed signing-tool pin as the package job.
       - uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: be5f50b4bc5c6a3043908fde46af37d6d7b29bb1
+          ref: c19f64d3b048ba33727e0db1ffa8f5806ed6c072
           path: .support/briosa
           persist-credentials: false
       - uses: actions/download-artifact@v8

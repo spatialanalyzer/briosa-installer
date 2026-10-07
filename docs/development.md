@@ -45,10 +45,10 @@ clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
 To validate real server packages from a companion Briosa checkout without starting
 the server or SDK, supply a directory containing their ZIPs, checksums, and adjacent
-provenance files:
+provenance files, plus the behavioral contract major approved for that set:
 
 ```powershell
-./eng/Test-ServerPackages.ps1 -ArtifactDirectory ../briosa/artifacts/packages -BriosaRepository ../briosa
+./eng/Test-ServerPackages.ps1 -ArtifactDirectory ../briosa/artifacts/packages -BriosaRepository ../briosa -ExpectedCompatibilityMajor 2
 ```
 
 The harness creates a disposable publisher key, signed local catalog, settings, and
@@ -59,14 +59,39 @@ also covers protocol-only server updates such as the MP argument naming migratio
 The installer needs no application upgrade for this migration and does not alter
 consuming applications' client dependencies.
 
-For a compatibility-major-2 runtime candidate, pass `-ExpectedCompatibilityMajor 2`.
-The default remains 1 for existing release validation. This assertion checks the
-supplied package set; the installer does not negotiate the server's gRPC contract.
-Schema-3 validation accepts a positive compatibility major and preserves the
-manifest unchanged. Language clients select a compatible runtime through Briosa's
+`-ExpectedCompatibilityMajor` has no default. It checks the supplied package set;
+the installer does not negotiate the server's gRPC contract. The package engine
+accepts any positive uint32 compatibility major with a uint32 revision and preserves
+the manifest unchanged, so a later major installs side by side without an installer
+change. It rejects zero, negative, fractional, and overflowing coordinates, unknown
+server manifest schemas, another SA target, and provenance that differs from the
+embedded manifest; a rejected package leaves earlier products and registrations intact.
+Language clients select a compatible runtime through Briosa's
 [shared behavioral contract](https://github.com/spatialanalyzer/briosa/blob/main/docs/architecture/client-library-behavioral-contract.md).
 Inert installation does not establish SDK readiness or compatibility with an
 application's existing client dependency.
+
+CI and release packaging run the harness against the reviewed real packages in
+[`eng/server-package-candidates.json`](../eng/server-package-candidates.json): a
+public Briosa release, its approved compatibility major, and each exact-target ZIP
+and provenance digest. It currently lists Server 0.9.2 (major 2) for SA
+`2024.1.0508.5` and `2026.1.0529.7`. `eng/Test-ServerPackageCandidates.ps1`
+downloads absent files from that GitHub release (about 130 MB per target), verifies
+the digests and that each provenance `sourceRevision` equals the supplied Briosa
+checkout, requires the packages to fail at a different major, and then runs the
+harness. The workflows check out that source revision for the catalog tools and read
+no private repository. Changing the candidates, for example to a major-3 server,
+updates the approved major, digests, and workflow pin together for review.
+
+```powershell
+./eng/Test-ServerPackageCandidates.ps1 -BriosaRepository ../briosa -ArtifactDirectory ./artifacts/server-candidates
+```
+
+Workflows check out Briosa tools only at full commit SHAs reachable from Briosa
+`main`; `eng/Test-BriosaSupportPins.ps1` enforces this in CI and before release
+packaging. The release signing pin `c19f64d` is tree-identical to the previously
+reviewed `be5f50b`, which was squash-merged as spatialanalyzer/briosa#174. Never
+float these pins; move one only after reviewing the Briosa scripts it executes.
 
 Local validation on 2026-09-25 passed against unpublished `0.9.0-dev.2` server
 packages from Briosa commit `82b6ce51cb199a4e04ef3c142af4b27a8c34d1e4`

@@ -17,14 +17,16 @@ internal sealed class SignedFeed : IDisposable
     public InstallerSettings Settings => new(CatalogPath, ServerPublisherKey: PublicKey);
     private readonly List<CatalogPackage> packages = [];
     public SignedFeed() => Directory.CreateDirectory(FeedPath);
-    public CatalogPackage AddServer(string version, string? extraEntry = null, string? probeDirectory = null, byte[]? manifestOverride = null)
+    public const string ServerTarget = "2099.1.0101.1";
+    public CatalogPackage AddServer(string version, string? extraEntry = null, string? probeDirectory = null, byte[]? manifestOverride = null,
+        byte[]? provenanceOverride = null)
     {
-        const string target = "2099.1.0101.1";
+        const string target = ServerTarget;
         var name = $"briosa-{version}-sa-{target}-win-x64";
         var manifest = manifestOverride ?? JsonSerializer.SerializeToUtf8Bytes(new { schemaVersion = 2, artifactName = name, briosaVersion = version,
             runtimeIdentifier = "win-x64", spatialAnalyzerTarget = target, protocolPackage = "briosa", spatialAnalyzerBundled = false }, InstallerJson.Options);
         var provenance = Path.Combine(FeedPath, name + ".provenance.json");
-        File.WriteAllBytes(provenance, manifest);
+        File.WriteAllBytes(provenance, provenanceOverride ?? manifest);
         var zipPath = Path.Combine(FeedPath, name + ".zip");
         using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
         {

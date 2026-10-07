@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Win32;
 using Briosa.Installer.Core;
 
@@ -100,38 +101,98 @@ public sealed class InstallationRegistrationTests
         Assert.Equal(other, Assert.Single(registry.Items.Values));
     }
 
+    // The package engine stores any well-formed contract unchanged and does not negotiate
+    // the server's gRPC major. Release validation approves an exact major separately.
     [Theory]
-    [InlineData(1, true)]
-    [InlineData(2, true)]
-    [InlineData(0, false)]
-    [InlineData(-1, false)]
-    public async Task SchemaThreeRequiresAValidContract(int major, bool valid)
+    [InlineData("""{"major":1,"revision":0}""")]
+    [InlineData("""{"major":2,"revision":0}""")]
+    [InlineData("""{"major":3,"revision":7}""")]
+    [InlineData("""{"major":4294967295,"revision":4294967295}""")]
+    public async Task SchemaThreeStoresAnyWellFormedContractUnchanged(string compatibility)
     {
         using var feed = new SignedFeed();
-        var manifest = JsonSerializer.SerializeToUtf8Bytes(new
-        {
-            schemaVersion = 3, artifactName = "briosa-0.7.0-sa-2099.1.0101.1-win-x64",
-            briosaVersion = "0.7.0", runtimeIdentifier = "win-x64",
-            spatialAnalyzerTarget = "2099.1.0101.1", protocolPackage = "briosa",
-            spatialAnalyzerBundled = false, compatibility = new { major, revision = 0 }
-        });
+        var manifest = ServerManifest(compatibility: compatibility);
         var package = feed.AddServer("0.7.0", manifestOverride: manifest);
         feed.Publish();
         var registry = new MemoryRegistry();
         var store = new PackageStore(feed.StorePath, installationRegistry: registry);
-        if (valid)
-        {
-            await store.InstallAsync(feed.Settings, CatalogComponent.Server, package.Id, feed.Hash);
-            Assert.Single(registry.Items);
-        }
-        else
-        {
-            var failure = await Assert.ThrowsAsync<ManagementException>(() =>
-                store.InstallAsync(feed.Settings, CatalogComponent.Server, package.Id, feed.Hash));
-            Assert.Equal(ManagementError.InvalidManifest, failure.Code);
-            Assert.Empty(store.List());
-            Assert.Empty(registry.Items);
-        }
+        var installed = await store.InstallAsync(feed.Settings, CatalogComponent.Server, package.Id, feed.Hash);
+        Assert.Equal(manifest, File.ReadAllBytes(Path.Combine(installed.Directory, "payload", "manifest.json")));
+        Assert.Equal(SignedFeed.ServerTarget, Assert.Single(registry.Items.Values).SpatialAnalyzerTarget);
+    }
+
+    [Theory]
+    [InlineData("""{"major":0,"revision":0}""")]
+    [InlineData("""{"major":-1,"revision":0}""")]
+    [InlineData("""{"major":4294967296,"revision":0}""")]
+    [InlineData("""{"major":18446744073709551616,"revision":0}""")]
+    [InlineData("""{"major":2,"revision":-1}""")]
+    [InlineData("""{"major":2,"revision":4294967296}""")]
+    [InlineData("""{"major":2.5,"revision":0}""")]
+    [InlineData("""{"major":"2","revision":0}""")]
+    [InlineData("""{"major":2}""")]
+    [InlineData("""{"revision":0}""")]
+    [InlineData("null")]
+    [InlineData(Omitted)]
+    public Task SchemaThreeRejectsInvalidOrOverflowingContracts(string compatibility) =>
+        AssertRejectedPreservingExisting(ServerManifest(compatibility: compatibility));
+
+    [Theory]
+    [InlineData(Omitted)]
+    [InlineData("1")]
+    [InlineData("4")]
+    [InlineData("3.5")]
+    [InlineData("\"3\"")]
+    public Task UnknownServerManifestSchemaIsRejected(string schema) =>
+        AssertRejectedPreservingExisting(ServerManifest(schema: schema));
+
+    [Theory]
+    [InlineData("2026.1.0529.7")]
+    [InlineData("2099.1.0101.2")]
+    public Task ManifestForAnotherTargetIsRejected(string target) =>
+        AssertRejectedPreservingExisting(ServerManifest(target: target));
+
+    [Fact]
+    public async Task ProvenanceMustMatchTheEmbeddedManifestByteForByte()
+    {
+        var manifest = ServerManifest();
+        await AssertRejectedPreservingExisting(manifest, ServerManifest(compatibility: """{"major":3,"revision":0}"""));
+        await AssertRejectedPreservingExisting(manifest, [.. manifest, (byte)'\n']);
+    }
+
+    private const string Omitted = "<omitted>";
+
+    private static byte[] ServerManifest(string schema = "3", string compatibility = """{"major":2,"revision":0}""",
+        string target = SignedFeed.ServerTarget)
+    {
+        var manifest = new JsonObject();
+        if (schema != Omitted) manifest["schemaVersion"] = JsonNode.Parse(schema);
+        manifest["artifactName"] = $"briosa-0.7.0-sa-{SignedFeed.ServerTarget}-win-x64";
+        manifest["briosaVersion"] = "0.7.0";
+        manifest["runtimeIdentifier"] = "win-x64";
+        manifest["spatialAnalyzerTarget"] = target;
+        manifest["protocolPackage"] = "briosa";
+        manifest["spatialAnalyzerBundled"] = false;
+        if (compatibility != Omitted) manifest["compatibility"] = JsonNode.Parse(compatibility);
+        return JsonSerializer.SerializeToUtf8Bytes(manifest);
+    }
+
+    // A rejected candidate must leave an earlier complete product and its registration intact.
+    private static async Task AssertRejectedPreservingExisting(byte[] manifest, byte[]? provenance = null)
+    {
+        using var feed = new SignedFeed();
+        var existing = feed.AddServer("0.6.1");
+        var candidate = feed.AddServer("0.7.0", manifestOverride: manifest, provenanceOverride: provenance);
+        feed.Publish();
+        var registry = new MemoryRegistry();
+        var store = new PackageStore(feed.StorePath, installationRegistry: registry);
+        await store.InstallAsync(feed.Settings, CatalogComponent.Server, existing.Id, feed.Hash);
+        var failure = await Assert.ThrowsAsync<ManagementException>(() =>
+            store.InstallAsync(feed.Settings, CatalogComponent.Server, candidate.Id, feed.Hash));
+        Assert.Equal(ManagementError.InvalidManifest, failure.Code);
+        Assert.Equal(existing.Id, Assert.Single(store.List()).Id);
+        await store.VerifyAsync(existing.Id);
+        Assert.Equal(existing.Id, Assert.Single(registry.Items.Values).PackageId);
     }
 
     private sealed class MemoryRegistry : IInstallationRegistry

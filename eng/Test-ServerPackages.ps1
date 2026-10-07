@@ -2,7 +2,9 @@
 param(
     [Parameter(Mandatory)][string]$ArtifactDirectory,
     [Parameter(Mandatory)][string]$BriosaRepository,
-    [ValidateRange(1, 4294967295)][uint32]$ExpectedCompatibilityMajor = 1,
+    # The approved behavioral contract major for this package set. There is no default: the
+    # package engine accepts any positive major, so release validation must state which it expects.
+    [Parameter(Mandatory)][ValidateRange(1, 4294967295)][uint32]$ExpectedCompatibilityMajor,
     [string]$CliPath = "src/Briosa.Installer.Cli/bin/Release/net10.0/Briosa.Installer.Cli.exe"
 )
 Set-StrictMode -Version Latest
