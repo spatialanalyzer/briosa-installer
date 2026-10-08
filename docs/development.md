@@ -89,7 +89,11 @@ updates the approved major, digests, and workflow pin together for review.
 
 Workflows check out Briosa tools only at full commit SHAs reachable from Briosa
 `main`; `eng/Test-BriosaSupportPins.ps1` enforces this in CI and before release
-packaging. The release signing pin `c19f64d` is tree-identical to the previously
+packaging. It accepts a literal `repository:` with one sibling `ref:` (quoted or
+not) and `uses: spatialanalyzer/briosa/<path>@<sha>`; any other reference to the
+repository, including flow mappings, expression-valued repositories, and clone
+URLs, fails closed. CI runs `eng/Test-BriosaSupportPinChecks.ps1` to keep those
+rejections covered. The release signing pin `c19f64d` is tree-identical to the previously
 reviewed `be5f50b`, which was squash-merged as spatialanalyzer/briosa#174. Never
 float these pins; move one only after reviewing the Briosa scripts it executes.
 

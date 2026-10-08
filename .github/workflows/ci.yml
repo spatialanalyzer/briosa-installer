@@ -51,6 +51,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./eng/Test-BriosaSupportPins.ps1
+      - name: Check the support-pin checker rejects unsafe pin forms
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./eng/Test-BriosaSupportPinChecks.ps1
       # Catalog tools must be the Briosa revision that built eng/server-package-candidates.json.
       - name: Check out the Briosa revision that built the server package candidates
         uses: actions/checkout@v6
