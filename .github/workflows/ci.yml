@@ -46,6 +46,32 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Packaged CLI failed.' }
           $launcher = Start-Process -FilePath "$package/Briosa.Launcher.exe" -ArgumentList '--check' -WindowStyle Hidden -Wait -PassThru
           if ($launcher.ExitCode -ne 0) { throw 'Packaged launcher check failed.' }
+      - name: Require Briosa support pins reachable from Briosa main
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./eng/Test-BriosaSupportPins.ps1
+      - name: Check the support-pin checker rejects unsafe pin forms
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./eng/Test-BriosaSupportPinChecks.ps1
+      # Catalog tools must be the Briosa revision that built eng/server-package-candidates.json.
+      - name: Check out the Briosa revision that built the server package candidates
+        uses: actions/checkout@v6
+        with:
+          repository: spatialanalyzer/briosa
+          ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
+          path: .support/briosa-candidates
+          persist-credentials: false
+          sparse-checkout: |
+            eng
+            schemas
+      - name: Validate real server packages for both SA targets with the packaged CLI
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./eng/Test-ServerPackageCandidates.ps1 -BriosaRepository .support/briosa-candidates -ArtifactDirectory artifacts/server-candidates -CliPath ./artifacts/ci-distribution/briosa-installer-0.1.0-ci-win-x64/Briosa.Installer.Cli.exe
       - name: Build and exercise conventional setup with an isolated identity
         shell: pwsh
         run: |

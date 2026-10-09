@@ -52,6 +52,9 @@ public sealed record InstallationRegistration(int SchemaVersion, string Installa
             package.Version, package.Receipt.Package.SpatialAnalyzerTarget!, package.Receipt.Package.RuntimeIdentifier);
     }
 
+    // Any positive uint32 major with a uint32 revision is stored unchanged. The installer does not
+    // negotiate the server contract: clients select a compatible runtime, and release validation
+    // approves an exact major (eng/Test-ServerPackages.ps1). Unknown manifest schemas fail closed.
     internal static void ValidateCompatibility(JsonElement manifest)
     {
         if (!manifest.TryGetProperty("compatibility", out var contract) || contract.ValueKind != JsonValueKind.Object ||
