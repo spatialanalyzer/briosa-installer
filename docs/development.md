@@ -98,8 +98,11 @@ closed. The check then accepts a literal `repository:` with exactly one sibling
 repositories and any other reference to the repository, such as a clone URL, also
 fail. CI runs `eng/Test-BriosaSupportPinChecks.ps1` to keep those rejections
 covered. Script contents are not interpreted, so workflow review still guards
-against deliberately obfuscated fetches. The release signing pin `c19f64d` is tree-identical to the previously
-reviewed `be5f50b`, which was squash-merged as spatialanalyzer/briosa#174. Never
+against deliberately obfuscated fetches. The release signing tools use the same
+`c72e027` (Briosa `v0.9.2`) as the server-candidate catalog tools. Since the
+previous signing pin `c19f64d` (spatialanalyzer/briosa#174), the signing paths
+only SHA-pin `actions/setup-dotnet` v6.0.0, require SDK 10.0.401, and accept
+schema 3 server manifests; installer manifest handling is unchanged. Never
 float these pins; move one only after reviewing the Briosa scripts it executes.
 
 Local validation on 2026-09-25 passed against unpublished `0.9.0-dev.2` server

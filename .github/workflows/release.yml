@@ -23,12 +23,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./eng/Test-BriosaSupportPins.ps1
-      # Tree-identical to the reviewed signing-tool commit be5f50b, squash-merged to main as spatialanalyzer/briosa#174.
+      # Briosa v0.9.2. Since the previous signing pin c19f64d (spatialanalyzer/briosa#174), the signing paths
+      # only SHA-pin setup-dotnet v6.0.0, require SDK 10.0.401, and accept schema 3 server manifests.
+      # Installer manifest handling is unchanged.
       - name: Check out reviewed shared signing tools and public trust root
         uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: c19f64d3b048ba33727e0db1ffa8f5806ed6c072
+          ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
           path: .support/briosa
           persist-credentials: false
       - name: Resolve version
@@ -101,15 +103,16 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: spatialanalyzer/briosa
-          ref: c19f64d3b048ba33727e0db1ffa8f5806ed6c072
+          ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
           path: .support/briosa
           persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           name: unsigned-installer
           path: artifacts/unsigned
-      # The shared signing checkout has its own older SDK pin. Signing tools
-      # execute from this repository, so provision its global.json SDK as well.
+      # Artifact Signing installs its .NET tool from this repository, under its
+      # strict global.json. The pinned sign-package action provisions the same SDK
+      # today, but this step keeps Installer SDK updates independent of the Briosa pin.
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: global.json
