@@ -111,8 +111,9 @@ jobs:
           name: unsigned-installer
           path: artifacts/unsigned
       # Artifact Signing installs its .NET tool from this repository, under its
-      # strict global.json. The pinned sign-package action provisions the same SDK
-      # today, but this step keeps Installer SDK updates independent of the Briosa pin.
+      # strict global.json. The pinned sign-package action provisions the SDK from
+      # the Briosa pin's global.json (10.0.401 at c72e027), so this step provisions
+      # the Installer's own pin and keeps Installer SDK updates independent of it.
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: global.json
