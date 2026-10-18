@@ -1,12 +1,10 @@
 # Briosa Installer brand integration
 
 The artwork follows brand v2, the Caliper b identity, from
-[spatialanalyzer/briosa-brand](https://github.com/spatialanalyzer/briosa-brand) commit
-`f08fc75acdc36ebc4e9ac6167523efbbeb383f44` and its
-[brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/f08fc75acdc36ebc4e9ac6167523efbbeb383f44/BRAND-GUIDE.md).
-The maintainer approved vendoring v2 on 2026-10-18, before its `v2.0.0` tag was
-published, so provenance pins the commit. Each copied file was checked against the
-`SHA256SUMS.txt` of the pack built from that commit.
+[spatialanalyzer/briosa-brand@v2.0.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.0.0)
+and its [brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/v2.0.0/BRAND-GUIDE.md).
+The maintainer approved brand v2 on 2026-10-18. Each copied file was checked against
+the published pack's SHA-256 digest and its `SHA256SUMS.txt`.
 
 The interface palette and background below still follow brand v1. Brand v2 retires
 deep blue, graphite, and silver; moving the palette to v2 is a separate restyle.
@@ -116,11 +114,11 @@ Decorative planes are removed completely in high contrast.
 ## Provenance and packaging
 
 Only required release assets are copied into
-`src/Briosa.Installer.App/Assets/Brand`. Its `provenance.json` records the upstream
-commit, original paths, and per-file hashes. Brand v2 has no published release yet,
-so `release` and `packSha256` are null; `checksumsSha256` is the digest of the pack's
-`SHA256SUMS.txt`, which rebuilding that commit reproduces. When `v2.0.0` is published,
-confirm that its files are unchanged, then record the tag and release-pack digest. The
+`src/Briosa.Installer.App/Assets/Brand`. Its `provenance.json` records the immutable
+upstream tag and commit, original paths, per-file hashes, and release-pack digest.
+The pack ZIP's bytes vary between builds because of entry timestamps, so
+`checksumsSha256` also records the digest of its `SHA256SUMS.txt`. Rebuilding the
+tagged commit with Git for Windows' default line endings reproduces that digest. The
 [third-party notices](../THIRD-PARTY-NOTICES.md) identify the artwork, Saira, and Inter licenses.
 Publishing includes the notices, full licenses, and provenance with the self-contained
 distribution. Builds do not fetch brand assets or install fonts.

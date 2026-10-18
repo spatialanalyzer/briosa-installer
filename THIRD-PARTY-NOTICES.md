@@ -9,10 +9,9 @@ The Inno Setup notices and About information remain intact in the setup engine.
 
 ## Briosa identity
 
-The logo, icon, and color tokens are copied from brand v2 (Caliper b) in
-[spatialanalyzer/briosa-brand](https://github.com/spatialanalyzer/briosa-brand),
-commit `f08fc75acdc36ebc4e9ac6167523efbbeb383f44`, under Apache-2.0. That commit
-identifies itself as v2.0.0; its release tag is not yet published.
+The logo, icon, and color tokens are copied from brand v2 (Caliper b),
+[spatialanalyzer/briosa-brand@v2.0.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.0.0),
+commit `a5250e8e2fc48fc07c94069f4c89e33b65f2cc21`, under Apache-2.0.
 The BRIOSA wordmark is supplied artwork; prose continues to use Briosa.
 Trademark permissions remain separate from copyright licensing.
 
@@ -22,7 +21,7 @@ frames. Shapes, colors, and transparent corners are preserved.
 `Assets/AppIcon/derivation.json` records the export, generator, and hashes; the
 distribution includes it as `licenses/briosa-app-icon-derivation.json`.
 
-In source, original paths, SHA-256 digests, and the pack's checksum-list digest are in
+In source, original paths, SHA-256 digests, and the approved pack and checksum-list digests are in
 `src/Briosa.Installer.App/Assets/Brand/provenance.json`. The original license is
 in that directory's `LICENSE`. The Windows distribution includes these as
 `licenses/briosa-brand-provenance.json` and `licenses/briosa-brand-LICENSE.txt`.

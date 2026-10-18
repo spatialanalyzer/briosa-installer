@@ -36,8 +36,8 @@ async function main() {
   const output = path.join(root, 'AppIcon'); fs.mkdirSync(output, { recursive: true });
   fs.writeFileSync(path.join(output, 'briosa.ico'), icon);
   const provenance = {
-    source: 'spatialanalyzer/briosa-brand@f08fc75acdc36ebc4e9ac6167523efbbeb383f44',
-    commit: 'f08fc75acdc36ebc4e9ac6167523efbbeb383f44',
+    source: 'spatialanalyzer/briosa-brand@v2.0.0',
+    commit: 'a5250e8e2fc48fc07c94069f4c89e33b65f2cc21',
     inputs: Object.fromEntries(Object.entries(bytes).map(([name, data]) => [name, sha256(data)])),
     frames: Object.fromEntries(Object.keys(bytes).map(name => [name, sizes.filter(size => input(size) === name)])),
     modification: 'Rasterize the unmodified void-tile app icon into square ICO frames: icons/favicon.svg, the tighter fit, at 32 px and below and icons/app-icon.svg above, as in the brand pack\'s icon exports. Preserve the geometry, colors, tile, edge and transparent rounded corners. No recoloring, cropping or optical translation.',

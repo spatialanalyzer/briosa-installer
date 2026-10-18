@@ -3,8 +3,9 @@
 ## Brand v2 (Caliper b) — 2026-10-18
 
 spatialanalyzer/briosa-installer#30 replaces the v1 artwork with brand v2, the
-Caliper b identity, vendored from spatialanalyzer/briosa-brand commit
-`f08fc75acdc36ebc4e9ac6167523efbbeb383f44` before its `v2.0.0` tag. The maintainer
+Caliper b identity, from spatialanalyzer/briosa-brand@v2.0.0 (commit `a5250e8`). The
+files were vendored from release-candidate commit `f08fc75`, which has the same tree,
+then checked again against the published v2.0.0 ZIP. The maintainer
 chose the void-tile app icon after comparing it with the tile-less small cut on light,
 dark, and contrast taskbar colors. On a light taskbar the small cut's `#EAF3FF` beam
 nearly disappears, as v1's white planes did. The navigation header shows the compact
@@ -17,7 +18,7 @@ and from the compiled setup match the ICO at every native size. The light, dark,
 200%, compact, and simulated high-contrast renders show the compact logo undistorted.
 The white logo used by dark contrast themes was checked as an asset; the simulated
 render can only show the black logo on a white window. The 12 vendored files match the
-pack's checksum list and `provenance.json`.
+published v2.0.0 ZIP (SHA-256 `e35ad960…`), its checksum list, and `provenance.json`.
 
 The locked Release build, 198 core/CLI tests, WPF workflow checks, package publishing,
 packaged CLI/launcher workflows, setup compilation, 68 local documentation links, and
