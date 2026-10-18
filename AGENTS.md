@@ -45,24 +45,27 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   vendors approved brand v2 (Caliper b) assets under `Assets/Brand`, with their original
   licenses and provenance. Keep the outlined BRIOSA wordmark intact; capitalize Briosa
   in prose. Preserve system high-contrast control colors and offline asset loading.
-- Use the selected Layered Planes background: graphite in dark mode and silver/
-  white in light mode, with neutral sidebars and opaque content surfaces. Blue
-  and cyan are accents. Render the planes with native WPF vector geometry and
-  controlled fills; do not reintroduce background PNGs or bitmap caches. Disable
-  decorative background artwork in high contrast.
+- Use the brand v2 palette from the vendored `colors.json`: void in dark mode and
+  clean room with white panels in light mode, with neutral sidebars and opaque
+  content surfaces, including tables and lists. Cyan and link blue are the accents;
+  the light jaw is too faint for text and stays in artwork. The workspace uses the
+  selected Scanline measurement grid: faint lines that fade out from the lower right,
+  and a vernier rule along the bottom edge. Draw it with unscaled native WPF vector
+  geometry; do not restore Layered Planes or add background PNGs, bitmap caches, or
+  animation. Disable decorative background artwork in high contrast.
 - Settings changes apply and persist automatically. Debounce text entry briefly,
   flush pending edits on focus loss/navigation/close, and serialize writes through
   the shared revision-checked store. Invalid input and save failures need clear
   recovery feedback; never overwrite another writer or claim a failed save succeeded.
   Appearance works before source setup and retains Windows contrast-theme priority.
-  Theme-only saves must not reset package catalogs. Use the deeper charcoal shade
-  of graphite for dark backgrounds, with subtle native vector planes.
-  Theme accents use deep blue with white text in light mode and cyan with deep-blue
-  text in dark mode. Pair selection fills and foregrounds, including text inputs;
-  retain visible focus/selection indicators and recheck live theme changes.
-  The selected navigation label specifically uses the sidebar charcoal on cyan
-  in dark mode. Settings sections use transparent headers and a selected underline,
-  retaining native TabControl/TabItem keyboard and automation behavior.
+  Theme-only saves must not reset package catalogs. Keep dark mode on void with a
+  slightly deeper sidebar. Theme accents use link blue with white text in light
+  mode and cyan with void text in dark mode. Pair selection fills and foregrounds,
+  including text inputs; retain visible focus/selection indicators and recheck
+  live theme changes. The selected navigation label specifically uses the sidebar
+  color on cyan in dark mode. Settings sections use transparent headers and a
+  selected underline, retaining native TabControl/TabItem keyboard and automation
+  behavior.
   Keep the hand cursor on the header template only; setting it on TabItem also
   affects section content. The navbar uses the compact horizontal logo: color in
   light mode, inverse in dark mode, and the white or black version in high contrast.
@@ -161,8 +164,8 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   the latest SA release installed on this machine without advertising an update
   or embedding a version in the warning. Mark that locally installed version
   "Recommended" in Change SDK, using the same local evidence and comparison.
-  Use complementary amber for the warning heading and rule: darker in light mode,
-  lighter in dark mode, with system text color taking priority in high contrast.
+  Use the brand's +1 deviation amber for the warning heading and rule, darkened in
+  light mode for text contrast, with system text color taking priority in high contrast.
   Load local SDK evidence automatically on each visit to SDK Setup, with a
   Refresh button above the summary at the right. Keep scans off the UI thread,
   prevent overlapping reads, and leave navigation and unrelated work responsive.

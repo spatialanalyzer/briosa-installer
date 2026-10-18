@@ -380,7 +380,7 @@
               <TextBlock Text="Runtime validation is performed by Briosa when it connects to SA." Style="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0" />
             </StackPanel>
           </Border>
-          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
+          <DataGrid x:Name="SdkObservations" Grid.Row="2" RowHeight="NaN" MinRowHeight="48" VerticalAlignment="Top" Visibility="Collapsed" AutomationProperties.Name="SpatialAnalyzer installations">
             <DataGrid.Resources>
               <Style x:Key="SdkEvidenceCell" TargetType="TextBlock">
                 <Setter Property="TextWrapping" Value="Wrap" />

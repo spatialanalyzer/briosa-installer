@@ -6,15 +6,16 @@ and its [brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/v2.0.
 The maintainer approved brand v2 on 2026-10-18. Each copied file was checked against
 the published pack's SHA-256 digest and its `SHA256SUMS.txt`.
 
-The interface palette and background below still follow brand v1. Brand v2 retires
-deep blue, graphite, and silver; moving the palette to v2 is a separate restyle.
+The interface palette and workspace background follow brand v2 as well. Brand v2
+retires v1's deep blue, graphite, and silver.
 
 ## Artwork and typography
 
-- The navigation header uses the supplied compact horizontal logo: color on silver
-  in light mode and inverse on graphite in dark mode. The full v2 horizontal logo
-  needs at least 250 px, so the 208-pixel sidebar uses the compact version, which
-  pairs the small-cut mark with the BRIOSA wordmark and has a 100 px minimum.
+- The navigation header uses the supplied compact horizontal logo: color on the
+  white sidebar in light mode and inverse on the void sidebar in dark mode. The full
+  v2 horizontal logo needs at least 250 px, so the 208-pixel sidebar uses the
+  compact version, which pairs the small-cut mark with the BRIOSA wordmark and has
+  a 100 px minimum.
   It is displayed at 160 logical pixels without distortion, with additional clear
   space. The wordmark is the supplied outlined artwork; application titles,
   accessible names, and prose continue to use Briosa.
@@ -37,34 +38,43 @@ deep blue, graphite, and silver; moving the palette to v2 is a separate restyle.
 
 | Use | Light mode | Dark mode |
 | --- | --- | --- |
-| Main background | Layered white `#FFFFFF` and silver `#F2F2F2` planes | Deep graphite `#1E1F21`, with planes near `#242527` and `#1B1C1E` |
-| Body text | Graphite `#585B62` | White `#FFFFFF` |
-| Headings | Deep blue | White |
-| Primary action | White on deep blue | Deep blue on cyan `#00BAF1` |
-| Navigation | Graphite on silver; selected row uses white on deep blue | White on graphite; selected row uses sidebar charcoal `#1A1B1C` on cyan |
-| Selected text | White on opaque deep blue | Deep blue on opaque cyan |
-| Selected rows | Blue-tinted fill and deep-blue indicator | Cyan-tinted charcoal fill and cyan indicator |
-| Settings sections | Transparent header with a deep-blue underline | Transparent header with a cyan underline |
-| SDK registration warning | Dark amber `#9C5700` heading and rule | Light amber `#FFC46B` heading and rule |
-| Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
+| Main background | Clean room `#F3F7FB` with a faint measurement grid | Void `#040B17` with a faint measurement grid |
+| Sidebar | White `#FFFFFF` | Deeper void `#030914` |
+| Body text and headings | Light ink `#061A33` | Dark ink `#EAF3FF` |
+| Secondary text | Light ink 2 `#46607E` | Dark ink 2 `#9DB3CF` |
+| Primary action | White on link blue `#006DB6` | Void on cyan `#00BAF1` |
+| Navigation | Light ink on white; selected row uses white on link blue | Dark ink on deeper void; selected row uses the sidebar color on cyan |
+| Selected text | White on opaque link blue | Void on opaque cyan |
+| Selected rows | Link-tinted fill `#E8F2F8` and link-blue indicator | Cyan-tinted fill `#092D42` and cyan indicator |
+| Settings sections | Transparent header with a link-blue underline | Transparent header with a cyan underline |
+| SDK registration warning | Deviation +1 amber darkened to `#8B6300`, heading and rule | Deviation +1 `#FFD23F` heading and rule |
+| Surfaces | Opaque white cards, tables, lists, and controls | Opaque cards `#0B1625` and controls `#0E1B2C` |
+| Dividers and card edges | Light line `#B9C9DB` | Dark edge `#223A53` |
 
-The table uses the five brand v1 sRGB colors: deep blue `#003875`, cyan `#00BAF1`,
-graphite `#585B62`, silver `#F2F2F2`, and white. `Assets/Brand/colors.json` now holds
-the brand v2 tokens for the separate restyle; cyan continues there as `dark-jaw`. The maintainer
-requested complementary amber for the SDK warning; these semantic UI colors extend
-the app palette without changing the original brand assets. Warning text accents
-have 4.97:1 contrast on the light card and 9.26:1 on the dark card. Body text keeps
-its normal readable color, and Windows high contrast substitutes system text color
-for the warning accent.
-The maintainer
-requested darker backgrounds; dark mode now shades graphite toward black, with a
-`#1A1B1C` sidebar and lower-opacity plane edges. Light mode is unchanged. Surface,
-hover, and border tints are derived from them. Action hover/press states darken
-blue in light mode and lift cyan in dark mode. Selected navigation and primary
-action text have at least 11.52:1 contrast in light mode and 5.10:1 in dark mode.
-Control boundaries remain visible against their normal, hovered, and pressed fills.
-Cyan is not used as normal text on
-white. Selection has a visible indicator and text, so color is not its only cue.
+The table uses the brand v2 tokens in `Assets/Brand/colors.json`, and the WPF harness
+compares the applied background, ink, secondary ink, and accent with that file. Light
+jaw `#0096D6` is only 3.08:1 on clean room, so light-mode accents, accent text, and
+focus indicators use the link blue that the brand guide prescribes for text; the light
+jaw appears only in the grid's vernier rule. Cards, controls, and hover and pressed
+fills blend the brand's translucent line tints, `rgb(120,190,255)` over void and
+`rgb(0,56,117)` over clean room, so every neutral keeps the palette's blue cast. Dark
+mode keeps the maintainer's deeper sidebar, now the shade of the Scanline homepage
+footer. Action hover and press states deepen link blue toward light ink in light mode
+and lift cyan toward the small-cut point color `#8BE7FF` in dark mode.
+
+The SDK warning uses the deviation scale's +1 step, which the brand reserves for data,
+status, and accent rules. Its light step `#D99A00` is only 2.45:1 on white, so the app
+darkens it to `#8B6300`: 5.41:1 on white panels and 5.02:1 on clean room. Dark mode
+uses `#FFD23F` unchanged, at 12.58:1 on cards. Windows high contrast substitutes
+system text color for the warning accent.
+
+On the background and cards, body text has at least 16.21:1 contrast in light mode
+and 16.23:1 in dark mode, secondary text 6.03:1 and 8.46:1, and accent text 5.05:1
+and 8.04:1. Selected
+navigation and primary action text have at least 5.44:1 contrast in light mode and
+8.72:1 in dark mode. Control boundaries keep at least 3:1 against their normal,
+hovered, and pressed fills. Neither jaw color is used as normal text on light
+surfaces. Selection has a visible indicator and text, so color is not its only cue.
 The Settings header template uses a three-pixel underline without a filled tab shape.
 It retains native TabControl/TabItem selection, keyboard navigation, automation
 semantics and keyboard focus cues. Other controls keep their Fluent templates.
@@ -80,21 +90,24 @@ WPF projects opt into the non-adorner selection renderer at process startup thro
 and can draw opaque highlights over the letters. See Microsoft's
 [selection-rendering compatibility note](https://github.com/microsoft/dotnet/blob/main/Documentation/compatibility/wpf-SelectionTextBrush-property-for-non-adorner-selection.md).
 The WPF harness checks the resolved navigation template and text-selection properties,
-4.5:1 text contrast, and 3:1 selection/focus/control boundaries across both themes;
-these targeted checks do not claim complete accessibility compliance.
+4.5:1 primary, secondary, accent, and warning text contrast, and 3:1
+selection/focus/control boundaries across both themes; these targeted checks do not
+claim complete accessibility compliance.
 
-The maintainer selected [Layered Planes](design/layered-planes-reference.png) on
-September 13, 2026, then requested native vector geometry to remove the generated
-background PNGs' uneven colors and line artifacts. `LayeredPlanes.cs` now draws
-the broad intersecting planes with WPF geometry and controlled solid-color fills.
-Only the short cyan edge uses a fading stroke. The frozen `DrawingBrush` preserves
-the geometry's proportions, crops at the workspace edges, and renders at the
-current output resolution without scaling a bitmap or using a bitmap cache.
-It cannot receive focus or pointer input and does not animate or download at runtime. The
-sidebar and dialogs use neutral base colors, and grouped package rows and settings
-cards use opaque surfaces for readability. The empty inventory also retains the
-workspace background. The old background PNGs are removed. The concept image in
-this document is reference material only; the application never loads it.
+With brand v2, the maintainer replaced the Layered Planes background, which echoed
+the retired three-plane symbol, with a Scanline measurement grid on October 18, 2026.
+It follows the instrument look of the briosa.dev homepage concept. `MeasurementGrid.cs`
+draws 1-pixel lines on a 40-pixel pitch in the brand's line tint. A radial opacity mask
+fades them out from the lower-right corner, so the grid stays clear of dense content.
+A vernier rule runs along the bottom edge, like the mark's beam and the ruled wordmark:
+minor ticks every 8 pixels in the tick ink, and jaw-colored majors on the grid lines.
+The frozen `DrawingBrush` is anchored to the lower-right corner without stretching, so
+the pitch and line width stay constant at any window size. It renders at the current
+output resolution without bitmaps or a bitmap cache, cannot receive focus or pointer
+input, and never animates. The sidebar and dialogs use neutral base colors. Grouped
+package rows, settings cards, the SDK table, and the Activity list use opaque surfaces,
+so grid lines never cross tabular text. The empty inventory retains the workspace
+background.
 
 **Settings → Appearance → App theme** offers System, Light, and Dark. Selecting
 a theme applies and saves it immediately, even before a source has been configured.
@@ -109,7 +122,7 @@ system preferences change. Windows preferences are only read, never written.
 In high contrast it removes the application's native-control palette overrides,
 leaving WPF's system high-contrast resources in control. The sidebar uses system
 window/highlight colors and the supplied white or black compact logo as appropriate.
-Decorative planes are removed completely in high contrast.
+The measurement grid is removed completely in high contrast.
 
 ## Provenance and packaging
 
@@ -127,7 +140,7 @@ For a brand update, explicitly select a new approved release, verify its checksu
 copy only the required assets, update provenance, and inspect light/dark, compact,
 selected, focused, and disabled states. The WPF harness renders representative
 screens at 100%, 150%, and 200% rendering scales and checks vector-only backgrounds,
-font loading, logo minimum width, and high-contrast delegation. Its high-contrast
+the applied brand tokens, font loading, logo minimum width, and high-contrast delegation. Its high-contrast
 render uses the current system colors, so outside a contrast theme it shows the black
 logo on a white window.
 Native high-contrast, Narrator, and all Windows scaling combinations remain separate

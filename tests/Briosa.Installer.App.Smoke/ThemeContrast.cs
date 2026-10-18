@@ -39,6 +39,21 @@ internal static partial class Program
         Pair("TextControlBorderBrushPointerOver", "TextControlBackgroundPointerOver", 3);
         Pair("KeyboardFocusBorderColorBrush", "CardBackgroundFillColorDefaultBrush", 3);
         Pair("KeyboardFocusBorderColorBrush", "ListBoxItemSelectedBackgroundThemeBrush", 3);
+        // Brand v2 tokens apply unchanged. Light accents use link blue because the light jaw
+        // is only 3.08:1 on clean room; secondary, accent and warning text stay readable.
+        Token("ApplicationBackgroundBrush", "ground");
+        Token("TextFillColorPrimaryBrush", "ink");
+        Token("TextFillColorSecondaryBrush", "ink-2");
+        Token("AccentFillColorDefaultBrush", theme == "dark" ? "accent" : "link");
+        foreach (var surface in new[] { "ApplicationBackgroundBrush", "CardBackgroundFillColorDefaultBrush" })
+        {
+            Pair("TextFillColorSecondaryBrush", surface, 4.5);
+            Pair("AccentTextFillColorPrimaryBrush", surface, 4.5);
+            Pair("BriosaWarningBrush", surface, 4.5);
+        }
+        Pair("BriosaHeadingBrush", "ApplicationBackgroundBrush", 4.5);
+        Pair("BriosaSectionSelectedTextBrush", "ApplicationBackgroundBrush", 4.5);
+        Pair("TextFillColorSecondaryBrush", "BriosaNavigationBrush", 4.5);
 
         Page(window, "SettingsNavigation");
         Find<TabControl>(window, "SettingsSections").SelectedIndex = 0;
@@ -75,9 +90,11 @@ internal static partial class Program
         rows.SelectedItem = rows.Items.OfType<ServerRow>().First(r => r.Installed is null);
         if (args.Length > 0) Render(root, args[0] + $".{theme}-install-action.png", 1140, 800);
         rows.SelectedItem = previous;
-        Console.WriteLine($"{theme}: navigation, action states, selections, tabs, input/password highlights and control boundaries meet contrast thresholds.");
+        Console.WriteLine($"{theme}: brand v2 tokens apply; text, navigation, action states, selections, tabs, input/password highlights and control boundaries meet contrast thresholds.");
 
         object Resource(string key) => window.FindResource(key);
+        void Token(string key, string token) =>
+            Require(((SolidColorBrush)Resource(key)).Color == BrandColor(theme, token), $"{theme} {key} is not the brand's {token} token.");
         void Pair(string foreground, string background, double minimum) => Check(Resource(foreground), Resource(background), minimum, foreground);
         void Check(object foreground, object background, double minimum, string label)
         {

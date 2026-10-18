@@ -35,9 +35,11 @@ light/dark and simulated high-contrast variants are also saved beside the first 
 automatic source persistence, stale requests, filtered recovery, semantic update/rollback
 states, safe Activity metadata, automatic credential saves, rapid edits, close
 flushing, concurrent-writer protection, write-failure recovery, and compact layout.
-It also checks resolved selection/text colors after live theme changes, text contrast,
-and navigation, focus, and control boundaries in both themes. Additional renders
-show primary actions, source settings, and installer updates in each palette.
+It also checks that the applied background, ink, and accent match the vendored brand
+`colors.json`, resolved selection/text colors after live theme changes, primary,
+secondary, accent, and warning text contrast, and navigation, focus, and control
+boundaries in both themes. Additional renders show primary actions, source settings,
+installer updates, SDK Setup, and Activity in each palette.
 This is not interactive accessibility,
 clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
