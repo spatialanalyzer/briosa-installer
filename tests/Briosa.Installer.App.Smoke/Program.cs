@@ -368,7 +368,8 @@ internal static partial class Program
         var root = (FrameworkElement)window.Content;
         Layout(root, 820, 580);
         var logo = Find<Image>(window, "AppBrand");
-        Require(logo.ActualWidth >= 160 && logo.Source is BitmapSource, "Brand logo is missing or smaller than the approved minimum.");
+        // The compact v2 logo has a 100 px minimum; the full horizontal logo would need 250 px.
+        Require(logo.ActualWidth >= 100 && logo.Source is BitmapSource, "Brand logo is missing or smaller than the compact logo minimum.");
         var typeface = new Typeface(window.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         Require(typeface.TryGetGlyphTypeface(out var glyphs) && glyphs.FontUri.ToString().Contains("Inter-Variable.ttf", StringComparison.OrdinalIgnoreCase), "The bundled Inter font was not resolved.");
         var actions = Find<Border>(window, "ServerSelectionPanel");
@@ -424,6 +425,8 @@ internal static partial class Program
             Find<TextBox>(window, "ServerCatalog").SelectionBrush is SolidColorBrush selection && selection.Color == SystemColors.HighlightColor &&
             backdrop.Background is SolidColorBrush plainBackdrop && plainBackdrop.Color == SystemColors.WindowColor,
             "High contrast did not release native controls, navigation and background to system colors.");
+        // Uses the current system colors, so a non-contrast session shows the black logo on a white window.
+        if (args.Length > 0) { PumpDispatcher(); Render(root, args[0] + ".high-contrast.png", 1140, 800); }
 #pragma warning disable WPF0001
         Application.Current.ThemeMode = originalTheme;
 #pragma warning restore WPF0001

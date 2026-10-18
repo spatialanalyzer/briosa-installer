@@ -31,7 +31,7 @@ The WPF harness loads the real resources/control tree and exercises the full wor
 with signed inert fixtures, temporary directories, and fake SDK observations.
 It does not display a native window or control another application. Pass up to three
 PNG paths to render the server inventory, source settings, and compact inventory;
-light/dark variants are also saved beside the first output. The harness exercises
+light/dark and simulated high-contrast variants are also saved beside the first output. The harness exercises
 automatic source persistence, stale requests, filtered recovery, semantic update/rollback
 states, safe Activity metadata, automatic credential saves, rapid edits, close
 flushing, concurrent-writer protection, write-failure recovery, and compact layout.

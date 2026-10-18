@@ -1,27 +1,35 @@
 # Briosa Installer brand integration
 
-The styling follows [spatialanalyzer/briosa-brand@v1](https://github.com/spatialanalyzer/briosa-brand/tree/v1)
-and its [brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/v1/BRAND-GUIDE.md).
-The published pack was verified against its SHA-256 checksum before copying assets.
+The artwork follows brand v2, the Caliper b identity, from
+[spatialanalyzer/briosa-brand](https://github.com/spatialanalyzer/briosa-brand) commit
+`f08fc75acdc36ebc4e9ac6167523efbbeb383f44` and its
+[brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/f08fc75acdc36ebc4e9ac6167523efbbeb383f44/BRAND-GUIDE.md).
+The maintainer approved vendoring v2 on 2026-10-18, before its `v2.0.0` tag was
+published, so provenance pins the commit. Each copied file was checked against the
+`SHA256SUMS.txt` of the pack built from that commit.
+
+The interface palette and background below still follow brand v1. Brand v2 retires
+deep blue, graphite, and silver; moving the palette to v2 is a separate restyle.
 
 ## Artwork and typography
 
-- The navigation header uses the supplied color horizontal logo on silver in
-  light mode and the inverse-color logo on graphite in dark mode. The latter
-  uses the same white, silver-gray, and cyan-blue symbol as the taskbar icon,
-  alongside the supplied white wordmark.
+- The navigation header uses the supplied compact horizontal logo: color on silver
+  in light mode and inverse on graphite in dark mode. The full v2 horizontal logo
+  needs at least 250 px, so the 208-pixel sidebar uses the compact version, which
+  pairs the small-cut mark with the BRIOSA wordmark and has a 100 px minimum.
   It is displayed at 160 logical pixels without distortion, with additional clear
-  space in a 208-pixel sidebar. The wordmark is the supplied lowercase artwork;
-  application titles, accessible names, and prose continue to use Briosa.
+  space. The wordmark is the supplied outlined artwork; application titles,
+  accessible names, and prose continue to use Briosa.
 - Installer is a separate readable product descriptor. No new suite lockup or
   altered wordmark is created. The slogan is omitted from the compact header.
-- The app, bootstrap launcher, and WPF windows share the transparent three-color
-  symbol ICO in `Assets/AppIcon`. It uses the approved inverse symbol: white,
-  silver-gray, and cyan-blue planes, with no blue background tile. Square icon
-  frames preserve the original geometry and aspect ratio with equal left/right
-  padding. The earlier vertical adjustment was removed following maintainer review.
-  Native 16, 20, 24, 32, 40, 48, 64, 96, 128, and 256 px frames cover common
-  taskbar and title-bar scaling sizes. Original brand assets remain unmodified.
+- The app, bootstrap launcher, and WPF windows share the void-tile ICO in
+  `Assets/AppIcon`, exported from the brand's dark application icon. Frames at
+  32 px and below come from the brand's tighter favicon fit and larger frames from
+  the app icon, the same split as the brand pack's own icon exports; each matching
+  frame is pixel-identical to the pack's PNG. The tile keeps the light small-cut
+  mark readable on light taskbars, where a tile-less symbol fades as v1's white
+  planes did. Native 16, 20, 24, 32, 40, 48, 64, 96, 128, and 256 px frames cover
+  common taskbar and title-bar scaling sizes. Original brand assets remain unmodified.
 - The unmodified Inter variable font is embedded for supporting interface text.
   Logos and fonts load from application resources without network access or a
   Windows font installation. WPF's regular-font resolution is checked by the
@@ -42,7 +50,9 @@ The published pack was verified against its SHA-256 checksum before copying asse
 | SDK registration warning | Dark amber `#9C5700` heading and rule | Light amber `#FFC46B` heading and rule |
 | Surfaces | Opaque silver/white | Opaque charcoal cards `#28292B` and controls `#2E2F31` |
 
-The five approved sRGB colors are copied in `Assets/Brand/colors.json`. The maintainer
+The table uses the five brand v1 sRGB colors: deep blue `#003875`, cyan `#00BAF1`,
+graphite `#585B62`, silver `#F2F2F2`, and white. `Assets/Brand/colors.json` now holds
+the brand v2 tokens for the separate restyle; cyan continues there as `dark-jaw`. The maintainer
 requested complementary amber for the SDK warning; these semantic UI colors extend
 the app palette without changing the original brand assets. Warning text accents
 have 4.97:1 contrast on the light card and 9.26:1 on the dark card. Body text keeps
@@ -100,15 +110,18 @@ follows Windows app mode; explicit Light/Dark choices remain in effect when
 system preferences change. Windows preferences are only read, never written.
 In high contrast it removes the application's native-control palette overrides,
 leaving WPF's system high-contrast resources in control. The sidebar uses system
-window/highlight colors and the supplied white or black logo as appropriate.
+window/highlight colors and the supplied white or black compact logo as appropriate.
 Decorative planes are removed completely in high contrast.
 
 ## Provenance and packaging
 
 Only required release assets are copied into
-`src/Briosa.Installer.App/Assets/Brand`. Its `provenance.json` records the immutable
-upstream commit, original paths, per-file hashes, and release-pack digest. The
-[third-party notices](../THIRD-PARTY-NOTICES.md) identify the artwork and Inter licenses.
+`src/Briosa.Installer.App/Assets/Brand`. Its `provenance.json` records the upstream
+commit, original paths, and per-file hashes. Brand v2 has no published release yet,
+so `release` and `packSha256` are null; `checksumsSha256` is the digest of the pack's
+`SHA256SUMS.txt`, which rebuilding that commit reproduces. When `v2.0.0` is published,
+confirm that its files are unchanged, then record the tag and release-pack digest. The
+[third-party notices](../THIRD-PARTY-NOTICES.md) identify the artwork, Saira, and Inter licenses.
 Publishing includes the notices, full licenses, and provenance with the self-contained
 distribution. Builds do not fetch brand assets or install fonts.
 
@@ -116,7 +129,9 @@ For a brand update, explicitly select a new approved release, verify its checksu
 copy only the required assets, update provenance, and inspect light/dark, compact,
 selected, focused, and disabled states. The WPF harness renders representative
 screens at 100%, 150%, and 200% rendering scales and checks vector-only backgrounds,
-font loading, logo minimum width, and high-contrast delegation.
+font loading, logo minimum width, and high-contrast delegation. Its high-contrast
+render uses the current system colors, so outside a contrast theme it shows the black
+logo on a white window.
 Native high-contrast, Narrator, and all Windows scaling combinations remain separate
 release checks; simulated palette checks do not establish those results.
 
@@ -126,7 +141,9 @@ The optional [icon generator](../eng/Build-AppIcon.cjs) uses Node.js and Sharp
 0.35.4. Run `node eng/Build-AppIcon.cjs` with Sharp installed in the authoring
 environment, or pass an absolute module path as its only argument. Normal .NET
 builds use the committed ICO and need neither Node.js nor an image library.
-The input is the byte-exact v1 `marks/briosa-symbol-inverse.svg` under
-`Assets/Brand`. `Assets/AppIcon/derivation.json` records input/output hashes,
-the transparent square export, renderer versions, and frame sizes. The distribution
-includes that record with the brand license and original provenance.
+The inputs are the byte-exact `icons/favicon.svg` (frames up to 32 px) and
+`icons/app-icon.svg` (larger frames) under `Assets/Brand`.
+`Assets/AppIcon/derivation.json` records input/output hashes, which frames each input
+supplies, the square export, renderer versions, and frame sizes. The distribution
+includes that record with the brand license and original provenance. Briosa Control
+Center copies this ICO and record into each SA target.

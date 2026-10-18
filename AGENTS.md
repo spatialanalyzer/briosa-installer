@@ -42,9 +42,9 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
 
 - Use [briosa-brand](https://github.com/spatialanalyzer/briosa-brand) as the source
   of truth for artwork, palette, typography, size, and clear space. The app currently
-  vendors approved v1 assets under `Assets/Brand`, with their original licenses and
-  provenance. Keep the outlined lowercase wordmark intact; capitalize Briosa in
-  prose. Preserve system high-contrast control colors and offline asset loading.
+  vendors approved brand v2 (Caliper b) assets under `Assets/Brand`, with their original
+  licenses and provenance. Keep the outlined BRIOSA wordmark intact; capitalize Briosa
+  in prose. Preserve system high-contrast control colors and offline asset loading.
 - Use the selected Layered Planes background: graphite in dark mode and silver/
   white in light mode, with neutral sidebars and opaque content surfaces. Blue
   and cyan are accents. Render the planes with native WPF vector geometry and
@@ -64,11 +64,12 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   in dark mode. Settings sections use transparent headers and a selected underline,
   retaining native TabControl/TabItem keyboard and automation behavior.
   Keep the hand cursor on the header template only; setting it on TabItem also
-  affects section content. The navbar uses the color logo in light mode and the
-  inverse-color logo in dark mode, matching the taskbar symbol's three colors.
-  App/launcher/window icons share the transparent inverse-symbol ICO under `Assets/AppIcon`,
-  with white, silver-gray, and cyan-blue planes and equal left/right padding;
-  do not restore the blue background tile or the rejected vertical offset.
+  affects section content. The navbar uses the compact horizontal logo: color in
+  light mode, inverse in dark mode, and the white or black version in high contrast.
+  App/launcher/window icons share the void-tile ICO under `Assets/AppIcon`, exported
+  from the brand's dark app icon with its tighter favicon fit at 32 px and below, so
+  the icon reads on light and dark taskbars. Do not substitute the tile-less symbol,
+  whose light beam fades on light taskbars, restore v1's blue tile, or add an optical offset.
   Preserve its documented derivation and leave original brand assets byte-exact.
 - Capitalize the product name as Briosa. Keep navigation ordered Installations,
   SDK Setup, Activity, Settings, with Installations as the opening page.
