@@ -140,9 +140,9 @@ For a brand update, explicitly select a new approved release, verify its checksu
 copy only the required assets, update provenance, and inspect light/dark, compact,
 selected, focused, and disabled states. The WPF harness renders representative
 screens at 100%, 150%, and 200% rendering scales and checks vector-only backgrounds,
-the applied brand tokens, font loading, logo minimum width, and high-contrast delegation. Its high-contrast
-render uses the current system colors, so outside a contrast theme it shows the black
-logo on a white window.
+the applied brand tokens, font loading, logo minimum width, and high-contrast
+delegation. Its high-contrast render uses the current system colors, so outside a
+contrast theme it shows the black logo on a white window.
 Native high-contrast, Narrator, and all Windows scaling combinations remain separate
 release checks; simulated palette checks do not establish those results.
 
