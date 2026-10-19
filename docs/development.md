@@ -137,6 +137,37 @@ See the [release-signing runbook](https://github.com/spatialanalyzer/briosa/blob
 for identity configuration, manual validation, pinned tooling, and key maintenance.
 Ordinary CI and the local command above remain unsigned and need no Azure access.
 
+## Release a signed installer
+
+Releases sign only reviewed `main` code. No workflow runs on tag pushes; the
+`v<version>` tag is created when the maintainer publishes the draft release.
+
+1. Merge the release changes to `main` through a reviewed pull request.
+2. Dispatch **Release signed installer** (`release.yml`) on `main` with the
+   installer version, without `v`, and `publish` set to true:
+
+   ```powershell
+   gh workflow run release.yml --repo spatialanalyzer/briosa-installer --ref main -f version=<version> -f publish=true
+   ```
+
+3. Approve the `release-signing` deployment for that run. The environment accepts
+   only branch `main` and requires a reviewer.
+4. The workflow signs and verifies the ZIP and setup, then creates a draft GitHub
+   Release `v<version>` targeting the run's commit, with the signed setup, ZIP,
+   checksums, and provenance. Review the draft's target commit, assets, and notes,
+   then publish it. Publishing creates the `v<version>` tag.
+
+`eng/Resolve-InstallerRelease.ps1` accepts only branch refs: a dispatch on a tag
+fails, and any branch other than `main` is an unsigned dry run that builds and
+tests without signing or drafting. With `publish` false, a `main` run signs and
+uploads workflow artifacts only. An existing `v<version>` tag must already point at
+the run's commit, and the publish job fails if any release, including a draft,
+already uses the tag. Agents may prepare release changes, but they never approve
+the `release-signing` deployment or publish a draft release; those are maintainer
+actions. CI runs `eng/Test-ReleaseWorkflowPolicy.ps1`, which checks these workflow
+rules, and `eng/Test-ResolveInstallerReleasePolicy.ps1`, which exercises the
+resolver against a disposable repository.
+
 ## Build conventional Windows setup
 
 The setup wraps the complete distribution above. It installs per-user and adds
