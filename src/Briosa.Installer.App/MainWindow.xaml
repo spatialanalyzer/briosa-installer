@@ -6,10 +6,7 @@
     </Grid.ColumnDefinitions>
     <Border Background="{DynamicResource BriosaNavigationBrush}" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,0,1,0" TextElement.Foreground="{DynamicResource BriosaNavigationTextBrush}">
       <DockPanel Margin="16,26,16,20">
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,26">
-          <Image x:Name="AppBrand" Source="{DynamicResource BriosaLogo}" Width="160" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.Name="Briosa" />
-          <TextBlock Text="Installer" FontWeight="Normal" Margin="12,6,0,0" />
-        </StackPanel>
+        <Image x:Name="AppBrand" DockPanel.Dock="Top" Margin="0,0,0,26" Source="{DynamicResource BriosaLogo}" Width="172" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.Name="Briosa Installer" />
         <StackPanel DockPanel.Dock="Bottom" Margin="12,20,0,0">
           <TextBlock Text="Briosa Installer" FontSize="12" />
           <TextBlock x:Name="BuildVersionText" FontSize="11" Margin="0,4,0,0" />

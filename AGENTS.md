@@ -67,8 +67,10 @@ artifacts as production releases or claim broader vendor repair or SDK compatibi
   selected underline, retaining native TabControl/TabItem keyboard and automation
   behavior.
   Keep the hand cursor on the header template only; setting it on TabItem also
-  affects section content. The navbar uses the compact horizontal logo: color in
-  light mode, inverse in dark mode, and the white or black version in high contrast.
+  affects section content. The navbar shows the brand's Installer compact logo, with
+  the product label under the wordmark, drawn from its vendored SVG as native vector
+  geometry: color in light mode, inverse in dark mode, and the white or black version
+  in high contrast. Do not substitute a raster export or retype the label.
   App/launcher/window icons share the void-tile ICO under `Assets/AppIcon`, exported
   from the brand's dark app icon with its tighter favicon fit at 32 px and below, so
   the icon reads on light and dark taskbars. Do not substitute the tile-less symbol,

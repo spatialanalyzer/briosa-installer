@@ -25,7 +25,7 @@ See [build and run instructions](docs/development.md), the
 The [UX redesign decision](docs/architecture/0004-installer-ux.md) describes the
 current screens, interaction boundaries, and validation limits.
 The app incorporates [Briosa brand v2](docs/branding.md), the Caliper b identity,
-including the approved compact logo, void-tile app icon, bundled Inter font, v2
+including its Installer compact logo, void-tile app icon, bundled Inter font, v2
 palette, and Scanline measurement-grid background.
 
 Server products are registered individually for client discovery. See

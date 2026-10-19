@@ -48,7 +48,7 @@ native control templates and keyboard behavior. Avoid window-local theme setting
 that shadow application styles. Custom controls build on named Fluent base styles.
 
 The main window supports a compact 820 × 580 logical size. The 208-unit navigation
-column shows the approved compact horizontal logo at 160 units with its clear space. A flexible server list
+column shows the brand's Installer compact logo at 172 units with its clear space. A flexible server list
 keeps selected actions visible; longer settings content scrolls above a fixed status
 area with recovery actions only when needed. Confirmation details scroll above fixed Cancel/action buttons. Cancel receives
 initial focus. Status is expressed in text, with meaningful automation names and

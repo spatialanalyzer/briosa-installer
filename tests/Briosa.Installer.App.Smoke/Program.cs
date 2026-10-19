@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -357,8 +358,13 @@ internal static partial class Program
         var root = (FrameworkElement)window.Content;
         Layout(root, 820, 580);
         var logo = Find<Image>(window, "AppBrand");
-        // The compact v2 logo has a 100 px minimum; the full horizontal logo would need 250 px.
-        Require(logo.ActualWidth >= 100 && logo.Source is BitmapSource, "Brand logo is missing or smaller than the compact logo minimum.");
+        // The brand's Installer compact logo is drawn from its outlined SVG; 170 px keeps the label legible.
+        Require(logo.ActualWidth >= 170 && logo.Source is DrawingImage { IsFrozen: true, Drawing: DrawingGroup artwork } && Vector(artwork) &&
+            AutomationProperties.GetName(logo) == "Briosa Installer", "Brand logo is missing, raster, unnamed, or below its 170 px minimum.");
+        foreach (var variant in new[] { "color", "inverse", "black", "white" })
+            Require(BrandArtwork.Load($"Brand/suite/briosa-installer-compact-{variant}.svg") is { Width: 511, Drawing: DrawingGroup drawn } && Vector(drawn),
+                $"The {variant} header logo did not load as vector artwork on its brand canvas.");
+        static bool Vector(DrawingGroup group) => group.Children.All(d => d is GeometryDrawing || d is DrawingGroup child && Vector(child));
         var typeface = new Typeface(window.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         Require(typeface.TryGetGlyphTypeface(out var glyphs) && glyphs.FontUri.ToString().Contains("Inter-Variable.ttf", StringComparison.OrdinalIgnoreCase), "The bundled Inter font was not resolved.");
         var actions = Find<Border>(window, "ServerSelectionPanel");

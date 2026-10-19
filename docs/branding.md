@@ -11,16 +11,18 @@ retires v1's deep blue, graphite, and silver.
 
 ## Artwork and typography
 
-- The navigation header uses the supplied compact horizontal logo: color on the
-  white sidebar in light mode and inverse on the void sidebar in dark mode. The full
-  v2 horizontal logo needs at least 250 px, so the 208-pixel sidebar uses the
-  compact version, which pairs the small-cut mark with the BRIOSA wordmark and has
-  a 100 px minimum.
-  It is displayed at 160 logical pixels without distortion, with additional clear
-  space. The wordmark is the supplied outlined artwork; application titles,
-  accessible names, and prose continue to use Briosa.
-- Installer is a separate readable product descriptor. No new suite lockup or
-  altered wordmark is created. The slogan is omitted from the compact header.
+- The navigation header shows the brand's Installer compact logo,
+  `suite/briosa-installer-compact-*`: color on the white sidebar in light mode,
+  inverse on the void sidebar in dark mode, and the white or black version in high
+  contrast. It keeps the compact logo's small-cut mark and BRIOSA wordmark and sets
+  INSTALLER under the wordmark, right-aligned, in the brand's product label style.
+  The maintainer asked on 2026-10-18 for the product name to join the logo, and brand
+  v2.1.0 added these lockups. `BrandArtwork` draws the vendored SVG as native WPF
+  vector geometry at 172 logical pixels, above the brand's 170-pixel minimum, so
+  the outlines stay sharp at every display scale; the 1600-pixel PNG it replaces
+  looked rough when WPF scaled it down. Its accessible name is Briosa Installer.
+- The wordmark is the supplied outlined artwork and is not altered. Application
+  titles and prose continue to use Briosa. The slogan is omitted from the header.
 - The app, bootstrap launcher, and WPF windows share the void-tile ICO in
   `Assets/AppIcon`, exported from the brand's dark application icon. Frames at
   32 px and below come from the brand's tighter favicon fit and larger frames from
@@ -121,7 +123,7 @@ follows Windows app mode; explicit Light/Dark choices remain in effect when
 system preferences change. Windows preferences are only read, never written.
 In high contrast it removes the application's native-control palette overrides,
 leaving WPF's system high-contrast resources in control. The sidebar uses system
-window/highlight colors and the supplied white or black compact logo as appropriate.
+window/highlight colors and the white or black Installer compact logo as appropriate.
 The measurement grid is removed completely in high contrast.
 
 ## Provenance and packaging
