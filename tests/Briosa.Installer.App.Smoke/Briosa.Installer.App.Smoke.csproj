@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../examples/catalog.json" Link="Fixtures/catalog.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/Briosa.Installer.App/Assets/Brand/colors.json" Link="Fixtures/colors.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../Fixtures/SignedFeed.cs" Link="Fixtures/SignedFeed.cs" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -185,7 +186,9 @@ internal static partial class Program
         Require(Application.Current.ThemeMode == ThemeMode.Dark, "Dark did not apply immediately.");
         Saved(window);
         Require(((Outcome<SettingsSnapshot>.Success)new SettingsStore().Load(new(path))).Value.Settings == original with { Theme = "dark" }, "Theme did not save automatically or changed sources.");
-        Require(((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color.R < 40, "Dark background is not the requested deeper charcoal.");
+        Require(((SolidColorBrush)Application.Current.Resources["ApplicationBackgroundBrush"]).Color == BrandColor("dark", "ground") &&
+            RelativeLuminance(((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color) < RelativeLuminance(BrandColor("dark", "ground")),
+            "Dark mode does not use the brand's void ground with a deeper sidebar.");
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-dark.png", 1140, 800);
         Page(window, "InstallationsNavigation"); PumpDispatcher();
         Require(Find<ListBox>(window, "CatalogPackages").Items.Count == 3 && handler.Requests.Count == beforeRequests, "Theme-only autosave lost or reloaded the catalog.");
@@ -198,7 +201,7 @@ internal static partial class Program
         selector.SelectedIndex = 1; Saved(window);
         BrandTheme.ApplySystem(Application.Current);
         Require(Application.Current.ThemeMode == ThemeMode.Light &&
-            ((SolidColorBrush)Application.Current.Resources["BriosaNavigationBrush"]).Color == Color.FromRgb(242, 242, 242), "System refresh overrode explicit Light.");
+            ((SolidColorBrush)Application.Current.Resources["ApplicationBackgroundBrush"]).Color == BrandColor("light", "ground"), "System refresh overrode explicit Light.");
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-light.png", 1140, 800);
         if (args.Length > 0) Render((FrameworkElement)window.Content, args[0] + ".appearance-compact.png", 820, 580);
 
@@ -342,23 +345,10 @@ internal static partial class Program
             Find<TextBlock>(window, "SdkSummaryTitle").Text == "Configured SDK: 2099.1.0101.1" &&
             Find<TextBlock>(window, "SdkSummaryText").Text.Contains("3 SpatialAnalyzer installations found", StringComparison.Ordinal),
             "SDK overview did not consolidate installations or identify the registered installation.");
-        if (args.Length > 0)
-        {
-#pragma warning disable WPF0001
-            var sdkTheme = Application.Current.ThemeMode;
-            foreach (var mode in new[] { "light", "dark" })
-            {
-                BrandTheme.ApplyPreference(Application.Current, mode);
-                PumpDispatcher();
-                Render((FrameworkElement)window.Content, args[0] + $".sdk-{mode}.png", 1140, 800);
-                Render((FrameworkElement)window.Content, args[0] + $".sdk-{mode}-compact.png", 820, 580);
-            }
-            Application.Current.ThemeMode = sdkTheme;
-#pragma warning restore WPF0001
-            BrandTheme.ApplySystem(Application.Current);
-        }
+        if (args.Length > 0) RenderPalettes(window, args[0] + ".sdk", compact: true);
         Page(window, "ActivityNavigation");
         Require(Find<ListBox>(window, "ActivityList").Items.OfType<ActivityView>().Any(a => a.Entry.Operation == "Sdk.Inspect"), "New SDK inspection is missing from current Activity.");
+        if (args.Length > 0) RenderPalettes(window, args[0] + ".activity");
         var persisted = new ActivityStore(feed.Root).Read();
         Require(persisted.Any(a => a.Operation == "Package.Install" && a.Target == second.SpatialAnalyzerTarget && a.DurationMs is not null), "Activity lost safe package context or duration.");
         Find<ComboBox>(window, "ActivityFilter").SelectedIndex = 1;
@@ -368,8 +358,13 @@ internal static partial class Program
         var root = (FrameworkElement)window.Content;
         Layout(root, 820, 580);
         var logo = Find<Image>(window, "AppBrand");
-        // The compact v2 logo has a 100 px minimum; the full horizontal logo would need 250 px.
-        Require(logo.ActualWidth >= 100 && logo.Source is BitmapSource, "Brand logo is missing or smaller than the compact logo minimum.");
+        // The brand's Installer compact logo is drawn from its outlined SVG; 170 px keeps the label legible.
+        Require(logo.ActualWidth >= 170 && logo.Source is DrawingImage { IsFrozen: true, Drawing: DrawingGroup artwork } && Vector(artwork) &&
+            AutomationProperties.GetName(logo) == "Briosa Installer", "Brand logo is missing, raster, unnamed, or below its 170 px minimum.");
+        foreach (var variant in new[] { "color", "inverse", "black", "white" })
+            Require(BrandArtwork.Load($"Brand/suite/briosa-installer-compact-{variant}.svg") is { Width: 511, Drawing: DrawingGroup drawn } && Vector(drawn),
+                $"The {variant} header logo did not load as vector artwork on its brand canvas.");
+        static bool Vector(DrawingGroup group) => group.Children.All(d => d is GeometryDrawing || d is DrawingGroup child && Vector(child));
         var typeface = new Typeface(window.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         Require(typeface.TryGetGlyphTypeface(out var glyphs) && glyphs.FontUri.ToString().Contains("Inter-Variable.ttf", StringComparison.OrdinalIgnoreCase), "The bundled Inter font was not resolved.");
         var actions = Find<Border>(window, "ServerSelectionPanel");
@@ -391,9 +386,10 @@ internal static partial class Program
         var backdrop = Find<Border>(window, "WorkspaceBackdrop");
         Require(!backdrop.IsHitTestVisible && !backdrop.Focusable, "Decorative background can intercept input.");
         var lightBackdrop = (backdrop.Background as DrawingBrush)?.Drawing;
-        Require(lightBackdrop is DrawingGroup lightPlanes && lightPlanes.IsFrozen &&
-            lightPlanes.Children.Count > 0 && lightPlanes.Children.All(d => d is GeometryDrawing),
-            "Light background is not native vector geometry.");
+        // The measurement grid keeps its pitch and 1-pixel lines instead of stretching with the window.
+        Require(backdrop.Background is DrawingBrush { Stretch: Stretch.None } && lightBackdrop is DrawingGroup lightGrid && lightGrid.IsFrozen &&
+            lightGrid.Children.Count > 0 && lightGrid.Children.All(d => d is GeometryDrawing),
+            "Light background is not an unscaled native vector grid.");
         if (args.Length > 2) Render(root, args[2] + ".light.png", 820, 580);
         if (args.Length > 0) Render(root, args[0] + ".light.png", 1140, 800);
         if (args.Length > 0) Render(root, args[0] + ".light-150.png", 1140, 800, 1.5);
@@ -403,9 +399,9 @@ internal static partial class Program
 #pragma warning restore WPF0001
         BrandTheme.ApplySystem(Application.Current);
         PumpDispatcher();
-        Require(backdrop.Background is DrawingBrush { Drawing: DrawingGroup darkPlanes } && darkPlanes.IsFrozen &&
-            darkPlanes.Children.Count > 0 && darkPlanes.Children.All(d => d is GeometryDrawing) &&
-            !ReferenceEquals(lightBackdrop, darkPlanes), "Dark mode did not switch native vector geometry.");
+        Require(backdrop.Background is DrawingBrush { Stretch: Stretch.None, Drawing: DrawingGroup darkGrid } && darkGrid.IsFrozen &&
+            darkGrid.Children.Count > 0 && darkGrid.Children.All(d => d is GeometryDrawing) &&
+            !ReferenceEquals(lightBackdrop, darkGrid), "Dark mode did not switch native vector geometry.");
         if (args.Length > 2) Render(root, args[2] + ".dark.png", 820, 580);
         CheckThemeContrast(window, "dark", args);
         if (args.Length > 0)
@@ -472,6 +468,22 @@ internal static partial class Program
     {
         root.Measure(new Size(width, height)); root.Arrange(new Rect(0, 0, width, height)); root.UpdateLayout();
         for (var i = 0; i < 3; i++) { PumpDispatcher(); root.UpdateLayout(); }
+    }
+    // Renders the current page in each palette, then restores the theme under test.
+    private static void RenderPalettes(MainWindow window, string output, bool compact = false)
+    {
+#pragma warning disable WPF0001
+        var theme = Application.Current.ThemeMode;
+        foreach (var mode in new[] { "light", "dark" })
+        {
+            BrandTheme.ApplyPreference(Application.Current, mode);
+            PumpDispatcher();
+            Render((FrameworkElement)window.Content, $"{output}-{mode}.png", 1140, 800);
+            if (compact) Render((FrameworkElement)window.Content, $"{output}-{mode}-compact.png", 820, 580);
+        }
+        Application.Current.ThemeMode = theme;
+#pragma warning restore WPF0001
+        BrandTheme.ApplySystem(Application.Current);
     }
     private static void Render(FrameworkElement root, string output, int width, int height, double scale = 1)
     {

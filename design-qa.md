@@ -1,5 +1,50 @@
 # Design validation
 
+## Vector header logo with the product label — 2026-10-18
+
+Reviewing the running apps, the maintainer found the BRIOSA wordmark rough at the
+edges and asked for the product name to join the logo in the wordmark's typeface,
+right-aligned. The roughness came from WPF downsampling the 1600-pixel compact PNG
+to 160 pixels with bilinear filtering; the harness's software renders hid it.
+spatialanalyzer/briosa-brand#3 published brand v2.1.0, which adds compact product logos
+that set the label under BRIOSA in the suite label style. The header now draws
+`suite/briosa-installer-compact-*` from the vendored SVG as native vector geometry at
+172 logical pixels, and the compact PNGs are no longer vendored. Provenance moved to
+v2.1.0; apart from the version string in `colors.json`, every file vendored earlier
+is byte-identical.
+
+The locked Release build, 198 core/CLI tests, and WPF workflow checks passed; the
+workflow checks now require frozen vector header artwork of at least 170 px in every
+theme variant. Package publishing, the packaged CLI and launcher checks, the packaged
+workflow test, setup compilation, 67 local documentation links, and `git diff --check`
+also passed. The maintainer reviewed the new header in the running Installer and
+Control Center. Native contrast themes, Narrator, and mixed-DPI monitors remain
+unverified.
+
+## Brand v2 palette and Scanline grid — 2026-10-18
+
+spatialanalyzer/briosa-installer#32 moves the interface from the retired v1 colors to
+the brand v2 tokens in the vendored `colors.json`. Dark mode uses void with a deeper
+sidebar, cyan accents, and void text on cyan. Light mode uses clean room with a white
+sidebar and white panels, light ink text, and link-blue accents with white text,
+because the light jaw is only 3.08:1 on clean room. Secondary text now uses each
+theme's ink 2. The maintainer compared real harness renders of three backgrounds:
+a Scanline measurement grid, recolored Layered Planes, and no decoration. They chose
+the grid: 1-pixel lines on a 40-pixel pitch that fade out from the lower right, and a
+vernier rule along the bottom edge. The grid stays crisp at 150% and 200%, keeps its
+pitch at every window size, and is removed in high contrast. The renders showed grid
+lines crossing transparent table rows, so the SDK table and the Activity list now use
+opaque panel surfaces. The SDK warning moved to the deviation scale's +1 amber.
+
+The locked Release build had no warnings, and the 198 core/CLI tests passed. The WPF
+workflow checks also passed, including the new checks that the applied background,
+inks, and accent match `colors.json` and that secondary, accent, and warning text keep
+4.5:1 contrast in both palettes. Package publishing, the packaged CLI and launcher
+checks, the packaged workflow test, setup compilation, 67 local documentation links,
+and `git diff --check` passed. The simulated high-contrast render is unchanged from
+brand v2's first pass. Native contrast themes, Narrator, mixed-DPI monitors, the setup
+lifecycle test, and live title-bar captures were not rechecked.
+
 ## Brand v2 (Caliper b) — 2026-10-18
 
 spatialanalyzer/briosa-installer#30 replaces the v1 artwork with brand v2, the
