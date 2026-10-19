@@ -10,8 +10,8 @@ The Inno Setup notices and About information remain intact in the setup engine.
 ## Briosa identity
 
 The logo, icon, and color tokens are copied from brand v2 (Caliper b),
-[spatialanalyzer/briosa-brand@v2.0.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.0.0),
-commit `a5250e8e2fc48fc07c94069f4c89e33b65f2cc21`, under Apache-2.0.
+[spatialanalyzer/briosa-brand@v2.1.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.1.0),
+commit `705dbfc8624936f1179b31b79c9804c13405b510`, under Apache-2.0.
 The BRIOSA wordmark is supplied artwork; prose continues to use Briosa.
 Trademark permissions remain separate from copyright licensing.
 

@@ -1,5 +1,26 @@
 # Design validation
 
+## Vector header logo with the product label — 2026-10-18
+
+Reviewing the running apps, the maintainer found the BRIOSA wordmark rough at the
+edges and asked for the product name to join the logo in the wordmark's typeface,
+right-aligned. The roughness came from WPF downsampling the 1600-pixel compact PNG
+to 160 pixels with bilinear filtering; the harness's software renders hid it.
+spatialanalyzer/briosa-brand#3 published brand v2.1.0, which adds compact product logos
+that set the label under BRIOSA in the suite label style. The header now draws
+`suite/briosa-installer-compact-*` from the vendored SVG as native vector geometry at
+172 logical pixels, and the compact PNGs are no longer vendored. Provenance moved to
+v2.1.0; apart from the version string in `colors.json`, every file vendored earlier
+is byte-identical.
+
+The locked Release build, 198 core/CLI tests, and WPF workflow checks passed; the
+workflow checks now require frozen vector header artwork of at least 170 px in every
+theme variant. Package publishing, the packaged CLI and launcher checks, the packaged
+workflow test, setup compilation, 67 local documentation links, and `git diff --check`
+also passed. The maintainer reviewed the new header in the running Installer and
+Control Center. Native contrast themes, Narrator, and mixed-DPI monitors remain
+unverified.
+
 ## Brand v2 palette and Scanline grid — 2026-10-18
 
 spatialanalyzer/briosa-installer#32 moves the interface from the retired v1 colors to

@@ -1,10 +1,11 @@
 # Briosa Installer brand integration
 
 The artwork follows brand v2, the Caliper b identity, from
-[spatialanalyzer/briosa-brand@v2.0.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.0.0)
-and its [brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/v2.0.0/BRAND-GUIDE.md).
-The maintainer approved brand v2 on 2026-10-18. Each copied file was checked against
-the published pack's SHA-256 digest and its `SHA256SUMS.txt`.
+[spatialanalyzer/briosa-brand@v2.1.0](https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.1.0)
+and its [brand guide](https://github.com/spatialanalyzer/briosa-brand/blob/v2.1.0/BRAND-GUIDE.md).
+The maintainer approved brand v2 on 2026-10-18; v2.1.0 adds the compact product logos
+that the header uses. Each copied file was checked against the published pack's
+SHA-256 digest and its `SHA256SUMS.txt`.
 
 The interface palette and workspace background follow brand v2 as well. Brand v2
 retires v1's deep blue, graphite, and silver.
@@ -134,7 +135,8 @@ upstream tag and commit, original paths, per-file hashes, and release-pack diges
 The pack ZIP's bytes vary between builds because of entry timestamps, so
 `checksumsSha256` also records the digest of its `SHA256SUMS.txt`. Rebuilding the
 tagged commit with Git for Windows' default line endings reproduces that digest. The
-[third-party notices](../THIRD-PARTY-NOTICES.md) identify the artwork, Saira, and Inter licenses.
+icon's derivation record names v2.0.0, whose `icons/` files are byte-identical in
+v2.1.0. The [third-party notices](../THIRD-PARTY-NOTICES.md) identify the artwork, Saira, and Inter licenses.
 Publishing includes the notices, full licenses, and provenance with the self-contained
 distribution. Builds do not fetch brand assets or install fonts.
 
