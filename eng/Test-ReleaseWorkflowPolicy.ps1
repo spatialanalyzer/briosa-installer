@@ -108,12 +108,12 @@ if ($null -eq $release) { throw "$WorkflowDirectory has no release.yml." }
 foreach ($workflow in $workflows) {
     $on = Get-TopLevel $workflow 'on'
     if ($null -eq $on) { $failures.Add("$($workflow.Name) has no top-level on: trigger."); continue }
-    $triggers = if ($on.Raw) { @(ConvertFrom-FlowSequence $on.Raw | ForEach-Object { [pscustomobject]@{ Key = $_; Entry = $null } }) }
-    else { @(Get-Children $workflow $on | ForEach-Object { [pscustomobject]@{ Key = $_.Key; Entry = $_ } }) }
+    $triggers = @(if ($on.Raw) { ConvertFrom-FlowSequence $on.Raw | ForEach-Object { [pscustomobject]@{ Key = $_; Entry = $null } } }
+        else { Get-Children $workflow $on | ForEach-Object { [pscustomobject]@{ Key = $_.Key; Entry = $_ } } })
     foreach ($trigger in $triggers) {
         if ($trigger.Key -ceq 'create') { $failures.Add("$($workflow.Name) triggers on create, which includes tag creation.") }
         if ($trigger.Key -cne 'push') { continue }
-        $filters = if ($null -ne $trigger.Entry) { @(Get-Children $workflow $trigger.Entry | ForEach-Object Key) } else { @() }
+        $filters = @(if ($null -ne $trigger.Entry) { Get-Children $workflow $trigger.Entry | ForEach-Object Key })
         if ($filters -ccontains 'tags' -or $filters -ccontains 'tags-ignore') {
             $failures.Add("$($workflow.Name) triggers on tag pushes (push: tags); dispatch releases from main instead.")
         }
@@ -126,7 +126,7 @@ foreach ($workflow in $workflows) {
 # release.yml is dispatched only, with a required version and a publish switch that defaults off.
 $on = Get-TopLevel $release 'on'
 if ($null -ne $on) {
-    $triggers = if ($on.Raw) { @(ConvertFrom-FlowSequence $on.Raw) } else { @(Get-Children $release $on | ForEach-Object Key) }
+    $triggers = @(if ($on.Raw) { ConvertFrom-FlowSequence $on.Raw } else { Get-Children $release $on | ForEach-Object Key })
     if ($triggers.Count -ne 1 -or $triggers[0] -cne 'workflow_dispatch') {
         $failures.Add("release.yml on: must contain only workflow_dispatch, not: $($triggers -join ', ').")
     }
