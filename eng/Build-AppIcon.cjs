@@ -7,16 +7,17 @@ const sharp = require(process.argv[2] || 'sharp');
 const root = path.resolve(__dirname, '..', 'src/Briosa.Installer.App/Assets');
 const sizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256];
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+// The brand pack's own split: the favicon's tighter fit up to 32 px, the app icon above.
+const input = size => size <= 32 ? 'icons/favicon.svg' : 'icons/app-icon.svg';
 
 async function main() {
-  const name = 'marks/briosa-symbol-inverse.svg';
-  const bytes = fs.readFileSync(path.join(root, 'Brand', name));
+  const bytes = {};
+  for (const name of new Set(sizes.map(input))) bytes[name] = fs.readFileSync(path.join(root, 'Brand', name));
   const frames = [];
   for (const size of sizes) {
-    // Keep the transparent symbol intact. Contain its slightly rectangular
-    // canvas in a square without cropping, stretching, or offsetting the planes.
-    // The source's 32-unit left/right clear space remains symmetric at every size.
-    frames.push(await sharp(bytes, { density: 192 }).resize(size, size, {
+    // Both sources are square void tiles with the small-cut mark; render each
+    // unmodified at the native frame size, keeping its transparent rounded corners.
+    frames.push(await sharp(bytes[input(size)], { density: 192 }).resize(size, size, {
       fit: 'contain', position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 },
     }).png().toBuffer());
   }
@@ -35,10 +36,11 @@ async function main() {
   const output = path.join(root, 'AppIcon'); fs.mkdirSync(output, { recursive: true });
   fs.writeFileSync(path.join(output, 'briosa.ico'), icon);
   const provenance = {
-    source: 'spatialanalyzer/briosa-brand@v1',
-    commit: '0a86718f66164e4a773bea37f738888a57c6bce0',
-    inputs: { [name]: sha256(bytes) },
-    modification: 'Rasterize the unmodified transparent inverse symbol (white, silver-gray and cyan-blue) into centered square ICO frames using contain fit. Preserve aspect ratio, original geometry, colors and equal left/right padding. No background tile or optical translation.',
+    source: 'spatialanalyzer/briosa-brand@v2.0.0',
+    commit: 'a5250e8e2fc48fc07c94069f4c89e33b65f2cc21',
+    inputs: Object.fromEntries(Object.entries(bytes).map(([name, data]) => [name, sha256(data)])),
+    frames: Object.fromEntries(Object.keys(bytes).map(name => [name, sizes.filter(size => input(size) === name)])),
+    modification: 'Rasterize the unmodified void-tile app icon into square ICO frames: icons/favicon.svg, the tighter fit, at 32 px and below and icons/app-icon.svg above, as in the brand pack\'s icon exports. Preserve the geometry, colors, tile, edge and transparent rounded corners. No recoloring, cropping or optical translation.',
     generator: 'eng/Build-AppIcon.cjs', renderer: { sharp: sharp.versions.sharp, vips: sharp.versions.vips },
     sizes, sha256: sha256(icon),
   };

@@ -1,5 +1,32 @@
 # Design validation
 
+## Brand v2 (Caliper b) — 2026-10-18
+
+spatialanalyzer/briosa-installer#30 replaces the v1 artwork with brand v2, the
+Caliper b identity, from spatialanalyzer/briosa-brand@v2.0.0 (commit `a5250e8`). The
+files were vendored from release-candidate commit `f08fc75`, which has the same tree,
+then checked again against the published v2.0.0 ZIP. The maintainer
+chose the void-tile app icon after comparing it with the tile-less small cut on light,
+dark, and contrast taskbar colors. On a light taskbar the small cut's `#EAF3FF` beam
+nearly disappears, as v1's white planes did. The navigation header shows the compact
+horizontal logo at 160 px because the full v2 horizontal logo needs 250 px.
+
+Every ICO frame that the brand pack also exports (16, 24, 32, 48, 64, 128, and 256 px)
+is pixel-identical to the pack's PNG, and rebuilding the ICO reproduces it byte for
+byte. Icons extracted from the published `Briosa.Installer.exe` and `Briosa.Launcher.exe`
+and from the compiled setup match the ICO at every native size. The light, dark, 150%,
+200%, compact, and simulated high-contrast renders show the compact logo undistorted.
+The white logo used by dark contrast themes was checked as an asset; the simulated
+render can only show the black logo on a white window. The 12 vendored files match the
+published v2.0.0 ZIP (SHA-256 `e35ad960…`), its checksum list, and `provenance.json`.
+
+The locked Release build, 198 core/CLI tests, WPF workflow checks, package publishing,
+packaged CLI/launcher workflows, setup compilation, 68 local documentation links, and
+12 original brand hashes passed. The palette and Layered Planes background still follow
+brand v1. The title bar and taskbar were not captured from a live desktop, and the
+setup lifecycle test was not rerun. Native contrast-theme, Narrator, and mixed-DPI
+checks keep their previously recorded limits.
+
 ## Conventional setup and first-use source choice — 2026-09-15
 
 The release candidate adds a conventional per-user Windows setup wizard and an

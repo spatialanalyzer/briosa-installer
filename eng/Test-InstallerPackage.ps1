@@ -32,7 +32,7 @@ function Check-Launcher([string]$Path, [string]$Store) {
     } finally { $process.Dispose() }
 }
 try {
-    foreach ($notice in @('THIRD-PARTY-NOTICES.md', 'licenses/briosa-brand-LICENSE.txt', 'licenses/Inter-OFL.txt', 'licenses/briosa-brand-provenance.json')) {
+    foreach ($notice in @('THIRD-PARTY-NOTICES.md', 'licenses/briosa-brand-LICENSE.txt', 'licenses/Inter-OFL.txt', 'licenses/Saira-OFL.txt', 'licenses/briosa-brand-provenance.json')) {
         Check (Test-Path -LiteralPath (Join-Path $package $notice) -PathType Leaf) "Packaged license or provenance is missing: $notice"
     }
     $demo = Join-Path $caseRoot 'demo'
