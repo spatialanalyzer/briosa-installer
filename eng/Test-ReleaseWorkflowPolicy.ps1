@@ -203,6 +203,12 @@ else {
     if ($publish.Text -notmatch '--draft(?![=\w-])') { $failures.Add('release.yml publish job must create the release with --draft.') }
     if ($publish.Text -match '--draft=') { $failures.Add('release.yml publish job must not set --draft to a value.') }
     if ($publish.Text -notmatch '--target[''"]?(?:\s*,\s*|\s+)\$env:GITHUB_SHA') { $failures.Add('release.yml publish job must target the run commit with --target $env:GITHUB_SHA.') }
+    # GitHub refuses release creation by the workflow token when the run's commit has
+    # workflow files that differ from main; the summary must give the maintainer's
+    # recovery for the same commit and signed files.
+    if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-run failed jobs' -or $publish.Text -notmatch 'gh run download') {
+        $failures.Add("release.yml publish job must write the maintainer's recovery (tag at the run commit, Re-run failed jobs, or a draft from this run's signed artifacts) when the draft is refused.")
+    }
 }
 foreach ($workflow in $workflows) {
     foreach ($entry in $workflow.Entries) {
