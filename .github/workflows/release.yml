@@ -1,13 +1,19 @@
 name: Release signed installer
+# Dispatch on main to sign reviewed code. The publish job creates a draft release; the
+# maintainer publishes it, which creates the v<version> tag. Any other branch is an
+# unsigned dry run, and tag refs are rejected.
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
     inputs:
       version:
-        description: Installer semantic version without v; dispatch produces artifacts only
+        description: Installer semantic version without v
         required: true
         type: string
+      publish:
+        description: Create a draft GitHub Release from this signed main build; publishing the draft creates the tag
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -16,8 +22,18 @@ jobs:
     timeout-minutes: 25
     outputs:
       version: ${{ steps.version.outputs.value }}
+      eligible: ${{ steps.version.outputs.eligible }}
     steps:
+      # Full history includes tags, so an existing v<version> tag is checked.
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: ./eng/Resolve-InstallerRelease.ps1 -Ref $env:GITHUB_REF -Commit $env:GITHUB_SHA -Version $env:DISPATCH_VERSION
       - name: Require Briosa support pins reachable from Briosa main
         shell: pwsh
         env:
@@ -33,15 +49,6 @@ jobs:
           ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
           path: .support/briosa
           persist-credentials: false
-      - name: Resolve version
-        id: version
-        shell: pwsh
-        env:
-          DISPATCH_VERSION: ${{ inputs.version }}
-        run: |
-          $version = if ($env:GITHUB_EVENT_NAME -eq 'push') { $env:GITHUB_REF_NAME.Substring(1) } else { $env:DISPATCH_VERSION }
-          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') { throw 'Invalid installer semantic version.' }
-          "value=$version" >> $env:GITHUB_OUTPUT
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -90,7 +97,7 @@ jobs:
           if-no-files-found: error
   sign:
     needs: package
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main' && needs.package.outputs.eligible == 'true'
     runs-on: windows-2025
     timeout-minutes: 35
     environment: release-signing
@@ -205,27 +212,53 @@ jobs:
           path: artifacts/signed/*
           if-no-files-found: error
   publish:
-    if: github.event_name == 'push' && github.ref_type == 'tag'
+    if: inputs.publish && needs.package.outputs.eligible == 'true'
     needs: [package, sign]
     runs-on: windows-2025
     timeout-minutes: 10
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8
         with:
           name: signed-installer
           path: artifacts/release
-      - name: Publish signed installer release
+      - name: Create draft release for maintainer review
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           PACKAGE_VERSION: ${{ needs.package.outputs.version }}
         run: |
+          $tag = "v$env:PACKAGE_VERSION"
           $files = @(Get-ChildItem artifacts/release -File | ForEach-Object FullName)
           if ($files.Count -ne 5) { throw 'Expected signed setup and checksum, plus signed ZIP, checksum, and provenance.' }
-          $arguments = @('release','create',$env:GITHUB_REF_NAME,'--verify-tag','--generate-notes','--title',"Briosa Installer $env:PACKAGE_VERSION")
+          # Drafts are listed only by the releases list endpoint, not by releases/tags/<tag>.
+          $existing = @(gh api "repos/$env:GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name')
+          if ($LASTEXITCODE -ne 0) { throw 'Could not list existing releases.' }
+          if ($existing -ccontains $tag) { throw "A release or draft release already uses $tag; review it instead of creating another." }
+          # Publishing the draft creates the tag at the signed commit.
+          $arguments = @('release', 'create', $tag, '--draft', '--target', $env:GITHUB_SHA, '--generate-notes', '--title', "Briosa Installer $env:PACKAGE_VERSION")
           if ($env:PACKAGE_VERSION.Contains('-')) { $arguments += '--prerelease' }
-          gh @arguments @files
-          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
+          $url = gh @arguments @files
+          if ($LASTEXITCODE -ne 0) {
+            # GitHub refuses this for the workflow token when the commit's workflow files
+            # differ from main, for example after a workflow change merged during approval.
+            @(
+              "## Draft release $tag was refused"
+              ''
+              "GitHub would not let the workflow token create the draft release for ``$env:GITHUB_SHA``. This happens when that commit's workflow files differ from main, for example after a workflow change merged while this run waited for approval. The signed files are this run's artifacts; nothing was released."
+              ''
+              'To release this commit as approved, the maintainer:'
+              ''
+              "1. Pushes the tag at this commit over SSH: ``git push git@github.com:$env:GITHUB_REPOSITORY.git ${env:GITHUB_SHA}:refs/tags/$tag``."
+              '2. Uses **Re-run failed jobs** on this run. With the tag in place GitHub creates no tag, so the draft is created with the same signed files.'
+              "3. If the draft is still refused, downloads this run's signed files with ``gh run download $env:GITHUB_RUN_ID --repo $env:GITHUB_REPOSITORY --name signed-installer``, then creates the draft on the Releases page from the existing tag $tag with those five files."
+            ) -join "`n" >> $env:GITHUB_STEP_SUMMARY
+            throw "The workflow token could not create the draft release for $tag; see the job summary for the recovery."
+          }
+          @(
+            "Created draft release $tag for commit ${env:GITHUB_SHA}: $url"
+            ''
+            "The maintainer must review the draft, confirm its target is $env:GITHUB_SHA, and publish it. Publishing creates the $tag tag."
+          ) -join "`n" >> $env:GITHUB_STEP_SUMMARY
