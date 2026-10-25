@@ -168,6 +168,30 @@ actions. CI runs `eng/Test-ReleaseWorkflowPolicy.ps1`, which checks these workfl
 rules, and `eng/Test-ResolveInstallerReleasePolicy.ps1`, which exercises the
 resolver against a disposable repository.
 
+### If the draft release is refused
+
+GitHub does not let the workflow token create a release whose commit has workflow
+files that differ from `main`, for example when a workflow change merges while the
+signing approval is pending. The publish job then fails after signing; nothing is
+released, and its job summary repeats these steps. To release the approved commit
+with the same signed files:
+
+1. Push the tag at the run's commit with your own credentials over SSH:
+
+   ```powershell
+   git push git@github.com:spatialanalyzer/briosa-installer.git <commit>:refs/tags/v<version>
+   ```
+
+   The release tag ruleset lets organization owners create it.
+2. Use **Re-run failed jobs** on the same run. With the tag in place GitHub creates
+   no tag, so the publish job creates the draft with the same signed files.
+3. If the draft is still refused, download the run's signed files and create the
+   draft on the Releases page from the existing tag, attaching all five files:
+
+   ```powershell
+   gh run download <run-id> --repo spatialanalyzer/briosa-installer --name signed-installer --dir artifacts/release
+   ```
+
 ## Build conventional Windows setup
 
 The setup wraps the complete distribution above. It installs per-user and adds
