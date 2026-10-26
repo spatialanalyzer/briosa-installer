@@ -47,21 +47,26 @@ clean-Windows, real Artifactory/proxy, or licensed-SA validation.
 
 To validate real server packages from a companion Briosa checkout without starting
 the server or SDK, supply a directory containing their ZIPs, checksums, and adjacent
-provenance files, plus the behavioral contract major approved for that set:
+provenance files, plus the behavioral contract major approved for that set. A set
+that mixes majors names the approved major of each package by artifact name instead:
 
 ```powershell
 ./eng/Test-ServerPackages.ps1 -ArtifactDirectory ../briosa/artifacts/packages -BriosaRepository ../briosa -ExpectedCompatibilityMajor 2
+./eng/Test-ServerPackages.ps1 -ArtifactDirectory ./artifacts/server-candidates -BriosaRepository ../briosa -ExpectedCompatibilityMajors @{ 'briosa-0.8.0-sa-2024.1.0508.5-win-x64' = 1; 'briosa-0.9.2-sa-2024.1.0508.5-win-x64' = 2 }
 ```
 
 The harness creates a disposable publisher key, signed local catalog, settings, and
-private store. It checks schema-3 admission, receipts, coexistence, verification,
-exact-package repair, and removal for at least two server products. Pass `-CliPath`
+private store. It installs every supplied product into that one store and checks
+schema-3 admission, receipts, the installed manifest's major, coexistence,
+verification of every product, exact-package repair of one product per approved
+major, and removal, for at least two server products. Pass `-CliPath`
 to exercise the CLI from an extracted self-contained installer distribution. This
 also covers protocol-only server updates such as the MP argument naming migration.
 The installer needs no application upgrade for this migration and does not alter
 consuming applications' client dependencies.
 
-`-ExpectedCompatibilityMajor` has no default. It checks the supplied package set;
+The two major parameters are mutually exclusive and have no default; a map must
+name every supplied package and nothing else. They check the supplied package set;
 the installer does not negotiate the server's gRPC contract. The package engine
 accepts any positive uint32 compatibility major with a uint32 revision and preserves
 the manifest unchanged, so a later major installs side by side without an installer
@@ -73,17 +78,35 @@ Language clients select a compatible runtime through Briosa's
 Inert installation does not establish SDK readiness or compatibility with an
 application's existing client dependency.
 
+Installer 0.3.0 (`1d6fd37`, spatialanalyzer/briosa-installer#19) is the minimum
+for compatibility-aware servers: it is the first release that reads schema-3 server
+manifests, which Server 0.7.0 and later publish. Installer 0.2.2 and earlier accept
+only schema 2 and reject these packages. The package engine and CLI are unchanged
+since 0.3.0 apart from comments. Because 0.3.0 accepts any positive major, a later
+major published with schema-3 manifests needs no newer installer; a new manifest
+schema would.
+
 CI and release packaging run the harness against the reviewed real packages in
-[`eng/server-package-candidates.json`](../eng/server-package-candidates.json): a
-public Briosa release, its approved compatibility major, and each exact-target ZIP
-and provenance digest. It currently lists Server 0.9.2 (major 2) for SA
-`2024.1.0508.5` and `2026.1.0529.7`. `eng/Test-ServerPackageCandidates.ps1`
-downloads absent files from that GitHub release (about 130 MB per target), verifies
-the digests and that each provenance `sourceRevision` equals the supplied Briosa
-checkout, requires the packages to fail at a different major, and then runs the
-harness. The workflows check out that source revision for the catalog tools and read
-no private repository. Changing the candidates, for example to a major-3 server,
-updates the approved major, digests, and workflow pin together for review.
+[`eng/server-package-candidates.json`](../eng/server-package-candidates.json). Each
+entry names its public Briosa release, approved compatibility major, exact SA target,
+and ZIP and provenance digests. It currently lists Server 0.8.0 (major 1) and
+Server 0.9.2 (major 2), each for SA `2024.1.0508.5` and `2026.1.0529.7`, so
+retained major-1 products and major-2 products coexist in one store.
+`eng/Test-ServerPackageCandidates.ps1` downloads absent files from each package's
+GitHub release (about 130 MB per package) and verifies the digests. The newest
+release's provenance `sourceRevision` must equal the supplied Briosa checkout, which
+supplies the catalog tools. Each older release's revision must be reachable from
+Briosa `main`, checked through the GitHub compare API like the workflow pins. Each
+package must then fail when a different major is approved for it alone, before the
+harness installs the whole set with each package's approved major. The workflows
+check out the newest source revision for the catalog tools and read no private
+repository. This is package validation only: it launches no server, worker, or SA
+SDK, needs no license, and does not establish licensed SA execution.
+
+When Briosa publishes a major-3 server, append its packages the same way, with
+their release, major, and digests, and move the candidate catalog-tool pin to its
+source revision in the same reviewed change. Earlier entries stay, so CI keeps
+installing every listed major side by side; remove one only when its major is retired.
 
 ```powershell
 ./eng/Test-ServerPackageCandidates.ps1 -BriosaRepository ../briosa -ArtifactDirectory ./artifacts/server-candidates

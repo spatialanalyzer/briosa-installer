@@ -1,16 +1,34 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": "spatialanalyzer/briosa",
-  "release": "v0.9.2",
-  "compatibilityMajor": 2,
   "packages": [
     {
+      "release": "v0.8.0",
+      "compatibilityMajor": 1,
+      "artifactName": "briosa-0.8.0-sa-2024.1.0508.5-win-x64",
+      "spatialAnalyzerTarget": "2024.1.0508.5",
+      "zipSha256": "9e19490477b4b14ac84d3bd63a87dfb8841d3ba0d02526b156b2add8e7306642",
+      "provenanceSha256": "0b64108a4da6a04922b5ca7a862f6685f01e3ea73991d3b0174b659c7b02d0a1"
+    },
+    {
+      "release": "v0.8.0",
+      "compatibilityMajor": 1,
+      "artifactName": "briosa-0.8.0-sa-2026.1.0529.7-win-x64",
+      "spatialAnalyzerTarget": "2026.1.0529.7",
+      "zipSha256": "470fade33bec36dbe9d0462f73250ae309f9561703bf2b9e75ea35484f3d96ee",
+      "provenanceSha256": "5cb4b21129a8ee1e1e72377975f179561a76422c23541f924ec248c1eca3c5ea"
+    },
+    {
+      "release": "v0.9.2",
+      "compatibilityMajor": 2,
       "artifactName": "briosa-0.9.2-sa-2024.1.0508.5-win-x64",
       "spatialAnalyzerTarget": "2024.1.0508.5",
       "zipSha256": "7c050305e25c4b03b46ed8c4f49525c19673ae5d7848a41e56cc7c4fd693967b",
       "provenanceSha256": "7c63947ecf1f19962f25342d0ff80372b234c724e1414d95ddb30c3c65a2f266"
     },
     {
+      "release": "v0.9.2",
+      "compatibilityMajor": 2,
       "artifactName": "briosa-0.9.2-sa-2026.1.0529.7-win-x64",
       "spatialAnalyzerTarget": "2026.1.0529.7",
       "zipSha256": "d70a58b2b1d82cf99c141c00384cf1380f48302c1d3e401d3f583d68ca174b8b",
