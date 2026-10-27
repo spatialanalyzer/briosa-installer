@@ -25,7 +25,7 @@ jobs:
       eligible: ${{ steps.version.outputs.eligible }}
     steps:
       # Full history includes tags, so an existing v<version> tag is checked.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Resolve version
@@ -43,13 +43,13 @@ jobs:
       # only SHA-pin setup-dotnet v6.0.0, require SDK 10.0.401, and accept schema 3 server manifests.
       # Installer manifest handling is unchanged.
       - name: Check out reviewed shared signing tools and public trust root
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spatialanalyzer/briosa
           ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
           path: .support/briosa
           persist-credentials: false
-      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - name: Restore, build, and test
@@ -72,7 +72,7 @@ jobs:
           ./eng/Test-InstallerPackage.ps1 -PackageDirectory "$PWD/artifacts/unsigned/briosa-installer-$env:PACKAGE_VERSION-win-x64" -BriosaRepository "$PWD/.support/briosa"
       # Catalog tools must be the Briosa revision that built the newest eng/server-package-candidates.json release.
       - name: Check out the Briosa revision that built the newest server package candidates
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spatialanalyzer/briosa
           ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
@@ -105,9 +105,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Same reviewed signing-tool pin as the package job.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spatialanalyzer/briosa
           ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
@@ -121,7 +121,7 @@ jobs:
       # strict global.json. The pinned sign-package action provisions the SDK from
       # the Briosa pin's global.json (10.0.401 at c72e027), so this step provisions
       # the Installer's own pin and keeps Installer SDK updates independent of it.
-      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - name: Sign the installer, CLI, launcher, and shortcut script
