@@ -49,7 +49,7 @@ jobs:
           ref: c72e02753fe7c6a0a9830282de9f9a5cff9e8c39
           path: .support/briosa
           persist-credentials: false
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
       - name: Restore, build, and test
@@ -121,7 +121,7 @@ jobs:
       # strict global.json. The pinned sign-package action provisions the SDK from
       # the Briosa pin's global.json (10.0.401 at c72e027), so this step provisions
       # the Installer's own pin and keeps Installer SDK updates independent of it.
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
       - name: Sign the installer, CLI, launcher, and shortcut script
