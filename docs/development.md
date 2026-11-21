@@ -89,9 +89,10 @@ schema would.
 CI and release packaging run the harness against the reviewed real packages in
 [`eng/server-package-candidates.json`](../eng/server-package-candidates.json). Each
 entry names its public Briosa release, approved compatibility major, exact SA target,
-and ZIP and provenance digests. It currently lists Server 0.8.0 (major 1) and
-Server 0.9.2 (major 2), each for SA `2024.1.0508.5` and `2026.1.0529.7`, so
-retained major-1 products and major-2 products coexist in one store.
+and ZIP and provenance digests. It currently lists Server 0.8.0 (major 1),
+Server 0.9.2 (major 2), and Server 0.10.0 (major 3), each for SA `2024.1.0508.5`
+and `2026.1.0529.7`, so retained major-1, major-2, and major-3 products coexist
+in one store.
 `eng/Test-ServerPackageCandidates.ps1` downloads absent files from each package's
 GitHub release (about 130 MB per package) and verifies the digests. The newest
 release's provenance `sourceRevision` must equal the supplied Briosa checkout, which
@@ -103,10 +104,11 @@ check out the newest source revision for the catalog tools and read no private
 repository. This is package validation only: it launches no server, worker, or SA
 SDK, needs no license, and does not establish licensed SA execution.
 
-When Briosa publishes a major-3 server, append its packages the same way, with
-their release, major, and digests, and move the candidate catalog-tool pin to its
-source revision in the same reviewed change. Earlier entries stay, so CI keeps
-installing every listed major side by side; remove one only when its major is retired.
+When Briosa publishes a server for a newer compatibility major, append its
+packages the same way, with their release, major, and digests, and move the
+candidate catalog-tool pin to its source revision in the same reviewed change.
+Earlier entries stay, so CI keeps installing every listed major side by side;
+remove one only when its major is retired.
 
 ```powershell
 ./eng/Test-ServerPackageCandidates.ps1 -BriosaRepository ../briosa -ArtifactDirectory ./artifacts/server-candidates
@@ -123,12 +125,13 @@ closed. The check then accepts a literal `repository:` with exactly one sibling
 repositories and any other reference to the repository, such as a clone URL, also
 fail. CI runs `eng/Test-BriosaSupportPinChecks.ps1` to keep those rejections
 covered. Script contents are not interpreted, so workflow review still guards
-against deliberately obfuscated fetches. The release signing tools use the same
-`c72e027` (Briosa `v0.9.2`) as the server-candidate catalog tools. Since the
-previous signing pin `c19f64d` (spatialanalyzer/briosa#174), the signing paths
-only SHA-pin `actions/setup-dotnet` v6.0.0, require SDK 10.0.401, and accept
-schema 3 server manifests; installer manifest handling is unchanged. Never
-float these pins; move one only after reviewing the Briosa scripts it executes.
+against deliberately obfuscated fetches. The server-candidate catalog tools use
+`ee16784` (Briosa `v0.10.0`), while the release signing tools remain pinned to
+`c72e027` (Briosa `v0.9.2`). Since the previous signing pin `c19f64d`
+(spatialanalyzer/briosa#174), the signing paths only SHA-pin
+`actions/setup-dotnet` v6.0.0, require SDK 10.0.401, and accept schema 3 server
+manifests; installer manifest handling is unchanged. Never float these pins;
+move one only after reviewing the Briosa scripts it executes.
 
 Local validation on 2026-09-25 passed against unpublished `0.9.0-dev.2` server
 packages from Briosa commit `82b6ce51cb199a4e04ef3c142af4b27a8c34d1e4`
