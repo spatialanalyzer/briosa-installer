@@ -33,6 +33,22 @@
       "spatialAnalyzerTarget": "2026.1.0529.7",
       "zipSha256": "d70a58b2b1d82cf99c141c00384cf1380f48302c1d3e401d3f583d68ca174b8b",
       "provenanceSha256": "1425c5681471644eb65c085d291ab18a7e53bea7514ee769049cbfee2a2b3751"
+    },
+    {
+      "release": "v0.10.0",
+      "compatibilityMajor": 3,
+      "artifactName": "briosa-0.10.0-sa-2024.1.0508.5-win-x64",
+      "spatialAnalyzerTarget": "2024.1.0508.5",
+      "zipSha256": "0ac7c2f5cb4884fbb2d405e0b25bf031f8df11bdd854bb8ef42ba5ae6c49eef0",
+      "provenanceSha256": "f674ef2363e70b447f9fde9f4aed4a6702201128fc830adf8e23e6941bfd666c"
+    },
+    {
+      "release": "v0.10.0",
+      "compatibilityMajor": 3,
+      "artifactName": "briosa-0.10.0-sa-2026.1.0529.7-win-x64",
+      "spatialAnalyzerTarget": "2026.1.0529.7",
+      "zipSha256": "cb100cb75d0e35db576f08f402daa8fa710e7149c9a381b43b1ebdf81e26d2c5",
+      "provenanceSha256": "eb99672693abe57d18c971629c1e2f6e903f45725d95a2c7aabbed9c72bbf767"
     }
   ]
 }
