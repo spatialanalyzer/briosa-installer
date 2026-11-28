@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spatialanalyzer/briosa
-          ref: d947d95ca6e7ff1ecece94cdcb218724f151a807
+          ref: 5ca27a84ed7f80e7dd12cc0e6c0238e71090421e
           path: .support/briosa-candidates
           persist-credentials: false
           sparse-checkout: |
